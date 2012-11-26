@@ -52,7 +52,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\common\ImageProcessingCore\src;$(OPENCV_DIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\libImageProcessingCore\include;$(OPENCV_DIR)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -80,7 +80,7 @@
     <ClCompile Include="test_ImgProcCoreDemo1.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\common\ImageProcessingCore\ImageProcessingCore.vcxproj">
+    <ProjectReference Include="..\..\libImageProcessingCore\libImageProcessingCore.vcxproj">
       <Project>{17562a75-d514-4b23-afce-af4b7c0542bf}</Project>
     </ProjectReference>
   </ItemGroup>
