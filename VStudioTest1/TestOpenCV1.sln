@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImgProcCoreDemo1", "ImgProc
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libImageProcessingCore", "..\libImageProcessingCore\libImageProcessingCore.vcxproj", "{17562A75-D514-4B23-AFCE-AF4B7C0542BF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoCircleLocator1", "StereoCircleLocator1\StereoCircleLocator1.vcxproj", "{7E68BC84-3CFB-4E94-884A-D5D5463388C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -31,6 +33,10 @@ Global
 		{17562A75-D514-4B23-AFCE-AF4B7C0542BF}.Debug|Win32.Build.0 = Debug|Win32
 		{17562A75-D514-4B23-AFCE-AF4B7C0542BF}.Release|Win32.ActiveCfg = Release|Win32
 		{17562A75-D514-4B23-AFCE-AF4B7C0542BF}.Release|Win32.Build.0 = Release|Win32
+		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Debug|Win32.Build.0 = Debug|Win32
+		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Release|Win32.ActiveCfg = Release|Win32
+		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
