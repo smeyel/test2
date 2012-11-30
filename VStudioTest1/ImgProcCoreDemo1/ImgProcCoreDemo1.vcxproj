@@ -77,12 +77,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BandpassFilter.cpp" />
+    <ClCompile Include="TwoColorFilter.cpp" />
+    <ClCompile Include="LowpassFilter.cpp" />
     <ClCompile Include="test_ImgProcCoreDemo1.cpp" />
+    <ClCompile Include="TwoColorLocator.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\libImageProcessingCore\libImageProcessingCore.vcxproj">
       <Project>{17562a75-d514-4b23-afce-af4b7c0542bf}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BandpassFilter.h" />
+    <ClInclude Include="LowpassFilter.h" />
+    <ClInclude Include="TwoColorFilter.h" />
+    <ClInclude Include="TwoColorLocator.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
