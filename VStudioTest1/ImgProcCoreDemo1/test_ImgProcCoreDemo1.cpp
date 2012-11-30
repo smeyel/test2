@@ -4,15 +4,18 @@
 #include <opencv2\highgui\highgui.hpp>
 #include <iostream>
 
+#include "TwoColorLocator.h"
+
 #include <time.h>
 
-#include "marker.h"
-#include "markersearch.h"
+//#include "marker.h"
+//#include "markersearch.h"
 
 using namespace cv;
 using namespace std;
 
 void do_test3(const string filename);
+void do_test4(const string filename);
 
 const char* wndInput = "Video input";
 const char* wndOutput = "Processing result";
@@ -69,10 +72,11 @@ void mergeNewProcessingTimes(ProcessingTimes *times)
 
 int main()
 {
-	do_test3("d:\\SMEyeL\\inputmedia\\gyengeMarkerVideo.MP4");
+	//do_test3("d:\\SMEyeL\\inputmedia\\gyengeMarkerVideo.MP4");
+	do_test4("d:\\SMEyeL\\inputmedia\\gyengeMarkerVideo.MP4");
 }
 
-void do_test3(const string filename) // video feldogozas - marker kereses szinekkel
+/*void do_test3(const string filename) // video feldogozas - marker kereses szinekkel
 {
 	VideoCapture capture(filename);
 	if (!capture.isOpened())
@@ -87,8 +91,6 @@ void do_test3(const string filename) // video feldogozas - marker kereses szinek
 	//namedWindow(wndInput, CV_WINDOW_AUTOSIZE);
 	namedWindow(wndOutput, CV_WINDOW_AUTOSIZE);
 	//namedWindow(wndTmp, CV_WINDOW_AUTOSIZE);
-/*	namedWindow(wndBlu, CV_WINDOW_AUTOSIZE);
-	namedWindow(wndSat, CV_WINDOW_AUTOSIZE); */
 	cvSetMouseCallback(wndInput, mouse_callback);
 	
 	Mat inputFrame, resizedFrame, resultFrame;
@@ -101,7 +103,7 @@ void do_test3(const string filename) // video feldogozas - marker kereses szinek
 	ProcessingTimes times;
 	initProcessingTimes(&times);
 
-	initHue2CodeLut();
+//	initHue2CodeLut();
 
 	while(true)
 	{
@@ -126,6 +128,86 @@ void do_test3(const string filename) // video feldogozas - marker kereses szinek
 		// show input and output frame
 		//imshow(wndInput,resizedFrame);
 		imshow(wndOutput,resultFrame);
+		times.shown = clock();
+
+		// Measure elapsed times, calculate averages until now...
+		mergeNewProcessingTimes(&times);
+
+		// Wait between frames or stop at Esc key...
+		int totalFrameTime = times.shown - times.start;
+		int delay = (1000/25) - totalFrameTime;
+		if (delay < 1)
+		{
+			delay = 1;
+		}
+		c = cvWaitKey(delay);
+		if (c==27) break;
+	}
+
+	printf("\n\nAverage times: capt %4.1lf, resize %4.1lf, proc %4.1lf, show %4.1lf, max %4.1lf FPS\n",
+		times.avg_captured, times.avg_resized, times.avg_processed, times.avg_shown, times.avg_maxFps);
+
+	cout << "Press any key..." << endl;
+	c = cvWaitKey(0);
+
+	return;
+} */
+
+
+void do_test4(const string filename) // video feldogozas - marker kereses szinekkel
+{
+	VideoCapture capture(filename);
+	if (!capture.isOpened())
+	{
+		cout << "Cannot open input file: " << filename << endl;
+	}
+
+	Size videoSize = Size( (int)capture.get(CV_CAP_PROP_FRAME_WIDTH),
+						   (int)capture.get(CV_CAP_PROP_FRAME_HEIGHT));
+	cout << "Input resolution: " << videoSize.width << "x" << videoSize.height << endl;
+
+	namedWindow(wndOutput, CV_WINDOW_AUTOSIZE);
+//	cvSetMouseCallback(wndInput, mouse_callback);
+	
+	Mat inputFrame, resizedFrame, resultFrame;
+	char c;
+
+	// size for resizing
+	const Size dsize(640,400);
+	//const Size dsize(320,200);
+
+	ProcessingTimes times;
+	initProcessingTimes(&times);
+
+	//initHue2CodeLut();
+
+	TwoColorLocator twoColorLocator;
+
+	while(true)
+	{
+		times.start = clock();
+		// Get next frame
+		capture >> inputFrame;
+		if (inputFrame.empty())
+		{
+			cout << "End of video" << endl;
+			break;
+		}
+		times.captured = clock();
+
+		// Resizing image
+		resize(inputFrame,resizedFrame,dsize);
+		times.resized  = clock();
+
+		// Processing inputFrame -> resultFrame
+		twoColorLocator.verbose = true;
+		twoColorLocator.apply(resizedFrame);
+		//processFrame(&resizedFrame,&resultFrame);
+		times.processed = clock();
+
+		// show input and output frame
+		//imshow(wndInput,resizedFrame);
+		imshow(wndOutput,twoColorLocator.verboseImage);
 		times.shown = clock();
 
 		// Measure elapsed times, calculate averages until now...
