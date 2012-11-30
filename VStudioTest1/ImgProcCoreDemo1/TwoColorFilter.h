@@ -12,7 +12,7 @@ using namespace cv;
 class TwoColorFilter
 {
 private:
-	Mat h,s,smask,tmp;
+	Mat tmp;
 
 	BandpassFilter internalH1Filter;
 	BandpassFilter internalH2Filter;
@@ -30,6 +30,9 @@ public:
 	void apply(Mat &srcBGR, Mat &resultHue1Mask, Mat &resultHue2Mask);
 
 	Mat imgHSV;	// Ha esetleg kell, el lehet érni ezt is...
+	Mat smask;	// Saturation mask
+	Mat s;		// Sat values of pixels
+	Mat h;		// Hue values of pixels
 };
 
 #endif

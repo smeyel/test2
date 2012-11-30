@@ -16,7 +16,6 @@ private:
 	TwoColorFilter internalTwoColorFilter;
 public:
 	TwoColorFilter *twoColorFilter;
-	bool verbose;
 
 	void apply(Mat &src, Mat &resultMask);
 
@@ -28,9 +27,8 @@ public:
 	// Storage of results, cleared before every "apply()"
 	std::list<CvRect> resultRectangles;
 
-
 	// Image for subresult visualization
-	Mat verboseImage;
+	Mat *verboseImage;
 
 private:
 	// Az integral image peremosszegeit szamolja ki
@@ -38,7 +36,7 @@ private:
 	// Verbose-hoz: integral image peremosszegek a margokon
 	void drawValuesOnMargin(Mat &img, int *values, int valueNum,int scalingDivider, Scalar color, LocationEnum loc);
 	// Verbose-hoz: A peremosszegekbol threshold alapjan letrehozza az eselyes negyzetek listjajat.
-	void getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax, double thresholdRate, std::list<CvRect> &resultRectangles, bool verbose, Mat *verboseImage);
+	void getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax, double thresholdRate, std::list<CvRect> &resultRectangles, Mat *verboseImage);
 };
 
 #endif

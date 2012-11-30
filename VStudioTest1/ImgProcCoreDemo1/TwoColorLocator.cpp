@@ -20,15 +20,15 @@ TwoColorLocator::TwoColorLocator()
 
 	twoColorFilter = &internalTwoColorFilter;
 
-	verbose = true;
+	verboseImage = NULL;
 }
 
 void TwoColorLocator::apply(Mat &srcBGR)
 {
-	if (verbose)
+	if (verboseImage != NULL)
 	{
 		// Verbose image-nek az alapja az eredeti kep
-		srcBGR.copyTo(verboseImage);
+		srcBGR.copyTo(*verboseImage);
 	}
 
 	// --- Filter colors, create masks
@@ -55,12 +55,12 @@ void TwoColorLocator::apply(Mat &srcBGR)
 	getOccurranceNumbers(h2integral,h2rowOccNums,h2colOccNums,rowmax,colmax);
 
 	// Peremen megjelenitjuk a pixel darabszamokat az egyes maszkok szerint
-	if (verbose)
+	if (verboseImage != NULL)
 	{
-		drawValuesOnMargin(verboseImage,h1rowOccNums,h1mask.rows,rowmax/50,Scalar(0,0,255),Right);
-		drawValuesOnMargin(verboseImage,h1colOccNums,h1mask.cols,colmax/50,Scalar(0,0,255),Bot);
-		drawValuesOnMargin(verboseImage,h2rowOccNums,h2mask.rows,rowmax/50,Scalar(255,0,0),Left);
-		drawValuesOnMargin(verboseImage,h2colOccNums,h2mask.cols,colmax/50,Scalar(255,0,0),Top);
+		drawValuesOnMargin(*verboseImage,h1rowOccNums,h1mask.rows,rowmax/50,Scalar(0,0,255),Right);
+		drawValuesOnMargin(*verboseImage,h1colOccNums,h1mask.cols,colmax/50,Scalar(0,0,255),Bot);
+		drawValuesOnMargin(*verboseImage,h2rowOccNums,h2mask.rows,rowmax/50,Scalar(255,0,0),Left);
+		drawValuesOnMargin(*verboseImage,h2colOccNums,h2mask.cols,colmax/50,Scalar(255,0,0),Top);
 	}
 
 	// --- A ket maszk osszevonasa egybe (hol teljesul mindketto "peremfeltetele")
@@ -89,36 +89,20 @@ void TwoColorLocator::apply(Mat &srcBGR)
 	delete h2rowOccNums;
 	delete h2colOccNums;
 
-	if (verbose)
+	if (verboseImage != NULL)
 	{
-		drawValuesOnMargin(verboseImage,mergedRowOccNums,h2mask.rows,mergedRowMax/50,Scalar(0,255,255),Right);
-		drawValuesOnMargin(verboseImage,mergedColOccNums,h2mask.cols,mergedColMax/50,Scalar(0,255,255),Bot);
+		drawValuesOnMargin(*verboseImage,mergedRowOccNums,h2mask.rows,mergedRowMax/50,Scalar(0,255,255),Right);
+		drawValuesOnMargin(*verboseImage,mergedColOccNums,h2mask.cols,mergedColMax/50,Scalar(0,255,255),Bot);
 	}
 
 	resultRectangles.clear();
 
 	getMarkerCandidateRectanges(mergedRowOccNums, mergedColOccNums, rownum, colnum,
-		mergedRowMax, mergedColMax, 0.2, resultRectangles, verbose, &verboseImage);
-
-/*	// Mask h with smask...	(TODO: ezt igazabol mar joval korabban meg lehetne tenni...)
-	bitwise_and(h,smask,h);
-	//imshow(wndTmp,h);
-
-	// Markerek leolvasasa
-	for (std::list<CvRect>::iterator rectIt = resultRectangles.begin();
-		 rectIt != resultRectangles.end();
-		 rectIt++)
-	{
-		Marker newMarker;
-		readMarkerCode(h,*rectIt,newMarker,result);
-	} */
+		mergedRowMax, mergedColMax, 0.2, resultRectangles, verboseImage);
 
 	delete mergedRowOccNums;
 	delete mergedColOccNums;
-
-
 }
-
 
 // Az integral image peremosszegeit szamolja ki
 void TwoColorLocator::getOccurranceNumbers(Mat &srcIntegral, int* rowOccNums, int *colOccNums, int &rowmax, int &colmax)
@@ -188,10 +172,10 @@ void TwoColorLocator::drawValuesOnMargin(Mat &img, int *values, int valueNum,
 
 // A peremosszegekbol threshold alapjan letrehozza az eselyes negyzetek listjajat.
 void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax,
-	double thresholdRate, std::list<CvRect> &resultRectangles, bool verbose, Mat *verboseImage)
+	double thresholdRate, std::list<CvRect> &resultRectangles, Mat *verboseImage)
 {
-	CV_Assert(rownum == verboseImage->rows);
-	CV_Assert(colnum == verboseImage->cols);
+//	CV_Assert(rownum == verboseImage->rows);
+//	CV_Assert(colnum == verboseImage->cols);
 
 	// Thresholding for 30%
 	int rowValThreshold = rowMax * thresholdRate;
@@ -220,7 +204,7 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 				Scalar newInterval = Scalar(currentIntervalBegin, i);
 				rowIntervalList.push_back(newInterval);
 
-				if (verbose)
+				if (verboseImage != NULL)
 				{
 					rectangle(*verboseImage,cvPoint(0,currentIntervalBegin),cvPoint(20,i),Scalar(0,255,255));
 				}
@@ -253,7 +237,7 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 				Scalar newInterval = Scalar(currentIntervalBegin, i);
 				colIntervalList.push_back(newInterval);
 
-				if (verbose)
+				if (verboseImage != NULL)
 				{
 					rectangle(*verboseImage,cvPoint(currentIntervalBegin,0),cvPoint(i,20),Scalar(0,255,255));
 				}
@@ -282,11 +266,10 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 			resultRectangles.push_back(newRect);
 
 			// visualize
-			if (verbose)
+			if (verboseImage != NULL)
 			{
 				rectangle(*verboseImage,newRect,Scalar(255,255,255));
 			}
 		}
 	}
 }
-

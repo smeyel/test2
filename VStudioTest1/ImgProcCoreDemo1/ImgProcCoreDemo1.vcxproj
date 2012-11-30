@@ -78,6 +78,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BandpassFilter.cpp" />
+    <ClCompile Include="MarkerCC1.cpp" />
+    <ClCompile Include="MarkerCC1Locator.cpp" />
     <ClCompile Include="TwoColorFilter.cpp" />
     <ClCompile Include="LowpassFilter.cpp" />
     <ClCompile Include="test_ImgProcCoreDemo1.cpp" />
@@ -91,6 +93,8 @@
   <ItemGroup>
     <ClInclude Include="BandpassFilter.h" />
     <ClInclude Include="LowpassFilter.h" />
+    <ClInclude Include="MarkerCC1.h" />
+    <ClInclude Include="MarkerCC1Locator.h" />
     <ClInclude Include="TwoColorFilter.h" />
     <ClInclude Include="TwoColorLocator.h" />
   </ItemGroup>
