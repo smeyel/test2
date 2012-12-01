@@ -4,6 +4,8 @@
 #include "TwoColorLocator.h"
 #include "MarkerCC1.h"
 
+#include "TimeMeasurementCodeDefines.h"
+
 using namespace cv;
 
 TwoColorLocator::TwoColorLocator()
@@ -30,13 +32,16 @@ void TwoColorLocator::apply(Mat &srcBGR)
 
 	// --- Calculate integral images of masks
 	Mat h1integral, h2integral;
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::IntegralImages);
 	integral(h1mask,h1integral,CV_32S);
 	integral(h2mask,h2integral,CV_32S);
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::IntegralImages);
 
 	CV_Assert(h1mask.rows == h2mask.rows);
 	CV_Assert(h1mask.cols == h2mask.cols);
 
 	// --- Az integral image alapjan a sorok es oszopok pixelertek osszegeit szamoljuk ki minden maszkra
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ProcessIntegralImages);
 	int *h1rowOccNums = new int[h1mask.rows];
 	int *h1colOccNums = new int[h1mask.cols];
 	int *h2rowOccNums = new int[h2mask.rows];
@@ -87,6 +92,7 @@ void TwoColorLocator::apply(Mat &srcBGR)
 		drawValuesOnMargin(*verboseImage,mergedRowOccNums,h2mask.rows,mergedRowMax/50,Scalar(0,255,255),Right);
 		drawValuesOnMargin(*verboseImage,mergedColOccNums,h2mask.cols,mergedColMax/50,Scalar(0,255,255),Bot);
 	}
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ProcessIntegralImages);
 
 	resultRectangles.clear();
 
@@ -169,6 +175,7 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 {
 //	CV_Assert(rownum == verboseImage->rows);
 //	CV_Assert(colnum == verboseImage->cols);
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::GetCandidateRectangles);
 
 	// Thresholding for 30%
 	int rowValThreshold = rowMax * thresholdRate;
@@ -265,4 +272,5 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 			}
 		}
 	}
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::GetCandidateRectangles);
 }

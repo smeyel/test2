@@ -5,7 +5,7 @@
   <PropertyGroup />
   <ItemDefinitionGroup>
     <ClCompile>
-      <AdditionalIncludeDirectories>$(OPENCV_DIR)\include\opencv;$(OPENCV_DIR)\include\opencv2</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_DIR)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(OPENCV_DIR)\x86\vc10\lib</AdditionalLibraryDirectories>

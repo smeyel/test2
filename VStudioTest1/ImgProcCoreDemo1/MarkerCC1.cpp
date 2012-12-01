@@ -6,6 +6,8 @@
 #include "TwoColorLocator.h"
 #include "MarkerCC1.h"
 
+#include "TimeMeasurementCodeDefines.h"
+
 #define COLORCODE_INITIAL 254	// Used to indicate no valid value, even no "unrecognized color"
 #define COLORCODE_NONE 255
 #define COLORCODE_BLU 0
@@ -75,6 +77,7 @@ void MarkerCC1::readCode(Mat &hueSmaskImg, Mat &valImg, CvRect &rect, Mat *verbo
 	scanDistance = rect.width>rect.height ? 2*rect.width : 2*rect.height;
 
 	// SCAN
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerScanlines);
 	for (int dir=0; dir<8; dir++)
 	{
 		if (!findBordersAlongLine(hueSmaskImg,dir, verboseImage))
@@ -82,16 +85,23 @@ void MarkerCC1::readCode(Mat &hueSmaskImg, Mat &valImg, CvRect &rect, Mat *verbo
 			return;	// Marker direction rejected...
 		}
 	}
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::MarkerScanlines);
 	// if we get here, all directions were successfully processed and the borders detected.
 
 	// Fit ellipses to borders
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerFitEllipses);
 	fitBorderEllipses(verboseImage);
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerFitEllipses);
 
 	// Read code along ellipses
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerScanEllipses);
 	scanEllipses(valImg,hueSmaskImg,verboseImage);
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::MarkerScanEllipses);
 
 	// TODO: Validate marker code
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateValidate);
 	validateAndConsolidateMarkerCode();
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateValidate);
 
 	char tmpCodeString[255];
 	sprintf(tmpCodeString,"%d",markerID);
@@ -419,27 +429,27 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	int finalOuterBits[8];
 	unsigned int innerCode = 0;
 	unsigned int outerCode = 0;
-	cout << "GrnIdx:" << greenIdx << ", Outer code: ";
+	//cout << "GrnIdx:" << greenIdx << ", Outer code: ";
 	for(int i=0; i<8; i++)
 	{
 		realBitIdxOuter[i] = 8 + ((greenIdx-8)+2*i) % 16;
 		finalOuterBits[i] = rawbits[realBitIdxOuter[i]];
-		cout << finalOuterBits[i];
+		//cout << finalOuterBits[i];
 		outerCode |= finalOuterBits[i];
 		if (i<7)
 			outerCode <<= 1;
 	}
-	cout << ", inner code: ";
+	//cout << ", inner code: ";
 	for(int i=0; i<4; i++)
 	{
 		realBitIdxInner[i] = (realBitIdxOuter[2*i]-8)/2;
 		finalInnerBits[i] = rawbits[realBitIdxInner[i]];
-		cout << finalInnerBits[i];
+		//cout << finalInnerBits[i];
 		innerCode |= finalInnerBits[i];
 		if (i<3)
 			innerCode <<= 1;
 	}
-	cout << ", iCode=" << innerCode << " oCode=" << outerCode << endl;
+	//cout << ", iCode=" << innerCode << " oCode=" << outerCode << endl;
 
 	// TODO: vegso soron a marker.markerID -t kell beallitani.
 	markerID = 0;
