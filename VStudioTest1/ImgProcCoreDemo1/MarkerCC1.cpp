@@ -94,7 +94,7 @@ void MarkerCC1::readCode(Mat &hueSmaskImg, Mat &valImg, CvRect &rect, Mat *verbo
 	validateAndConsolidateMarkerCode();
 
 	char tmpCodeString[255];
-	sprintf(tmpCodeString,"%d",markerID);
+	sprintf(tmpCodeString,"%d-%d",majorMarkerID,minorMarkerID);
 	string debugtxt(tmpCodeString);
 
 	if (verboseImage != NULL && !disableVerboseEllipses)
@@ -409,7 +409,8 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	if (greenIdx<8)	// If green is not on the outer ellipse, marker ID cannot be valid.
 	{
 		isValid = false;
-		markerID=0;
+		majorMarkerID=0;
+		minorMarkerID=0;
 		return;
 	}
 
@@ -442,7 +443,8 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	cout << ", iCode=" << innerCode << " oCode=" << outerCode << endl;
 
 	// TODO: vegso soron a marker.markerID -t kell beallitani.
-	markerID = 0;
+	majorMarkerID = innerCode;
+	minorMarkerID = outerCode;
 	isValid = true;
 }
 

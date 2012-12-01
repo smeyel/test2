@@ -13,7 +13,8 @@ class MarkerCC1
 	uchar hue2codeLUT[256];	// erteke -1, 0-3 lehet. -1: ervenytelen, egyebkent 2 bit.
 public:
 	Point2d center;
-	unsigned int markerID;		// real and identified code of the marker
+	int majorMarkerID;		// real and identified code of the marker
+	int minorMarkerID;		// real and identified code of the marker
 	bool isValid;
 
 	MarkerCC1()
@@ -21,6 +22,9 @@ public:
 		initHue2CodeLut();
 		disableVerboseScanlines = false;
 		disableVerboseEllipses = false;
+		majorMarkerID=0;
+		minorMarkerID=0;
+		isValid=0;
 	}
 
 	void readCode(Mat &img, Mat &valImg, CvRect &rect, Mat *verboseImage);
