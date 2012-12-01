@@ -1,11 +1,11 @@
 #include <opencv2\opencv.hpp>
 #include <opencv2\core\core.hpp>
 #include <opencv2\core\mat.hpp>
-#include "LowpassFilter.h"
+#include "HighpassFilter.h"
 
 using namespace cv;
 
-void LowpassFilter::apply(Mat &src, Mat &resultMask)
+void HighpassFilter::apply(Mat &src, Mat &resultMask)
 {
 	cv::threshold(src,resultMask,threshold,255,THRESH_BINARY);
 }

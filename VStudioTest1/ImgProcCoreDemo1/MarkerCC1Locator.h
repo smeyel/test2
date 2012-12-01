@@ -15,7 +15,7 @@ class MarkerCC1Locator
 {
 public:
 	Mat *verboseImage;
-	void LocateMarkers(Mat &hueImg, std::list<CvRect> *candidateRectList);
+	void LocateMarkers(Mat &hueImg, Mat &valImg, std::list<CvRect> *candidateRectList);
 
 	MarkerCC1Locator();
 

@@ -68,9 +68,29 @@ void mergeNewProcessingTimes(ProcessingTimes *times)
 	times->avg_maxFps = times->sum_maxFps / times->frameNum;
 }
 
+TwoColorFilter *twoColorFilter;	// Used by mouse handler
+
+void mouse_callback(int eventtype, int x, int y, int flags, void *param)
+{
+	if (eventtype == CV_EVENT_LBUTTONDOWN)
+	{
+		int hue = twoColorFilter->h.at<uchar>(y, x);
+		int sat = twoColorFilter->s.at<uchar>(y, x);
+		int val = twoColorFilter->v.at<uchar>(y, x);
+		int hm = twoColorFilter->hMasked.at<uchar>(y, x);
+		int sm = twoColorFilter->smask.at<uchar>(y, x);
+		int vm = twoColorFilter->vmask.at<uchar>(y, x);
+
+		cout << "Click at " << x << "-" << y <<
+			", h=" << hm << ", s=" << sat << ", v=" << val <<
+			", hMasked=" << hm << ", smask=" << sm << ", vmask=" << vm << endl;
+	}
+}
+
 int main()
 {
-	do_test4("d:\\SMEyeL\\inputmedia\\gyengeMarkerVideo.MP4");
+	//do_test4("d:\\SMEyeL\\inputmedia\\gyengeMarkerVideo.MP4");
+	do_test4("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
 }
 
 void do_test4(const string filename) // video feldogozas - marker kereses szinekkel
@@ -86,7 +106,7 @@ void do_test4(const string filename) // video feldogozas - marker kereses szinek
 	cout << "Input resolution: " << videoSize.width << "x" << videoSize.height << endl;
 
 	namedWindow(wndOutput, CV_WINDOW_AUTOSIZE);
-//	cvSetMouseCallback(wndInput, mouse_callback);
+	cvSetMouseCallback(wndOutput, mouse_callback);
 	
 	Mat inputFrame, resizedFrame, resultFrame;
 	char c;
@@ -103,6 +123,8 @@ void do_test4(const string filename) // video feldogozas - marker kereses szinek
 	TwoColorLocator twoColorLocator;
 	MarkerCC1Locator markerCC1Locator;
 
+	twoColorFilter = twoColorLocator.twoColorFilter;
+
 	while(true)
 	{
 		times.start = clock();
@@ -117,13 +139,14 @@ void do_test4(const string filename) // video feldogozas - marker kereses szinek
 
 		// Resizing image
 		resize(inputFrame,resizedFrame,dsize);
+		//blur(resizedFrame,resizedFrame,Size(5,5));
 		times.resized  = clock();
 
 		// Processing inputFrame -> resultFrame
 		twoColorLocator.verboseImage = &resizedFrame;
 		twoColorLocator.apply(resizedFrame);
 		markerCC1Locator.verboseImage =  &resizedFrame;
-		markerCC1Locator.LocateMarkers( twoColorLocator.twoColorFilter->h, &(twoColorLocator.resultRectangles) );
+		markerCC1Locator.LocateMarkers( twoColorLocator.twoColorFilter->hMasked, twoColorLocator.twoColorFilter->v, &(twoColorLocator.resultRectangles) );
 
 		//processFrame(&resizedFrame,&resultFrame);
 		times.processed = clock();
@@ -131,6 +154,28 @@ void do_test4(const string filename) // video feldogozas - marker kereses szinek
 		// show input and output frame
 		//imshow(wndInput,resizedFrame);
 		imshow(wndOutput, resizedFrame);
+
+		/*// ------------ Visualize hMasked
+		Mat hMaskedVisualizationResult;
+		Mat tmp;
+		vector<Mat> planes;
+	    split(resizedFrame, planes);
+
+
+
+		Mat All255 = Mat(
+			twoColorLocator.twoColorFilter->hMasked.rows,
+			twoColorLocator.twoColorFilter->hMasked.cols, CV_8UC1);
+		All255.setTo(Scalar(255));
+		twoColorLocator.twoColorFilter->hMasked.copyTo(planes[0]);
+
+		All255.copyTo(planes[1]);
+		All255.copyTo(planes[2]);
+		merge(planes, tmp);
+	    cvtColor(tmp, hMaskedVisualizationResult, CV_HSV2BGR);
+
+		imshow("HS",hMaskedVisualizationResult); */
+		imshow("HS",twoColorLocator.twoColorFilter->hMasked);
 
 		times.shown = clock();
 
@@ -140,12 +185,17 @@ void do_test4(const string filename) // video feldogozas - marker kereses szinek
 		// Wait between frames or stop at Esc key...
 		int totalFrameTime = times.shown - times.start;
 		int delay = (1000/25) - totalFrameTime;
+		//int delay = (5000/25) - totalFrameTime;
 		if (delay < 1)
 		{
 			delay = 1;
 		}
 		c = cvWaitKey(delay);
 		if (c==27) break;
+		if (c=='p')	// Wait until another keypress
+		{
+			c = cvWaitKey(0);
+		}
 	}
 
 	printf("\n\nAverage times: capt %4.1lf, resize %4.1lf, proc %4.1lf, show %4.1lf, max %4.1lf FPS\n",

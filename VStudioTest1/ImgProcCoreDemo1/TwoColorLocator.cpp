@@ -2,21 +2,14 @@
 #include <opencv2\core\core.hpp>
 #include <opencv2\core\mat.hpp>
 #include "TwoColorLocator.h"
+#include "MarkerCC1.h"
 
 using namespace cv;
 
 TwoColorLocator::TwoColorLocator()
 {
-	// Set default filter values... (TODO: should not remain here...)
-
-	// RED filter (acryl: 176-178)
-	internalTwoColorFilter.hue1Filter->lowThreshold = 168;
-	internalTwoColorFilter.hue1Filter->highThreshold = 180;
-	// Blue filter (acryl: 108-110) 
-	internalTwoColorFilter.hue2Filter->lowThreshold = 125;
-	internalTwoColorFilter.hue2Filter->highThreshold = 145;
-	// Sat filter (acryl: 160)
-	internalTwoColorFilter.satFilter->threshold = 50;
+	// TODO: should not wire the marker identity here...
+	MarkerCC1::configTwoColorFilter(&internalTwoColorFilter);
 
 	twoColorFilter = &internalTwoColorFilter;
 

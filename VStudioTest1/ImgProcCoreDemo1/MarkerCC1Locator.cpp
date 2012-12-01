@@ -12,7 +12,7 @@ MarkerCC1Locator::MarkerCC1Locator()
 	verboseImage=NULL;
 }
 
-void MarkerCC1Locator::LocateMarkers(Mat &hueImage, std::list<CvRect> *candidateRectList)
+void MarkerCC1Locator::LocateMarkers(Mat &hueSmaskImg, Mat &valImg, std::list<CvRect> *candidateRectList)
 {
 	// Markerek leolvasasa
 	for (std::list<CvRect>::iterator rectIt = candidateRectList->begin();
@@ -20,7 +20,6 @@ void MarkerCC1Locator::LocateMarkers(Mat &hueImage, std::list<CvRect> *candidate
 		 rectIt++)
 	{
 		MarkerCC1 newMarker;
-		newMarker.readCode(hueImage,*rectIt,verboseImage);
+		newMarker.readCode(hueSmaskImg,valImg,*rectIt,verboseImage);
 	}
 }
-

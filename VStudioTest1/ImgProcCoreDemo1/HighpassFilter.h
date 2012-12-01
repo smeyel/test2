@@ -4,7 +4,7 @@
 #include <opencv2\core\mat.hpp>
 using namespace cv;
 
-class LowpassFilter
+class HighpassFilter
 {
 public:
 	double threshold;
