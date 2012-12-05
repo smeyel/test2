@@ -79,6 +79,18 @@ void do_test5(const string filename) // video feldogozas - marker kereses szinek
 	//fastColorFilter.init(100,150,100,150,60,110);
 	fastColorFilter.enhanceRemap();
 
+	// Create images and masks
+	Mat colorCodeFrame(dsize.height, dsize.width,CV_8UC1);
+	Mat redMask(dsize.height, dsize.width,CV_8UC1);
+	Mat blueMask(dsize.height, dsize.width,CV_8UC1);
+	Mat visColorCodeFrame(dsize.height, dsize.width,CV_8UC3);
+	// Setup mask creation (define target Mat and observed color code)
+	fastColorFilter.masks[0]=&redMask;
+	fastColorFilter.maskColorCode[0]=18;
+	fastColorFilter.masks[1]=&blueMask;
+	fastColorFilter.maskColorCode[1]=2;
+
+	// Setup masks
 	while(true)
 	{
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FrameAll);
@@ -99,17 +111,17 @@ void do_test5(const string filename) // video feldogozas - marker kereses szinek
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::Resize);
 
 		// Processing inputFrame -> resultFrame
-		Mat colorCodeFrame(resizedFrame.rows,resizedFrame.cols,CV_8UC1);
-		Mat visColorCodeFrame(resizedFrame.rows,resizedFrame.cols,CV_8UC3);
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
-		fastColorFilter.DecomposeImage(resizedFrame,colorCodeFrame);
+		fastColorFilter.DecomposeImageCreateMasks(resizedFrame,colorCodeFrame);
+		//fastColorFilter.DecomposeImage(resizedFrame,colorCodeFrame);
 		fastColorFilter.VisualizeDecomposedImage(colorCodeFrame,visColorCodeFrame);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
 
 		// show input and output frame
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ShowImages);
 		imshow(wndOutput, resizedFrame);
-		imshow("VisualizedColorCodes", visColorCodeFrame);
+		//imshow("VisualizedColorCodes", visColorCodeFrame);
+		imshow("redMask", redMask);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ShowImages);
 
 		int totalFrameTime = TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FrameAll);

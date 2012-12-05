@@ -5,6 +5,8 @@
 //#include <opencv2\core\core.hpp>
 #include <opencv2\core\mat.hpp>
 
+using namespace cv;
+
 // Warning: do not re-create for every frame! Try to re-use!
 class FastColorFilter
 {
@@ -29,42 +31,29 @@ class FastColorFilter
 		return code % 3;
 	}
 
+	// Internal use by filtering
+	// Current data pointers for all masks, indexed by colorcode
+	(uchar*)currentMaskDataPtr[2];
+
 public:
+	// Pointers for all masks
+	(Mat *)masks[2];
+	uchar maskColorCode[2];	// Colorcode for the 2 masks they indicate.
+
 	// code remap and its functions
 	uchar CodeRemap[27];
 	void resetRemap();
-	void enhanceRemap()
-	{
-		for (int i=0; i<27; i++)
-		{
-			CodeRemap[i]=i;
-			// Enhance R
-/*			if (getR(i)==1)
-			{
-				CodeRemap[i] += rUnit;
-			}
-			// Enhance G
-			if (getG(i)==1)
-			{
-				CodeRemap[i] += gUnit;
-			} */
-			// Enhance B
-			if (getB(i)==1)
-			{
-				CodeRemap[i] += bUnit;
-			}
-
-		}
-	}
+	void enhanceRemap();
 
 	// Init functions (automatically resets the codeRemap)
 	void init(int lowLimit, int highLimit);
 	void init(int lowR, int highR, int lowG, int highG, int lowB, int highB);
 
 	// Image decomposition (filtering)
-	void DecomposeImage(cv::Mat &src, cv::Mat &dst);
+	void DecomposeImage(Mat &src, Mat &dst);
+	void DecomposeImageCreateMasks(Mat &src, Mat &dst);
 	// Code image visualization: amplification of colors in BGR space
-	void VisualizeDecomposedImage(cv::Mat &src, cv::Mat &dst);
+	void VisualizeDecomposedImage(Mat &src, Mat &dst);
 };
 
 #endif
