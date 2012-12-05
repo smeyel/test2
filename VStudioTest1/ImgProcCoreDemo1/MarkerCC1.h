@@ -20,19 +20,12 @@ public:
 	MarkerCC1()
 	{
 		initHue2CodeLut();
-		disableVerboseScanlines = false;
-		disableVerboseEllipses = false;
 		majorMarkerID=0;
 		minorMarkerID=0;
 		isValid=0;
 	}
 
 	void readCode(Mat &img, Mat &valImg, CvRect &rect, Mat *verboseImage);
-
-	// Settings for partial verbose override
-	bool disableVerboseScanlines;
-	bool disableVerboseRect;
-	bool disableVerboseEllipses;
 
 	static void configTwoColorFilter(TwoColorFilter *filter);
 

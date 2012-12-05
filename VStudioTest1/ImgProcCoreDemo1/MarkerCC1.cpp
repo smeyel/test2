@@ -7,6 +7,7 @@
 #include "MarkerCC1.h"
 
 #include "TimeMeasurementCodeDefines.h"
+#include "ConfigManager.h"
 
 #define COLORCODE_INITIAL 254	// Used to indicate no valid value, even no "unrecognized color"
 #define COLORCODE_NONE 255
@@ -107,7 +108,7 @@ void MarkerCC1::readCode(Mat &hueSmaskImg, Mat &valImg, CvRect &rect, Mat *verbo
 	sprintf(tmpCodeString,"%d-%d",majorMarkerID,minorMarkerID);
 	string debugtxt(tmpCodeString);
 
-	if (verboseImage != NULL && !disableVerboseEllipses)
+	if (verboseImage != NULL)
 	{
 		if (isValid)
 		{
@@ -336,7 +337,7 @@ bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImag
 		}
 
 		// Show small circle with color representing current finite state machine state
-		if (verboseImage != NULL  && !disableVerboseScanlines)
+		if (verboseImage != NULL && ConfigManager::Current()->marker_verboseScanlines)
 		{
 			//switch(currentAreaColorCode)
 			switch(colorValue)
@@ -395,16 +396,25 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 			max=rawMarkerIDBitVal[bitIdx];
 	}
 	int threshold = (min+max)/2;
-	//cout << "Value:"<<min<<"-"<<max<<",th="<<threshold;
+	if (ConfigManager::Current()->marker_verboseValidation)
+	{
+		cout << "Value:"<<min<<"-"<<max<<",th="<<threshold;
+	}
 
 	// Get binary bits and find green color
 	int rawbits[24];
 	int greenIdx = -1;	// Index of last green location
-	//cout << "rawBits:";
+	if (ConfigManager::Current()->marker_verboseValidation)
+	{
+		cout << "rawBits:";
+	}
 	for (int bitIdx=0; bitIdx<24; bitIdx++)
 	{
 		rawbits[bitIdx] = rawMarkerIDBitVal[bitIdx]>threshold ? 1 : 0;
-		//cout << rawbits[bitIdx];
+		if (ConfigManager::Current()->marker_verboseValidation)
+		{
+			cout << rawbits[bitIdx];
+		}
 
 		int colorCode = hue2codeLUT[rawMarkerIDBitHueSmask[bitIdx]];
 		// Search for green in the inner ellipse
@@ -413,7 +423,10 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 			greenIdx=bitIdx;
 		}
 	}
-	//cout << ", GRN@" << greenIdx << endl;
+	if (ConfigManager::Current()->marker_verboseValidation)
+	{
+		cout << ", GRN@" << greenIdx << endl;
+	}
 
 	// Collect bits beginning from green location.
 	if (greenIdx<8)	// If green is not on the outer ellipse, marker ID cannot be valid.
@@ -430,27 +443,42 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	int finalOuterBits[8];
 	unsigned int innerCode = 0;
 	unsigned int outerCode = 0;
-	//cout << "GrnIdx:" << greenIdx << ", Outer code: ";
+	if (ConfigManager::Current()->marker_verboseValidation)
+	{
+		cout << "GrnIdx:" << greenIdx << ", Outer code: ";
+	}
 	for(int i=0; i<8; i++)
 	{
 		realBitIdxOuter[i] = 8 + ((greenIdx-8)+2*i) % 16;
 		finalOuterBits[i] = rawbits[realBitIdxOuter[i]];
-		//cout << finalOuterBits[i];
+		if (ConfigManager::Current()->marker_verboseValidation)
+		{
+			cout << finalOuterBits[i];
+		}
 		outerCode |= finalOuterBits[i];
 		if (i<7)
 			outerCode <<= 1;
 	}
-	//cout << ", inner code: ";
+	if (ConfigManager::Current()->marker_verboseValidation)
+	{
+		cout << ", inner code: ";
+	}
 	for(int i=0; i<4; i++)
 	{
 		realBitIdxInner[i] = (realBitIdxOuter[2*i]-8)/2;
 		finalInnerBits[i] = rawbits[realBitIdxInner[i]];
-		//cout << finalInnerBits[i];
+		if (ConfigManager::Current()->marker_verboseValidation)
+		{
+			cout << finalInnerBits[i];
+		}
 		innerCode |= finalInnerBits[i];
 		if (i<3)
 			innerCode <<= 1;
 	}
-	//cout << ", iCode=" << innerCode << " oCode=" << outerCode << endl;
+	if (ConfigManager::Current()->marker_verboseValidation)
+	{
+		cout << ", iCode=" << innerCode << " oCode=" << outerCode << endl;
+	}
 
 	// TODO: vegso soron a marker.markerID -t kell beallitani.
 	majorMarkerID = innerCode;

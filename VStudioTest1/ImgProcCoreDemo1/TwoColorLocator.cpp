@@ -5,6 +5,7 @@
 #include "MarkerCC1.h"
 
 #include "TimeMeasurementCodeDefines.h"
+#include "ConfigManager.h"
 
 using namespace cv;
 
@@ -53,7 +54,7 @@ void TwoColorLocator::apply(Mat &srcBGR)
 	getOccurranceNumbers(h2integral,h2rowOccNums,h2colOccNums,rowmax,colmax);
 
 	// Peremen megjelenitjuk a pixel darabszamokat az egyes maszkok szerint
-	if (verboseImage != NULL)
+	if (verboseImage != NULL && ConfigManager::Current()->twocolorlocator_verbose)
 	{
 		drawValuesOnMargin(*verboseImage,h1rowOccNums,h1mask.rows,rowmax/50,Scalar(0,0,255),Right);
 		drawValuesOnMargin(*verboseImage,h1colOccNums,h1mask.cols,colmax/50,Scalar(0,0,255),Bot);
@@ -87,7 +88,7 @@ void TwoColorLocator::apply(Mat &srcBGR)
 	delete h2rowOccNums;
 	delete h2colOccNums;
 
-	if (verboseImage != NULL)
+	if (verboseImage != NULL && ConfigManager::Current()->twocolorlocator_verbose)
 	{
 		drawValuesOnMargin(*verboseImage,mergedRowOccNums,h2mask.rows,mergedRowMax/50,Scalar(0,255,255),Right);
 		drawValuesOnMargin(*verboseImage,mergedColOccNums,h2mask.cols,mergedColMax/50,Scalar(0,255,255),Bot);

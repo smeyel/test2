@@ -8,6 +8,7 @@
 #include "MarkerCC1Locator.h"
 
 #include "TimeMeasurementCodeDefines.h"
+#include "ConfigManager.h"
 
 using namespace cv;
 using namespace std;
@@ -42,6 +43,8 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 
 int main()
 {
+	ConfigManager::Current()->init("../testini.ini");
+
 	//do_test4("d:\\SMEyeL\\inputmedia\\gyengeMarkerVideo.MP4");
 	do_test4("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
 }
