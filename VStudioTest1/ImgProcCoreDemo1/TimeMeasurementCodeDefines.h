@@ -20,6 +20,7 @@ public:
 	const static int  MarkerScanEllipses	= 11;	// 
 	const static int  ConsolidateValidate			= 12;	// 
 	const static int ShowImages			= 13;	// 
+	const static int FastColorFilter			= 14;	// 
 
 	static void setnames()
 	{
@@ -36,6 +37,7 @@ public:
 		TimeMeasurement::instance.setname(IntegralImages,"TwoColorLocator.IntegralImages");
 		TimeMeasurement::instance.setname(GetCandidateRectangles,"TwoColorLocator.GetCandidateRectangles");
 		TimeMeasurement::instance.setname(ProcessIntegralImages,"TwoColorLocator.ProcessIntegralImages");
+		TimeMeasurement::instance.setname(FastColorFilter,"FastColorFilter");
 	}
 };
 

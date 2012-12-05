@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="BandpassFilter.cpp" />
     <ClCompile Include="ConfigManager.cpp" />
+    <ClCompile Include="FastColorFilter.cpp" />
     <ClCompile Include="HighpassFilter.cpp" />
     <ClCompile Include="MarkerCC1.cpp" />
     <ClCompile Include="MarkerCC1Locator.cpp" />
@@ -24,6 +25,7 @@
   <ItemGroup>
     <ClInclude Include="BandpassFilter.h" />
     <ClInclude Include="ConfigManager.h" />
+    <ClInclude Include="FastColorFilter.h" />
     <ClInclude Include="HighpassFilter.h" />
     <ClInclude Include="MarkerCC1.h" />
     <ClInclude Include="MarkerCC1Locator.h" />
