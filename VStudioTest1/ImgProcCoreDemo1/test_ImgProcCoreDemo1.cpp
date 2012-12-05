@@ -97,11 +97,11 @@ void do_test4(const string filename) // video feldogozas - marker kereses szinek
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::Resize);
 
 		// Processing inputFrame -> resultFrame
-		twoColorLocator.verboseImage = NULL;//&resizedFrame;
+		twoColorLocator.verboseImage = &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
 		twoColorLocator.apply(resizedFrame);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
-		markerCC1Locator.verboseImage =  NULL;//&resizedFrame;
+		markerCC1Locator.verboseImage =  &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::LocateMarkers);
 		markerCC1Locator.LocateMarkers( twoColorLocator.twoColorFilter->hMasked, twoColorLocator.twoColorFilter->v, &(twoColorLocator.resultRectangles) );
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::LocateMarkers);
