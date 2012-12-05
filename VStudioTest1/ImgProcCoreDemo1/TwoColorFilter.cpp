@@ -5,6 +5,9 @@
 //#include "LowpassFilter.h"
 #include "TwoColorFilter.h"
 
+#include "TimeMeasurementCodeDefines.h"
+
+
 using namespace cv;
 
 TwoColorFilter::TwoColorFilter()
@@ -33,6 +36,8 @@ TwoColorFilter::TwoColorFilter(double sTh, double vTh, double h1Low, double h1Hi
 
 void TwoColorFilter::apply(Mat &srcBGR, Mat &resultHue1Mask, Mat &resultHue2Mask)
 {
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorFilter);
+
 	// Extract hue channel
 	cvtColor(srcBGR, imgHSV, CV_BGR2HSV);
 	h.create(imgHSV.size(), CV_8UC1);
@@ -61,4 +66,6 @@ void TwoColorFilter::apply(Mat &srcBGR, Mat &resultHue1Mask, Mat &resultHue2Mask
 	hue2Filter->apply(h,tmp);
 	//inRange(h, Scalar(hue2Mask.low), Scalar(hue2Mask.high), tmp);
 	min(svmask,tmp,resultHue2Mask);
+
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorFilter);
 }

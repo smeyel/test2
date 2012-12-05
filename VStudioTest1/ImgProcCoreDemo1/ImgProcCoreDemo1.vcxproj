@@ -10,6 +10,26 @@
       <Platform>Win32</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BandpassFilter.cpp" />
+    <ClCompile Include="HighpassFilter.cpp" />
+    <ClCompile Include="MarkerCC1.cpp" />
+    <ClCompile Include="MarkerCC1Locator.cpp" />
+    <ClCompile Include="test_ImgProcCoreDemo1.cpp" />
+    <ClCompile Include="TimeMeasurement.cpp" />
+    <ClCompile Include="TwoColorFilter.cpp" />
+    <ClCompile Include="TwoColorLocator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BandpassFilter.h" />
+    <ClInclude Include="HighpassFilter.h" />
+    <ClInclude Include="MarkerCC1.h" />
+    <ClInclude Include="MarkerCC1Locator.h" />
+    <ClInclude Include="TimeMeasurement.h" />
+    <ClInclude Include="TimeMeasurementCodeDefines.h" />
+    <ClInclude Include="TwoColorFilter.h" />
+    <ClInclude Include="TwoColorLocator.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{A5C7EEDB-3CEE-4A8F-991A-485180BBFF9C}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -52,7 +72,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\..\libImageProcessingCore\include;$(OPENCV_DIR)\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(OPENCV_DIR)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -76,28 +96,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="BandpassFilter.cpp" />
-    <ClCompile Include="MarkerCC1.cpp" />
-    <ClCompile Include="MarkerCC1Locator.cpp" />
-    <ClCompile Include="TwoColorFilter.cpp" />
-    <ClCompile Include="HighpassFilter.cpp" />
-    <ClCompile Include="test_ImgProcCoreDemo1.cpp" />
-    <ClCompile Include="TwoColorLocator.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\libImageProcessingCore\libImageProcessingCore.vcxproj">
-      <Project>{17562a75-d514-4b23-afce-af4b7c0542bf}</Project>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="BandpassFilter.h" />
-    <ClInclude Include="HighpassFilter.h" />
-    <ClInclude Include="MarkerCC1.h" />
-    <ClInclude Include="MarkerCC1Locator.h" />
-    <ClInclude Include="TwoColorFilter.h" />
-    <ClInclude Include="TwoColorLocator.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
