@@ -15,12 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BandpassFilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="HighpassFilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MarkerCC1.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -31,9 +25,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TimeMeasurement.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TwoColorFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TwoColorLocator.cpp">
@@ -47,12 +38,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BandpassFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HighpassFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MarkerCC1.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -63,9 +48,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TimeMeasurementCodeDefines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TwoColorFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TwoColorLocator.h">

@@ -51,7 +51,7 @@ void TwoColorLocator::applyOnCC(Mat &redMask, Mat &blueMask)
 	getOccurranceNumbers(h2integral,h2rowOccNums,h2colOccNums,rowmax,colmax);
 
 	// Peremen megjelenitjuk a pixel darabszamokat az egyes maszkok szerint
-	if (verboseImage != NULL && ConfigManager::Current()->twocolorlocator_verbose)
+	if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
 	{
 		drawValuesOnMargin(*verboseImage,h1rowOccNums,redMask.rows,rowmax/50,Scalar(0,0,255),Right);
 		drawValuesOnMargin(*verboseImage,h1colOccNums,redMask.cols,colmax/50,Scalar(0,0,255),Bot);
@@ -85,7 +85,7 @@ void TwoColorLocator::applyOnCC(Mat &redMask, Mat &blueMask)
 	delete h2rowOccNums;
 	delete h2colOccNums;
 
-	if (verboseImage != NULL && ConfigManager::Current()->twocolorlocator_verbose)
+	if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
 	{
 		drawValuesOnMargin(*verboseImage,mergedRowOccNums,blueMask.rows,mergedRowMax/50,Scalar(0,255,255),Right);
 		drawValuesOnMargin(*verboseImage,mergedColOccNums,blueMask.cols,mergedColMax/50,Scalar(0,255,255),Bot);
@@ -290,7 +290,7 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 				Scalar newInterval = Scalar(currentIntervalBegin, i);
 				rowIntervalList.push_back(newInterval);
 
-				if (verboseImage != NULL)
+				if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
 				{
 					rectangle(*verboseImage,cvPoint(0,currentIntervalBegin),cvPoint(20,i),Scalar(0,255,255));
 				}
@@ -323,7 +323,7 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 				Scalar newInterval = Scalar(currentIntervalBegin, i);
 				colIntervalList.push_back(newInterval);
 
-				if (verboseImage != NULL)
+				if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
 				{
 					rectangle(*verboseImage,cvPoint(currentIntervalBegin,0),cvPoint(i,20),Scalar(0,255,255));
 				}
@@ -352,7 +352,7 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 			resultRectangles.push_back(newRect);
 
 			// visualize
-			if (verboseImage != NULL)
+			if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
 			{
 				rectangle(*verboseImage,newRect,Scalar(255,255,255));
 			}

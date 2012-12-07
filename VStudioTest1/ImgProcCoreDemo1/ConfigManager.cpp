@@ -1,4 +1,5 @@
-#include <iostream>	// only for debug...
+#include <iostream>
+#include <assert.h>
 
 #include "ConfigManager.h"
 
@@ -8,31 +9,19 @@ bool ConfigManager::init(char *filename)
 {
     // load from a data file
     SI_Error rc = ini.LoadFile(filename);
-    if (rc < 0) return false;
+	assert(rc >= 0);
 
-/*    // get all sections
-    CSimpleIniA::TNamesDepend sections;
-    ini.GetAllSections(sections); */
+	verboseColorCodedFrame = ini.GetBoolValue("verbose","verboseColorCodedFrame",false,NULL);
+	verboseTwoColorLocator = ini.GetBoolValue("verbose","verboseTwoColorLocator",false,NULL);
+	verboseLineScanning = ini.GetBoolValue("verbose","verboseLineScanning",false,NULL);
+	verboseEllipseFitting = ini.GetBoolValue("verbose","verboseEllipseFitting",false,NULL);
+	verboseEllipseScanning = ini.GetBoolValue("verbose","verboseEllipseScanning",false,NULL);
+	verboseMarkerCodeValidation = ini.GetBoolValue("verbose","verboseMarkerCodeValidation",false,NULL);
 
-/*    // get all keys in a section
-    CSimpleIniA::TNamesDepend keys;
-    ini.GetAllKeys("section-name", keys); */
+	showMarkerCodeOnImage = ini.GetBoolValue("show","showMarkerCodeOnImage",false,NULL);
+	showInputImage = ini.GetBoolValue("show","showInputImage",false,NULL);
 
-    // GETTING VALUES
-
-	twocolorlocator_verbose = ini.GetBoolValue("verbose","twocolorlocator",false,NULL);
-	marker_verbose = ini.GetBoolValue("verbose","marker",false,NULL);
-	marker_show = ini.GetBoolValue("show","marker",false,NULL);
-//	marker_verboseEllipses = ini.GetBoolValue("verbose","marker_verboseEllipses",false,NULL);
-	marker_verboseScanlines = ini.GetBoolValue("verbose","marker_verboseScanlines",false,NULL);
-//	marker_verboseRect = ini.GetBoolValue("verbose","marker_verboseRect",false,NULL);
-	marker_verboseValidation = ini.GetBoolValue("verbose","marker_verboseValidation",false,NULL);
-
-    // get the value of a key
-    const char * pszValue = ini.GetValue("testsection",
-        "testkeyname", NULL);
-
-	std::cout << "ConfigManager.init: read value " << pszValue << std::endl;
+	resizeImage = ini.GetBoolValue("settings","resizeImage",false,NULL);
 
 	return true;
 }

@@ -23,12 +23,17 @@ public:
 	bool init(char *filename);
 
 	// Config settings
-	bool twocolorlocator_verbose;
-	bool marker_show;
-	bool marker_verbose;
+	bool verboseColorCodedFrame;
+	bool verboseTwoColorLocator;
+	bool verboseLineScanning;
+	bool verboseEllipseFitting;
+	bool verboseEllipseScanning;
+	bool verboseMarkerCodeValidation;
 
-	bool marker_verboseScanlines;
-	bool marker_verboseValidation;
+	bool showMarkerCodeOnImage;
+	bool showInputImage;
+
+	bool resizeImage;
 };
 
 #endif

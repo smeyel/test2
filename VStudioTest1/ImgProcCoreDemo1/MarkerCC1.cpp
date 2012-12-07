@@ -67,7 +67,7 @@ void MarkerCC1::readCode(Mat &srcCC, CvRect &rect, Mat *verboseImage)
 	sprintf(tmpCodeString,"%d-%d",majorMarkerID,minorMarkerID);
 	string debugtxt(tmpCodeString);
 
-	if (verboseImage != NULL)
+	if (verboseImage != NULL && ConfigManager::Current()->showMarkerCodeOnImage)
 	{
 		if (isValid)
 		{
@@ -94,7 +94,7 @@ void MarkerCC1::fitBorderEllipses(Mat *verboseImage)
 	outerBorderPoints.assign(this->RedOuterBorders,this->RedOuterBorders+8);
 	outerEllipse = fitEllipse(outerBorderPoints);
 
-	if (verboseImage != NULL)
+	if (verboseImage != NULL && ConfigManager::Current()->verboseEllipseFitting)
 	{
 		ellipse(*verboseImage,innerEllipse,Scalar(200,200,200));
 		ellipse(*verboseImage,outerEllipse,Scalar(255,255,255));
@@ -118,7 +118,7 @@ void MarkerCC1::scanEllipses(Mat &srcCC, Mat *verboseImage)
 		(innerEllipse.size.height + outerEllipse.size.height/2) / 2);
 	RotatedRect baseEllipse(markerCenter,baseSize,outerEllipse.angle);
 
-	if (verboseImage!=NULL)
+/*	if (verboseImage!=NULL)
 	{
 		Point2f vertices[4];
 		baseEllipse.points(vertices);
@@ -131,16 +131,16 @@ void MarkerCC1::scanEllipses(Mat &srcCC, Mat *verboseImage)
 			markerCenter.x + 50*sin(baseEllipse.angle/180.0*CV_PI),
 			markerCenter.y - 50*cos(baseEllipse.angle/180.0*CV_PI) );
 		line(*verboseImage,markerCenter,lineEnd,Scalar(255,255,255));
-	}
+	}*/
 
 	int bitIdx = 0;
 	// Inner scanning ellipse
 	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 45.0)
 	{
-		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,2.0);
+		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,2.5);
 		rawMarkerIDBitCC[bitIdx]=srcCC.at<uchar>(location);
 		bitIdx++;
-		if (verboseImage!=NULL)
+		if (verboseImage!=NULL && ConfigManager::Current()->verboseEllipseScanning)
 		{
 			circle(*verboseImage,location,3,Scalar(255,255,255));
 		}
@@ -148,10 +148,10 @@ void MarkerCC1::scanEllipses(Mat &srcCC, Mat *verboseImage)
 	// Outer scanning ellpise
 	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 22.5)
 	{
-		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,3.0);
+		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,3.5);
 		rawMarkerIDBitCC[bitIdx]=srcCC.at<uchar>(location);
 		bitIdx++;
-		if (verboseImage!=NULL)
+		if (verboseImage!=NULL && ConfigManager::Current()->verboseEllipseScanning)
 		{
 			circle(*verboseImage,location,3,Scalar(255,255,255));
 		}
@@ -171,9 +171,6 @@ Point MarkerCC1::getEllipsePointInDirection(RotatedRect baseEllipse,float direct
 	float finalX = baseEllipse.center.x + distance * sin( (baseEllipse.angle + directionAngle) /180.0*CV_PI);
 	float finalY = baseEllipse.center.y - distance * cos( (baseEllipse.angle + directionAngle) /180.0*CV_PI);// * hwRatio;
 	return Point((int)finalX,(int)finalY);
-/*	x += baseEllipse.center.x;
-	y += baseEllipse.center.y;
-	return Point(x,y);*/
 }
 
 
@@ -293,7 +290,7 @@ bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImag
 		}
 
 		// Show small circle with color representing current finite state machine state
-		if (verboseImage != NULL && ConfigManager::Current()->marker_verboseScanlines)
+		if (verboseImage != NULL && ConfigManager::Current()->verboseLineScanning )
 		{
 			//switch(currentAreaColorCode)
 			switch(colorValue)
@@ -344,14 +341,14 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	// Get binary bits and find green color
 	int rawbits[24];
 	int greenIdx = -1;	// Index of last green location
-	if (ConfigManager::Current()->marker_verboseValidation)
+	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
 		cout << "rawBits:";
 	}
 	for (int bitIdx=0; bitIdx<24; bitIdx++)
 	{
 		rawbits[bitIdx] = rawMarkerIDBitCC[bitIdx]==COLORCODE_WHT ? 1 : 0;
-		if (ConfigManager::Current()->marker_verboseValidation)
+		if (ConfigManager::Current()->verboseMarkerCodeValidation )
 		{
 			cout << rawbits[bitIdx];
 		}
@@ -363,7 +360,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 			greenIdx=bitIdx;
 		}
 	}
-	if (ConfigManager::Current()->marker_verboseValidation)
+	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
 		cout << ", GRN@" << greenIdx << endl;
 	}
@@ -383,7 +380,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	int finalOuterBits[8];
 	unsigned int innerCode = 0;
 	unsigned int outerCode = 0;
-	if (ConfigManager::Current()->marker_verboseValidation)
+	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
 		cout << "GrnIdx:" << greenIdx << ", Outer code: ";
 	}
@@ -391,7 +388,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	{
 		realBitIdxOuter[i] = 8 + ((greenIdx-8)+2*i) % 16;
 		finalOuterBits[i] = rawbits[realBitIdxOuter[i]];
-		if (ConfigManager::Current()->marker_verboseValidation)
+		if (ConfigManager::Current()->verboseMarkerCodeValidation )
 		{
 			cout << finalOuterBits[i];
 		}
@@ -399,7 +396,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 		if (i<7)
 			outerCode <<= 1;
 	}
-	if (ConfigManager::Current()->marker_verboseValidation)
+	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
 		cout << ", inner code: ";
 	}
@@ -407,7 +404,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	{
 		realBitIdxInner[i] = (realBitIdxOuter[2*i]-8)/2;
 		finalInnerBits[i] = rawbits[realBitIdxInner[i]];
-		if (ConfigManager::Current()->marker_verboseValidation)
+		if (ConfigManager::Current()->verboseMarkerCodeValidation )
 		{
 			cout << finalInnerBits[i];
 		}
@@ -415,7 +412,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 		if (i<3)
 			innerCode <<= 1;
 	}
-	if (ConfigManager::Current()->marker_verboseValidation)
+	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
 		cout << ", iCode=" << innerCode << " oCode=" << outerCode << endl;
 	}
