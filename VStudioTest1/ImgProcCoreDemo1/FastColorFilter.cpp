@@ -3,123 +3,49 @@
 #include <opencv2\core\mat.hpp>
 
 #include <assert.h>
+#include <math.h>
 
 #include "FastColorFilter.h"
+
 
 using namespace cv;
 
 // ----------------------- Color remap functions
 
-void FastColorFilter::resetRemap()
+void FastColorFilter::init()
 {
-	for(int i=0; i<27; i++)
+	int r,g,b;
+	for(unsigned int i=0; i<512; i++)
 	{
-		CodeRemap[i]=i;
-	}
-}
+		RgbLut[i]=COLORCODE_NONE;
 
-void FastColorFilter::init(int lowLimit, int highLimit)
-{
-	resetRemap();
-	for(int i=0; i<256; i++)
-	{
-		if (i>=highLimit)
-		{
-			LutR[i]=2;
-			LutG[i]=2;
-			LutB[i]=2;
-		}
-		else if (i>=lowLimit)
-		{
-			LutR[i]=1;
-			LutG[i]=1;
-			LutB[i]=1;
-		}
-		else
-		{
-			LutR[i]=0;
-			LutG[i]=0;
-			LutB[i]=0;
-		}
-	}
-}
+		// Get RGB, scale back to 0-255 to simplify the conditions
+		r = (i >> 6) << 5;
+		g = ((i >> 3) & 0x07) << 5;
+		b = (i & 0x07) << 5;
 
-void FastColorFilter::init(int lowR, int highR, int lowG, int highG, int lowB, int highB)
-{
-	resetRemap();
-	for(int i=0; i<256; i++)
-	{
-		if (i>=highR)
+		if (r >= 115 && g >= 115 && b >= 115 && abs(r-g)<=30 && abs(r-b)<=30 && abs(g-b)<=30 )
 		{
-			LutR[i]=2;
+			RgbLut[i]=COLORCODE_WHT;
 		}
-		else if (i>=lowR)
+		if (r <= 30 &&  g <= 30 && b <= 32)
 		{
-			LutR[i]=1;
+			RgbLut[i]=COLORCODE_BLK;
 		}
-		else
+		if (r >= 128 &&  g <= 80 && b <= 80)
 		{
-			LutR[i]=0;
+			RgbLut[i]=COLORCODE_RED;
 		}
-	}
-	for(int i=0; i<256; i++)
-	{
-		if (i>=highG)
+		if (r <= 65 &&  g >= 96 && b <= 150)
 		{
-			LutG[i]=2;
+			RgbLut[i]=COLORCODE_GRN;
 		}
-		else if (i>=lowG)
+		if (r <= 64 &&  g <= 60 && b >= 64)
 		{
-			LutG[i]=1;
-		}
-		else
-		{
-			LutG[i]=0;
-		}
-	}
-	for(int i=0; i<256; i++)
-	{
-		if (i>=highB)
-		{
-			LutB[i]=2;
-		}
-		else if (i>=lowB)
-		{
-			LutB[i]=1;
-		}
-		else
-		{
-			LutB[i]=0;
+			RgbLut[i]=COLORCODE_BLU;
 		}
 	}
 }
-
-void FastColorFilter::enhanceRemap()
-{
-	for (int i=0; i<27; i++)
-	{
-		CodeRemap[i]=i;
-		// Enhance R
-/*			if (getR(i)==1)
-		{
-			CodeRemap[i] += rUnit;
-		}
-		// Enhance G
-		if (getG(i)==1)
-		{
-			CodeRemap[i] += gUnit;
-		} */
-		// Enhance B
-		if (getB(i)==1)
-		{
-			CodeRemap[i] += bUnit;
-		}
-
-	}
-}
-
-// ----------------------- Mask management functions
-
 
 // ----------------------- Image filtering functions
 
@@ -162,15 +88,15 @@ void FastColorFilter::DecomposeImageCreateMasks(cv::Mat &src, cv::Mat &dst)
 		// Go along every BGR colorspace pixel
 		for (int col=0; col<src.cols; col++)
 		{
-			// Process B channel: use LUT and go on
-			colorCode = LutB[*ptr++];
-			// Process G channel: use LUT and go on
-			colorCode += 3*LutG[*ptr++];
-			// Process R channel: use LUT and go on
-			colorCode += 9*LutR[*ptr++];
-
-			*resultPtr = CodeRemap[colorCode];
-			resultPtr++;
+			uchar B = *ptr++;
+			uchar G = *ptr++;
+			uchar R = *ptr++;
+			unsigned int idxR = R >> 5;
+			unsigned int idxG = G >> 5;
+			unsigned int idxB = B >> 5;
+			unsigned int idx = (idxR << 6) | (idxG << 3) | idxB;
+			colorCode = RgbLut[idx];
+			*resultPtr++ = colorCode;
 
 			// Handle masks (2 masks)
 			*(currentMaskDataPtr[0]) = (colorCode==maskColorCode[0])?255:0;
@@ -179,9 +105,7 @@ void FastColorFilter::DecomposeImageCreateMasks(cv::Mat &src, cv::Mat &dst)
 			currentMaskDataPtr[1]++;
 		}
 	}
-
 }
-
 
 void FastColorFilter::DecomposeImage(Mat &src, Mat &dst)
 {
@@ -204,15 +128,15 @@ void FastColorFilter::DecomposeImage(Mat &src, Mat &dst)
 		// Go along every BGR colorspace pixel
 		for (int col=0; col<src.cols; col++)
 		{
-			// Process B channel: use LUT and go on
-			colorCode = LutB[*ptr++];
-			// Process G channel: use LUT and go on
-			colorCode += 3*LutG[*ptr++];
-			// Process R channel: use LUT and go on
-			colorCode += 9*LutR[*ptr++];
-
-			*resultPtr = CodeRemap[colorCode];
-			resultPtr++;
+			uchar B = *ptr++;
+			uchar G = *ptr++;
+			uchar R = *ptr++;
+			unsigned int idxR = R >> 5;
+			unsigned int idxG = G >> 5;
+			unsigned int idxB = B >> 5;
+			unsigned int idx = (idxR << 6) | (idxG << 3) | idxB;
+			colorCode = RgbLut[idx];
+			*resultPtr++ = colorCode;
 		}
 	}
 }
@@ -238,12 +162,12 @@ void FastColorFilter::VisualizeDecomposedImage(cv::Mat &src, cv::Mat &dst)
 		// Go along every colorCode (uchar) colorspace pixel
 		for (int col=0; col<src.cols; col++)
 		{
-			// Generate B channel: colorCode % 3
-			*resultPtr++ = ((*ptr) % 3) * 80;
-			// Generate G channel: colorCode % 3
-			*resultPtr++ = (((*ptr) % 9) / 3) * 80;
-			// Generate R channel: colorCode / 9
-			*resultPtr++ = ((*ptr) / 9) * 80;
+			// Generate B channel
+			*resultPtr++ = ((*ptr == COLORCODE_BLU) || (*ptr == COLORCODE_WHT)) ? 255 : 0;
+			// Generate G channel
+			*resultPtr++ = ((*ptr == COLORCODE_GRN) || (*ptr == COLORCODE_WHT)) ? 255 : 0;
+			// Generate R channel
+			*resultPtr++ = ((*ptr == COLORCODE_RED) || (*ptr == COLORCODE_WHT)) ? 255 : 0;
 			ptr++;
 		}
 	}

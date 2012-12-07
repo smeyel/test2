@@ -4,6 +4,8 @@
 #include "TwoColorLocator.h"
 #include "MarkerCC1.h"
 
+#include <assert.h>
+
 #include "TimeMeasurementCodeDefines.h"
 #include "ConfigManager.h"
 
@@ -11,15 +13,98 @@ using namespace cv;
 
 TwoColorLocator::TwoColorLocator()
 {
-	// TODO: should not wire the marker identity here...
-	MarkerCC1::configTwoColorFilter(&internalTwoColorFilter);
-
-	twoColorFilter = &internalTwoColorFilter;
-
+	fastColorFilter = NULL;
 	verboseImage = NULL;
 }
 
-void TwoColorLocator::apply(Mat &srcBGR)
+
+void TwoColorLocator::applyOnCC(Mat &redMask, Mat &blueMask)
+{
+	assert(fastColorFilter!=NULL);
+
+	if (verboseImage != NULL)
+	{
+		// Verbose image-nek az alapja az eredeti kep
+		//srcCC.copyTo(*verboseImage);	// NE CSAPJUK FELUL, AMI MAR RAJTA VAN!
+	}
+
+	// --- Calculate integral images of masks
+	Mat h1integral, h2integral;
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::IntegralImages);
+	integral(redMask,h1integral,CV_32S);
+	integral(blueMask,h2integral,CV_32S);
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::IntegralImages);
+
+	CV_Assert(redMask.rows == blueMask.rows);
+	CV_Assert(blueMask.cols == blueMask.cols);
+
+	// --- Az integral image alapjan a sorok es oszopok pixelertek osszegeit szamoljuk ki minden maszkra
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ProcessIntegralImages);
+	int *h1rowOccNums = new int[redMask.rows];
+	int *h1colOccNums = new int[redMask.cols];
+	int *h2rowOccNums = new int[blueMask.rows];
+	int *h2colOccNums = new int[blueMask.cols];
+	int rowmax, colmax;
+	// H1 mask
+	getOccurranceNumbers(h1integral,h1rowOccNums,h1colOccNums,rowmax,colmax);
+	// H2 mask
+	getOccurranceNumbers(h2integral,h2rowOccNums,h2colOccNums,rowmax,colmax);
+
+	// Peremen megjelenitjuk a pixel darabszamokat az egyes maszkok szerint
+	if (verboseImage != NULL && ConfigManager::Current()->twocolorlocator_verbose)
+	{
+		drawValuesOnMargin(*verboseImage,h1rowOccNums,redMask.rows,rowmax/50,Scalar(0,0,255),Right);
+		drawValuesOnMargin(*verboseImage,h1colOccNums,redMask.cols,colmax/50,Scalar(0,0,255),Bot);
+		drawValuesOnMargin(*verboseImage,h2rowOccNums,blueMask.rows,rowmax/50,Scalar(255,0,0),Left);
+		drawValuesOnMargin(*verboseImage,h2colOccNums,blueMask.cols,colmax/50,Scalar(255,0,0),Top);
+	}
+
+	// --- A ket maszk osszevonasa egybe (hol teljesul mindketto "peremfeltetele")
+	int rownum = blueMask.rows;
+	int colnum = blueMask.cols;
+	int *mergedRowOccNums = new int[rownum];
+	int *mergedColOccNums = new int[colnum];
+	// Calculating minimum of two vectors (merging)
+	int mergedRowMax = 0;
+	int mergedColMax = 0;
+	for(int i=0; i<rownum; i++)
+	{
+		mergedRowOccNums[i] = h1rowOccNums[i]<h2rowOccNums[i] ? h1rowOccNums[i] : h2rowOccNums[i];
+		if (mergedRowMax<mergedRowOccNums[i])
+			mergedRowMax = mergedRowOccNums[i];
+	}
+	for(int i=0; i<colnum; i++)
+	{
+		mergedColOccNums[i] = h1colOccNums[i]<h2colOccNums[i] ? h1colOccNums[i] : h2colOccNums[i];
+		if (mergedColMax<mergedColOccNums[i])
+			mergedColMax = mergedColOccNums[i];
+	}
+
+	delete h1rowOccNums;
+	delete h1colOccNums;
+	delete h2rowOccNums;
+	delete h2colOccNums;
+
+	if (verboseImage != NULL && ConfigManager::Current()->twocolorlocator_verbose)
+	{
+		drawValuesOnMargin(*verboseImage,mergedRowOccNums,blueMask.rows,mergedRowMax/50,Scalar(0,255,255),Right);
+		drawValuesOnMargin(*verboseImage,mergedColOccNums,blueMask.cols,mergedColMax/50,Scalar(0,255,255),Bot);
+	}
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ProcessIntegralImages);
+
+	resultRectangles.clear();
+
+	getMarkerCandidateRectanges(mergedRowOccNums, mergedColOccNums, rownum, colnum,
+		mergedRowMax, mergedColMax, 0.2, resultRectangles, verboseImage);
+
+	delete mergedRowOccNums;
+	delete mergedColOccNums;
+}
+
+
+// ----------------------- HSV version
+
+/*void TwoColorLocator::apply(Mat &srcBGR)
 {
 	if (verboseImage != NULL)
 	{
@@ -102,7 +187,7 @@ void TwoColorLocator::apply(Mat &srcBGR)
 
 	delete mergedRowOccNums;
 	delete mergedColOccNums;
-}
+} */
 
 // Az integral image peremosszegeit szamolja ki
 void TwoColorLocator::getOccurranceNumbers(Mat &srcIntegral, int* rowOccNums, int *colOccNums, int &rowmax, int &colmax)

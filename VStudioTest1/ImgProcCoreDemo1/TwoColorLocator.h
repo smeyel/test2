@@ -4,7 +4,7 @@
 #include <opencv2\opencv.hpp>
 #include <opencv2\core\core.hpp>
 #include <opencv2\core\mat.hpp>
-#include "TwoColorFilter.h"
+#include "FastColorFilter.h"
 
 using namespace cv;
 
@@ -12,17 +12,16 @@ typedef enum _Location { Top, Bot, Left, Right } LocationEnum;
 
 class TwoColorLocator
 {
-private:
-	TwoColorFilter internalTwoColorFilter;
 public:
-	TwoColorFilter *twoColorFilter;
+	FastColorFilter *fastColorFilter;
 
 	void apply(Mat &src, Mat &resultMask);
 
 	// Constructors
 	TwoColorLocator();
 
-	void apply(Mat &src);
+//	void apply(Mat &src);
+	void applyOnCC(Mat &redMask, Mat &blueMask);
 
 	// Storage of results, cleared before every "apply()"
 	std::list<CvRect> resultRectangles;

@@ -5,6 +5,14 @@
 //#include <opencv2\core\core.hpp>
 #include <opencv2\core\mat.hpp>
 
+#define COLORCODE_NONE 0
+#define COLORCODE_RED 1
+#define COLORCODE_GRN 2
+#define COLORCODE_BLU 3
+#define COLORCODE_WHT 4
+#define COLORCODE_BLK 5
+
+
 using namespace cv;
 
 // Warning: do not re-create for every frame! Try to re-use!
@@ -35,21 +43,21 @@ class FastColorFilter
 	// Current data pointers for all masks, indexed by colorcode
 	(uchar*)currentMaskDataPtr[2];
 
+	// --- Color remapping
+	// code remap and its functions
+	uchar RgbLut[512];	// 3 bit / RGB color layer -> 9 bit, 512 values. 0 means undefined color.
+
 public:
+	// --- Mask management
 	// Pointers for all masks
 	(Mat *)masks[2];
+	// Color code for the masks to indicate
 	uchar maskColorCode[2];	// Colorcode for the 2 masks they indicate.
 
-	// code remap and its functions
-	uchar CodeRemap[27];
-	void resetRemap();
-	void enhanceRemap();
+	// --- inits RgbLut
+	void init();
 
-	// Init functions (automatically resets the codeRemap)
-	void init(int lowLimit, int highLimit);
-	void init(int lowR, int highR, int lowG, int highG, int lowB, int highB);
-
-	// Image decomposition (filtering)
+	// --- Image decomposition (filtering)
 	void DecomposeImage(Mat &src, Mat &dst);
 	void DecomposeImageCreateMasks(Mat &src, Mat &dst);
 	// Code image visualization: amplification of colors in BGR space

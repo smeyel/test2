@@ -3,6 +3,7 @@
 #include <opencv2\core\mat.hpp>
 #include <stdlib.h>
 #include <math.h>
+#include "FastColorFilter.h"	// For color codes
 #include "TwoColorLocator.h"
 #include "MarkerCC1.h"
 
@@ -10,10 +11,6 @@
 #include "ConfigManager.h"
 
 #define COLORCODE_INITIAL 254	// Used to indicate no valid value, even no "unrecognized color"
-#define COLORCODE_NONE 255
-#define COLORCODE_BLU 0
-#define COLORCODE_RED 1
-#define COLORCODE_GRN 2
 
 #define MAXINVALIDCOLORNUM 10
 
@@ -21,52 +18,14 @@ using namespace cv;
 using namespace std;
 
 // Meg kell hivni, mielott az alabbi fuggvenyeket hasznaljuk... (2 bites kodok Hue ertekhez rendelese)
-void MarkerCC1::initHue2CodeLut()
-{
-	for(int i=0; i<256; i++)
-	{
-		if (100 <= i && i <= 180)
-		{
-			hue2codeLUT[i] = COLORCODE_BLU;
-		}
-		else if (1 <= i && i <= 15)
-		{
-			hue2codeLUT[i] = COLORCODE_RED;
-		}
-		else if (80 <= i && i <= 95)
-		{
-			hue2codeLUT[i] = COLORCODE_GRN;
-		}
-		else
-		{
-			hue2codeLUT[i] = COLORCODE_NONE;
-		}
-	}
-}
-
-void MarkerCC1::configTwoColorFilter(TwoColorFilter *filter)
-{
-	// Sets parameters to conform marker colors
-	// Blue filter (109-111) 
-	filter->hue2Filter->lowThreshold = 100;
-	filter->hue2Filter->highThreshold = 180;
-	// RED filter (3-5)
-	filter->hue1Filter->lowThreshold = 1;
-	filter->hue1Filter->highThreshold = 10;
-	// Sat filter (154-)
-	filter->satFilter->threshold = 100;
-	// Val filter (154-)
-	filter->valFilter->threshold = 75;
-}
-
 
 // Entry of marker identification
 // It needs a hue image
 // Egy potencialis marker helyet dolgoz fel.
 // calls: readCodeAlongLine, validateAndConsolidateMarkerCode
-void MarkerCC1::readCode(Mat &hueSmaskImg, Mat &valImg, CvRect &rect, Mat *verboseImage)
+void MarkerCC1::readCode(Mat &srcCC, CvRect &rect, Mat *verboseImage)
 {
-	CV_Assert(hueSmaskImg.depth() == CV_8U);	// Assuming every pixel to have 8 bits...
+	CV_Assert(srcCC.depth() == CV_8U);	// Assuming every pixel to have 8 bits...
 	// TODO: draw on debugImage if not NULL...
 
 	// Init marker
@@ -81,7 +40,7 @@ void MarkerCC1::readCode(Mat &hueSmaskImg, Mat &valImg, CvRect &rect, Mat *verbo
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerScanlines);
 	for (int dir=0; dir<8; dir++)
 	{
-		if (!findBordersAlongLine(hueSmaskImg,dir, verboseImage))
+		if (!findBordersAlongLine(srcCC,dir, verboseImage))
 		{
 			return;	// Marker direction rejected...
 		}
@@ -96,7 +55,7 @@ void MarkerCC1::readCode(Mat &hueSmaskImg, Mat &valImg, CvRect &rect, Mat *verbo
 
 	// Read code along ellipses
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerScanEllipses);
-	scanEllipses(valImg,hueSmaskImg,verboseImage);
+	scanEllipses(srcCC,verboseImage);
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::MarkerScanEllipses);
 
 	// TODO: Validate marker code
@@ -145,7 +104,7 @@ void MarkerCC1::fitBorderEllipses(Mat *verboseImage)
 
 // Uses innerEllipse and outerEllipse and dirWithGreen to
 //	scan the binary code along the external parts of the marker
-void MarkerCC1::scanEllipses(Mat &valSrc, Mat& hueSmaskSrc, Mat *verboseImage)
+void MarkerCC1::scanEllipses(Mat &srcCC, Mat *verboseImage)
 {
 	// The center of the marker is the mean of the ellipse centers
 	Point markerCenter = Point(
@@ -179,8 +138,7 @@ void MarkerCC1::scanEllipses(Mat &valSrc, Mat& hueSmaskSrc, Mat *verboseImage)
 	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 45.0)
 	{
 		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,2.0);
-		rawMarkerIDBitVal[bitIdx]=valSrc.at<uchar>(location);
-		rawMarkerIDBitHueSmask[bitIdx]=hueSmaskSrc.at<uchar>(location);
+		rawMarkerIDBitCC[bitIdx]=srcCC.at<uchar>(location);
 		bitIdx++;
 		if (verboseImage!=NULL)
 		{
@@ -191,8 +149,7 @@ void MarkerCC1::scanEllipses(Mat &valSrc, Mat& hueSmaskSrc, Mat *verboseImage)
 	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 22.5)
 	{
 		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,3.0);
-		rawMarkerIDBitVal[bitIdx]=valSrc.at<uchar>(location);
-		rawMarkerIDBitHueSmask[bitIdx]=hueSmaskSrc.at<uchar>(location);
+		rawMarkerIDBitCC[bitIdx]=srcCC.at<uchar>(location);
 		bitIdx++;
 		if (verboseImage!=NULL)
 		{
@@ -252,8 +209,7 @@ bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImag
 	int length = lineIt.count;
 	for(int i=0; i<length; i++,lineIt++)
 	{
-		uchar hue = *lineIt.ptr;
-		colorValue = hue2codeLUT[hue];	// -1 means invalid color, valids are 0-3
+		colorValue = *lineIt.ptr;
 
 		if (colorValue == COLORCODE_NONE)
 		{
@@ -385,22 +341,6 @@ CvPoint MarkerCC1::getEndPoint(int x, int y, int distance, int dir)
 //	this method calculates the final marker ID and validates it.
 void MarkerCC1::validateAndConsolidateMarkerCode()
 {
-	// Find minimal and maximal bit value to adapt threshold into the middle...
-	int min=255;
-	int max=0;
-	for (int bitIdx=0; bitIdx<24; bitIdx++)
-	{
-		if (min>rawMarkerIDBitVal[bitIdx])
-			min=rawMarkerIDBitVal[bitIdx];
-		if (max<rawMarkerIDBitVal[bitIdx])
-			max=rawMarkerIDBitVal[bitIdx];
-	}
-	int threshold = (min+max)/2;
-	if (ConfigManager::Current()->marker_verboseValidation)
-	{
-		cout << "Value:"<<min<<"-"<<max<<",th="<<threshold;
-	}
-
 	// Get binary bits and find green color
 	int rawbits[24];
 	int greenIdx = -1;	// Index of last green location
@@ -410,13 +350,13 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	}
 	for (int bitIdx=0; bitIdx<24; bitIdx++)
 	{
-		rawbits[bitIdx] = rawMarkerIDBitVal[bitIdx]>threshold ? 1 : 0;
+		rawbits[bitIdx] = rawMarkerIDBitCC[bitIdx]==COLORCODE_WHT ? 1 : 0;
 		if (ConfigManager::Current()->marker_verboseValidation)
 		{
 			cout << rawbits[bitIdx];
 		}
 
-		int colorCode = hue2codeLUT[rawMarkerIDBitHueSmask[bitIdx]];
+		int colorCode = rawMarkerIDBitCC[bitIdx];
 		// Search for green in the inner ellipse
 		if (colorCode == COLORCODE_GRN)
 		{
