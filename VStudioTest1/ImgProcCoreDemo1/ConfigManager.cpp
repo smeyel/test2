@@ -17,11 +17,13 @@ bool ConfigManager::init(char *filename)
 	verboseEllipseFitting = ini.GetBoolValue("verbose","verboseEllipseFitting",false,NULL);
 	verboseEllipseScanning = ini.GetBoolValue("verbose","verboseEllipseScanning",false,NULL);
 	verboseMarkerCodeValidation = ini.GetBoolValue("verbose","verboseMarkerCodeValidation",false,NULL);
+	verboseRectConsolidation = ini.GetBoolValue("verbose","verboseRectConsolidation",false,NULL);
 
 	showMarkerCodeOnImage = ini.GetBoolValue("show","showMarkerCodeOnImage",false,NULL);
 	showInputImage = ini.GetBoolValue("show","showInputImage",false,NULL);
 
 	resizeImage = ini.GetBoolValue("settings","resizeImage",false,NULL);
+	waitFor25Fps = ini.GetBoolValue("settings","waitFor25Fps",false,NULL);
 
 	return true;
 }

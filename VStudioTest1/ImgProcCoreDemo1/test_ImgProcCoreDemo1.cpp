@@ -117,6 +117,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 	MarkerCC1Locator markerCC1Locator;
 
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FullExecution);
 	while(true)
 	{
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FrameAll);
@@ -151,12 +152,21 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		}
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
 
-		// Processing inputFrame -> resultFrame
+		// --- Processing inputFrame -> resultFrame
+		// TwoColorLocator: applyOnCC, consolidateRects
+
+		//twoColorLocator.verboseImage = &visColorCodeFrame;
 		twoColorLocator.verboseImage = &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
+		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ApplyOnCC);
 		twoColorLocator.applyOnCC(redMask, blueMask);
+		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ApplyOnCC);
+		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateRectangles);
+		twoColorLocator.consolidateRects(colorCodeFrame);
+		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateRectangles);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
 
+		// MarkerCC1Locator: locateMarkers
 		markerCC1Locator.verboseImage =  &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::LocateMarkers);
 		markerCC1Locator.LocateMarkers( colorCodeFrame, &(twoColorLocator.resultRectangles) );
@@ -177,18 +187,24 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		int totalFrameTime = TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FrameAll);
 
 		// Time measurement summary and delay, + pause control
-		int delay = (1000/25) - totalFrameTime;
-		if (delay < 1)
+		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::InterFrameDelay);
+		if (ConfigManager::Current()->waitFor25Fps)
 		{
-			delay = 1;
+			int delay = (1000/25) - totalFrameTime;
+			if (delay < 1)
+			{
+				delay = 1;
+			}
+			c = cvWaitKey(delay);
+			if (c==27) break;
+			if (c=='p')	// Wait until another keypress
+			{
+				c = cvWaitKey(0);
+			}
 		}
-		c = cvWaitKey(delay);
-		if (c==27) break;
-		if (c=='p')	// Wait until another keypress
-		{
-			c = cvWaitKey(0);
-		}
+		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::InterFrameDelay);
 	}
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FullExecution);
 
 	TimeMeasurement::instance.showresults();
 	cout << "max fps: " << TimeMeasurement::instance.getmaxfps(TimeMeasurementCodeDefs::FrameAll) << endl;

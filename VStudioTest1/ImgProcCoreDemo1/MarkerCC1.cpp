@@ -174,7 +174,7 @@ Point MarkerCC1::getEllipsePointInDirection(RotatedRect baseEllipse,float direct
 }
 
 
-// Egy iranybe vegigolvassa a szineket (meg jo esellyel kicsit tovabb is.)
+// Egy iranyba vegigolvassa a szineket (meg jo esellyel kicsit tovabb is.)
 // Kitolti a marker.codeArray -t.
 // Performs center color validation!
 // Return: false for immediate reject, True: may be valid marker...

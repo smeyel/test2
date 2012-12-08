@@ -22,14 +22,20 @@ public:
 
 //	void apply(Mat &src);
 	void applyOnCC(Mat &redMask, Mat &blueMask);
+	void consolidateRects(Mat &srcCC);
 
 	// Storage of results, cleared before every "apply()"
-	std::list<CvRect> resultRectangles;
+	std::list<CvRect> resultRectangles;		// final result created by consolidateRects
 
 	// Image for subresult visualization
 	Mat *verboseImage;
 
 private:
+	std::list<CvRect> initialRectangles;	// created by applyOnCC
+
+	bool updateRectToRealSize(Mat &srcCC, CvRect &newRect, Mat *verboseImage);
+	int findRedAlongLine(Mat &srcCC, Point startPoint, Point endPoint, Mat *verboseImage);
+
 	// Az integral image peremosszegeit szamolja ki
 	void getOccurranceNumbers(Mat &srcIntegral, int* rowOccNums, int *colOccNums, int &rowmax, int &colmax);
 	// Verbose-hoz: integral image peremosszegek a margokon

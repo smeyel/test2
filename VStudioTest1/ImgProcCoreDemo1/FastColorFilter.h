@@ -5,6 +5,7 @@
 //#include <opencv2\core\core.hpp>
 #include <opencv2\core\mat.hpp>
 
+#define COLORCODE_INITIAL 254	// A color code different from all other ones. Used as initial (unknown) value.
 #define COLORCODE_NONE 0
 #define COLORCODE_RED 1
 #define COLORCODE_GRN 2

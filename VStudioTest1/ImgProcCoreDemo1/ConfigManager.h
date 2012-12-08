@@ -29,11 +29,13 @@ public:
 	bool verboseEllipseFitting;
 	bool verboseEllipseScanning;
 	bool verboseMarkerCodeValidation;
+	bool verboseRectConsolidation;
 
 	bool showMarkerCodeOnImage;
 	bool showInputImage;
 
 	bool resizeImage;
+	bool waitFor25Fps;
 };
 
 #endif
