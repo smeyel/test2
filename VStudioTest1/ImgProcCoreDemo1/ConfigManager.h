@@ -33,6 +33,8 @@ public:
 	bool verboseTxt_LineRejectionReason;
 	bool verboseTxt_RectConsolidation;
 	bool verboseTxt_RectConsolidationSummary;
+	bool verboseOverlapMask;
+	bool verboseTwoColorLocatorIntegralReject;
 
 	bool showMarkerCodeOnImage;
 	bool showInputImage;

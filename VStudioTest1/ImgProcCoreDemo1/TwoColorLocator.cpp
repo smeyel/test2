@@ -12,13 +12,50 @@
 // Maximal distance we look for the border of a rectangle
 #define MAXSCANDISTANCE 100
 #define MAXINVALIDCOLORNUM 20	// Number of non-blue pixels we pass while searching for red...
-#define MININNERPIXELNUM	2		// Number of inner (blue) pixels we need to accept the border (red) pixels after it (rect center should containt inner color)
+#define MININNERPIXELNUM	2	// Number of inner (blue) pixels we need to accept the border (red) pixels after it (rect center should containt inner color)
+#define MINRECTINTEGRAL 1		// Minimum of integral image sum of a rectangle to be candidate (used with overlapMask)
 
 using namespace cv;
 
 TwoColorLocator::TwoColorLocator()
 {
 	verboseImage = NULL;
+}
+
+void TwoColorLocator::findInitialRectsFromOverlapMask(Mat &overlapMask)
+{
+	// --- Calculate integral images of masks
+	Mat integralMask;
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::IntegralImages);
+	integral(overlapMask,integralMask,CV_32S);
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::IntegralImages);
+
+	// --- Calculating occurrance numbers for rows and colums using the integral images
+	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ProcessIntegralImages);
+	int *rowOccNums = new int[overlapMask.rows];
+	int *colOccNums = new int[overlapMask.cols];
+	int rowmax = 0;
+	int colmax = 0;
+	// H1 mask
+	getOccurranceNumbers(integralMask,rowOccNums,colOccNums,rowmax,colmax);
+
+	// --- Verbose
+	// Pixel numbers on the margins
+	if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
+	{
+		drawValuesOnMargin(*verboseImage,rowOccNums,overlapMask.rows,rowmax/50,Scalar(0,0,255),Right);
+		drawValuesOnMargin(*verboseImage,colOccNums,overlapMask.cols,colmax/50,Scalar(0,0,255),Bot);
+	}
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ProcessIntegralImages);
+
+	// --- Generate initial rectanges from two-color co-occurrances
+	initialRectangles.clear();
+
+	getMarkerCandidateRectanges(rowOccNums, colOccNums, overlapMask.rows, overlapMask.cols,
+		rowmax, colmax, 0.0, initialRectangles, &integralMask, verboseImage);
+
+	delete rowOccNums;
+	delete colOccNums;
 }
 
 void TwoColorLocator::findInitialRects(Mat &borderColorMask, Mat &innerColorMask)
@@ -93,7 +130,7 @@ void TwoColorLocator::findInitialRects(Mat &borderColorMask, Mat &innerColorMask
 	initialRectangles.clear();
 
 	getMarkerCandidateRectanges(mergedRowOccNums, mergedColOccNums, rownum, colnum,
-		mergedRowMax, mergedColMax, 0.2, initialRectangles, verboseImage);
+		mergedRowMax, mergedColMax, 0.2, initialRectangles, NULL, verboseImage);
 
 	delete mergedRowOccNums;
 	delete mergedColOccNums;
@@ -338,10 +375,12 @@ void TwoColorLocator::drawValuesOnMargin(Mat &img, int *values, int valueNum,
 	}
 }
 
-// A peremosszegekbol threshold alapjan letrehozza az eselyes negyzetek listjajat.
+// Creates candidate rectangles from the row and column sums
+// If integralMask is given (for cases with overlapMask), integral of candidate rectangles are calculated checked.
 void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax,
-	double thresholdRate, std::list<CvRect> &resultRectangles, Mat *verboseImage)
+	double thresholdRate, std::list<CvRect> &resultRectangles, Mat *integralMask, Mat *verboseImage)
 {
+	CV_Assert(sizeof(int) == 4);	// Used to handle integralMask (assuming type int matrix)
 //	CV_Assert(rownum == verboseImage->rows);
 //	CV_Assert(colnum == verboseImage->cols);
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::GetCandidateRectangles);
@@ -349,6 +388,11 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 	// Thresholding for 30%
 	int rowValThreshold = rowMax * thresholdRate;
 	int colValThreshold = colMax * thresholdRate;
+	if (thresholdRate == 0.0)	// Used with overlap mask, where a single line is also very important
+	{
+		rowValThreshold = 1;
+		colValThreshold = 1;
+	}
 
 	std::list<Scalar> rowIntervalList;
 	int prev = 0;
@@ -431,6 +475,28 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 			int width = (*colIt)[1] - x;
 
 			CvRect newRect = cvRect(x,y,width,height);
+
+			// If integralMask is given, integral of rect is checked
+			if (integralMask != NULL)
+			{
+				
+				int integralTopLeft = integralMask->at<int>(y,x);
+				int integralTopRight = integralMask->at<int>(y,x+width);
+				int integralBottomLeft = integralMask->at<int>(y+height,x);
+				int integralBottomRight = integralMask->at<int>(y+height,x+width);
+
+				int sum = integralTopLeft + integralBottomRight - integralTopRight - integralBottomLeft;
+
+				if (sum < MINRECTINTEGRAL)
+				{
+					if (ConfigManager::Current()->verboseTwoColorLocatorIntegralReject)
+					{
+						cout << "Rect reject due to low integral: " << sum << endl;
+					}
+					// Continue without adding the rectangle to the candidates
+					continue;
+				}
+			}
 
 			resultRectangles.push_back(newRect);
 

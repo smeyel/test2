@@ -22,6 +22,7 @@ const char* wndInput = "Video input";
 const char* wndOutput = "Processing result";
 const char* wndRed = "Red";
 const char* wndBlu = "Blu";
+const char* wndOverlap = "Overlap";
 const char* wndCode = "Sat";
 const char* wndTmp = "Tmp";
 
@@ -97,6 +98,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	Mat colorCodeFrame(dsize.height, dsize.width,CV_8UC1);
 	Mat redMask(dsize.height, dsize.width,CV_8UC1);
 	Mat blueMask(dsize.height, dsize.width,CV_8UC1);
+	Mat overlapMask(dsize.height, dsize.width,CV_8UC1);
 	Mat visColorCodeFrame(dsize.height, dsize.width,CV_8UC3);
 
 	// Setup mouse click handler
@@ -108,7 +110,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	fastColorFilter.maskColorCode[0]=COLORCODE_RED;
 	fastColorFilter.masks[1]=&blueMask;
 	fastColorFilter.maskColorCode[1]=COLORCODE_BLU;
-
+	fastColorFilter.overlapMask=&overlapMask;
 
 	// --- Setup marker locator
 	TwoColorLocator twoColorLocator;
@@ -145,7 +147,8 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 		// Apply color filtering. Create masks and color coded image
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
-		fastColorFilter.DecomposeImageCreateMasks(resizedFrame,colorCodeFrame);
+		//fastColorFilter.DecomposeImageCreateMasks(resizedFrame,colorCodeFrame);
+		fastColorFilter.DecomposeImageCreateMasksWithOverlap(resizedFrame,colorCodeFrame);
 		if (ConfigManager::Current()->verboseColorCodedFrame)
 		{
 			fastColorFilter.VisualizeDecomposedImage(colorCodeFrame,visColorCodeFrame);
@@ -159,7 +162,8 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		twoColorLocator.verboseImage = &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ApplyOnCC);
-		twoColorLocator.findInitialRects(redMask, blueMask);
+		//twoColorLocator.findInitialRects(redMask, blueMask);
+		twoColorLocator.findInitialRectsFromOverlapMask(overlapMask);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ApplyOnCC);
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateRectangles);
 		twoColorLocator.consolidateRects(colorCodeFrame);
@@ -182,6 +186,11 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 		// show frames
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ShowImages);
+		if (ConfigManager::Current()->verboseOverlapMask)
+		{
+			imshow(wndOverlap, overlapMask);
+		}
+
 		if (ConfigManager::Current()->showInputImage)
 		{
 			imshow(wndOutput, resizedFrame);

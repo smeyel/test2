@@ -43,6 +43,7 @@ class FastColorFilter
 	// Internal use by filtering
 	// Current data pointers for all masks, indexed by colorcode
 	(uchar*)currentMaskDataPtr[2];
+	uchar* currentOverlapMaskDataPtr;
 
 	// --- Color remapping
 	// code remap and its functions
@@ -54,6 +55,9 @@ public:
 	(Mat *)masks[2];
 	// Color code for the masks to indicate
 	uchar maskColorCode[2];	// Colorcode for the 2 masks they indicate.
+	// Overlap mask
+	Mat *overlapMask;
+
 
 	// --- inits RgbLut
 	void init();
@@ -61,6 +65,7 @@ public:
 	// --- Image decomposition (filtering)
 	void DecomposeImage(Mat &src, Mat &dst);
 	void DecomposeImageCreateMasks(Mat &src, Mat &dst);
+	void DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat &dst);
 	// Code image visualization: amplification of colors in BGR space
 	void VisualizeDecomposedImage(Mat &src, Mat &dst);
 };

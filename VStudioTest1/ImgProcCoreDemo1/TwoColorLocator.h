@@ -17,6 +17,7 @@ public:
 	TwoColorLocator();
 
 	void findInitialRects(Mat &redMask, Mat &blueMask);	// Works on uchar masks with values 0 and 255
+	void findInitialRectsFromOverlapMask(Mat &overlapMask);
 	void consolidateRects(Mat &srcCC);
 
 	// Storage of results, cleared before every "apply()"
@@ -41,7 +42,7 @@ private:
 	// For verbose: draws results of getOccurranceNumbers on the verbose image.
 	void drawValuesOnMargin(Mat &img, int *values, int valueNum,int scalingDivider, Scalar color, LocationEnum loc);
 	// Generates the candidate rectangles using the per row/column occurrance numbers and a given threshold.
-	void getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax, double thresholdRate, std::list<CvRect> &resultRectangles, Mat *verboseImage);
+	void getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax, double thresholdRate, std::list<CvRect> &resultRectangles, Mat *integralMask, Mat *verboseImage);
 };
 
 #endif
