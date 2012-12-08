@@ -11,64 +11,60 @@
 #include "ConfigManager.h"
 
 #define COLORCODE_INITIAL 254	// Used to indicate no valid value, even no "unrecognized color"
-
-#define MAXINVALIDCOLORNUM 10
+#define MAXINVALIDCOLORNUM 10	// Line scanning stops after so many pixels with invalid color (used by ellipse fitting)
 
 using namespace cv;
 using namespace std;
 
-// Meg kell hivni, mielott az alabbi fuggvenyeket hasznaljuk... (2 bites kodok Hue ertekhez rendelese)
-
 // Entry of marker identification
-// It needs a hue image
-// Egy potencialis marker helyet dolgoz fel.
-// calls: readCodeAlongLine, validateAndConsolidateMarkerCode
-void MarkerCC1::readCode(Mat &srcCC, CvRect &rect, Mat *verboseImage)
+void MarkerCC1::readCode(Mat &srcCC, CvRect &rect)
 {
 	CV_Assert(srcCC.depth() == CV_8U);	// Assuming every pixel to have 8 bits...
-	// TODO: draw on debugImage if not NULL...
 
 	// Init marker
 	center.x = rect.x + rect.width/2;
 	center.y = rect.y + rect.height/2;
-//	for(int i=0; i<8; i++) codeArray[i]=0;
 	isValid = false;	// Not valid, as not set...
 
+	// --- Estimate red circle inner and outer ellipses
+	// Maximal distance of line scanning
 	scanDistance = rect.width>rect.height ? 2*rect.width : 2*rect.height;
 
-	// SCAN
+	// Scan lines in 8 directions
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerScanlines);
 	for (int dir=0; dir<8; dir++)
 	{
-		if (!findBordersAlongLine(srcCC,dir, verboseImage))
+		if (!findBordersAlongLine(srcCC,dir))
 		{
 			return;	// Marker direction rejected...
 		}
 	}
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::MarkerScanlines);
-	// if we get here, all directions were successfully processed and the borders detected.
+	// If we get here, all directions were successfully processed and the borders detected.
 
 	// Fit ellipses to borders
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerFitEllipses);
-	fitBorderEllipses(verboseImage);
+	fitBorderEllipses();
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerFitEllipses);
 
+	// --- Read marker code along elliptical curves
 	// Read code along ellipses
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerScanEllipses);
-	scanEllipses(srcCC,verboseImage);
+	scanEllipses(srcCC);
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::MarkerScanEllipses);
 
-	// TODO: Validate marker code
+	// --- Analyse and validate the ellpise reading results
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateValidate);
 	validateAndConsolidateMarkerCode();
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateValidate);
 
-	char tmpCodeString[255];
-	sprintf(tmpCodeString,"%d-%d",majorMarkerID,minorMarkerID);
-	string debugtxt(tmpCodeString);
-
+	// --- Verbose
 	if (verboseImage != NULL && ConfigManager::Current()->showMarkerCodeOnImage)
 	{
+		char tmpCodeString[255];
+		sprintf(tmpCodeString,"%d-%d",majorMarkerID,minorMarkerID);
+		string debugtxt(tmpCodeString);
+
 		if (isValid)
 		{
 			putText(*verboseImage,debugtxt,center,FONT_HERSHEY_PLAIN,1,Scalar(0,255,0),2);
@@ -80,10 +76,11 @@ void MarkerCC1::readCode(Mat &srcCC, CvRect &rect, Mat *verboseImage)
 	}
 }
 
+// -------------------------------------- internal functions ----------------------------------
 
 // Fit ellipses on borders which where found by findBordersAlongLine()
 // and stored in RedInnerBorders[8] and RedOuterBorders[8].
-void MarkerCC1::fitBorderEllipses(Mat *verboseImage)
+void MarkerCC1::fitBorderEllipses()
 {
 	// Assuming that the borders in both directions were found.
 	vector<Point> innerBorderPoints;
@@ -104,7 +101,7 @@ void MarkerCC1::fitBorderEllipses(Mat *verboseImage)
 
 // Uses innerEllipse and outerEllipse and dirWithGreen to
 //	scan the binary code along the external parts of the marker
-void MarkerCC1::scanEllipses(Mat &srcCC, Mat *verboseImage)
+void MarkerCC1::scanEllipses(Mat &srcCC)
 {
 	// The center of the marker is the mean of the ellipse centers
 	Point markerCenter = Point(
@@ -118,38 +115,26 @@ void MarkerCC1::scanEllipses(Mat &srcCC, Mat *verboseImage)
 		(innerEllipse.size.height + outerEllipse.size.height/2) / 2);
 	RotatedRect baseEllipse(markerCenter,baseSize,outerEllipse.angle);
 
-/*	if (verboseImage!=NULL)
-	{
-		Point2f vertices[4];
-		baseEllipse.points(vertices);
-		for (int i = 0;i < 4;i++)
-			line(*verboseImage,vertices[i],vertices[(i+1)%4],Scalar(0,255,0));
-
-		// Show ellipse parameters
-		//Point lineEnd = Point( markerCenter.x + 2*horizontalRadius*sin(ellipseAngle/CV_PI*180), markerCenter.y - 2*horizontalRadius*cos(ellipseAngle/CV_PI*180) );
-		Point lineEnd = Point(
-			markerCenter.x + 50*sin(baseEllipse.angle/180.0*CV_PI),
-			markerCenter.y - 50*cos(baseEllipse.angle/180.0*CV_PI) );
-		line(*verboseImage,markerCenter,lineEnd,Scalar(255,255,255));
-	}*/
-
 	int bitIdx = 0;
-	// Inner scanning ellipse
+	// Inner scanning ellipse (8 points)
 	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 45.0)
 	{
-		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,2.5);
+		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,2.5, srcCC);
 		rawMarkerIDBitCC[bitIdx]=srcCC.at<uchar>(location);
+		bitLocations[bitIdx] = location;
 		bitIdx++;
 		if (verboseImage!=NULL && ConfigManager::Current()->verboseEllipseScanning)
 		{
 			circle(*verboseImage,location,3,Scalar(255,255,255));
 		}
 	}
-	// Outer scanning ellpise
+	// Outer scanning ellpise (16 points)
 	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 22.5)
 	{
-		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,3.5);
+		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,3.5, srcCC);
+
 		rawMarkerIDBitCC[bitIdx]=srcCC.at<uchar>(location);
+		bitLocations[bitIdx] = location;
 		bitIdx++;
 		if (verboseImage!=NULL && ConfigManager::Current()->verboseEllipseScanning)
 		{
@@ -158,7 +143,8 @@ void MarkerCC1::scanEllipses(Mat &srcCC, Mat *verboseImage)
 	}
 }
 
-Point MarkerCC1::getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier)
+// srcCC is only used to check wether location is inside the image
+Point MarkerCC1::getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier, Mat &srcCC)
 {
 	// TODO: this takes lots of time now...
 
@@ -168,27 +154,25 @@ Point MarkerCC1::getEllipsePointInDirection(RotatedRect baseEllipse,float direct
 	float distance = sqrt( x*x + y*y ) * distanceMultiplier;
 
 	// Angle is in degrees, starting from north and increasing clockwise.
-	float finalX = baseEllipse.center.x + distance * sin( (baseEllipse.angle + directionAngle) /180.0*CV_PI);
-	float finalY = baseEllipse.center.y - distance * cos( (baseEllipse.angle + directionAngle) /180.0*CV_PI);// * hwRatio;
-	return Point((int)finalX,(int)finalY);
+	int finalX = (int)(baseEllipse.center.x + distance * sin( (baseEllipse.angle + directionAngle) /180.0*CV_PI));
+	int finalY = (int)(baseEllipse.center.y - distance * cos( (baseEllipse.angle + directionAngle) /180.0*CV_PI));
+
+	// Do not return locations outside the image
+	if (finalX < 0) finalX=0;
+	if (finalX >= srcCC.cols) finalX=srcCC.cols-1;
+	if (finalY < 0) finalY=0;
+	if (finalY >= srcCC.rows) finalY=srcCC.rows-1;
+
+	return Point(finalX,finalY);
 }
 
-
-// Egy iranyba vegigolvassa a szineket (meg jo esellyel kicsit tovabb is.)
-// Kitolti a marker.codeArray -t.
-// Performs center color validation!
+// Reads pixels along a line to find borders of various color areas
 // Return: false for immediate reject, True: may be valid marker...
-bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImage)
+bool MarkerCC1::findBordersAlongLine(Mat &srcCC, int dir)
 {
-	// Szinenkent 2 bitet kodolunk
-	// Max. MaxValuePerLine db eltero es felismert szint olvasunk be egymas utan a vonal menten.
-	const int MaxValuePerLine = 4;	// max. 2x4=8 bitet hasznalunk el minden iranyban (meg nem nezzuk, meddig hasznos!)
-
-	// TODO: vajon van annyi esze, hogy nem megy ki a kepbol?!
 	CvPoint endpoint = getEndPoint(center.x, center.y, scanDistance, dir);
-
 	
-	// Meanwhile, also find inner and outer borders of RED (value 1) area
+	// Meanwhile, also find inner and outer borders of RED area
 	// Fills RedInnerBorders[dir] and RedOuterBorders[]
 	int currentAreaColorCode = COLORCODE_INITIAL;
 	bool isDirectionValid = false;	// True if BLUE and RED area has been found. False otherwise.
@@ -199,10 +183,8 @@ bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImag
 	Point prevPoint;			// Location of previous point
 	int invalidPixelColorCounter = 0;		// Couting the number of pixels with invalid color. Beyond MAXINVALIDCOLORNUM, we do not search for green anymore...
 
-//	bool isGreenInThisDirection = false;	// True if green color was found directly beyond the red area
-
 	// Scan along the given line and store the color codes (using hue2codeLUT)
-	LineIterator lineIt(hueSmaskImg,center,endpoint);
+	LineIterator lineIt(srcCC,center,endpoint);
 	int length = lineIt.count;
 	for(int i=0; i<length; i++,lineIt++)
 	{
@@ -239,7 +221,11 @@ bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImag
 				// In the middle, we have to find blue color. Otherwise, the marker is rejected.
 				if (colorValue != COLORCODE_BLU)
 				{
-					//cout << "Reject ->nonBLU, dir="<<dir<<endl;
+					if (ConfigManager::Current()->verboseTxt_LineRejectionReason)
+					{
+						cout << "MarkerCC1.findBordersAlongLine() LineRejection reson: first color is not BLU, dir="<<dir<<endl;
+					}
+
 					return false;	// Immediate reject
 				}
 				currentAreaColorCode = COLORCODE_BLU;
@@ -255,7 +241,10 @@ bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImag
 					break;
 				case COLORCODE_GRN:
 					// Green cannot come here. If it does, marker is rejected.
-					//cout << "Reject BLU->GRN, dir="<<dir<<endl;
+					if (ConfigManager::Current()->verboseTxt_LineRejectionReason)
+					{
+						cout << "MarkerCC1.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir="<<dir<<endl;
+					}
 					return false;	// Immediate reject
 				}
 				break;
@@ -270,11 +259,16 @@ bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImag
 					break;
 				case COLORCODE_BLU:
 					// Blue cannot come here. Marker is rejected
-					//cout << "Reject RED->BLU, dir="<<dir<<endl;
+					if (ConfigManager::Current()->verboseTxt_LineRejectionReason)
+					{
+						cout << "MarkerCC1.findBordersAlongLine() LineRejection reson: found BLU after RED, dir="<<dir<<endl;
+					}
 					return false;	// Immediate reject
 					break;
 				case COLORCODE_NONE:
-					// No recognized color means the end of the red area.
+				case COLORCODE_BLK:
+				case COLORCODE_WHT:
+					// White, black or unrecognized color means the end of the red area.
 					RedOuterBorders[dir] = prevPoint;	// The previous point was already outside the RED area.
 					isDirectionValid = true;	// Marker direction is now valid.
 					currentAreaColorCode = COLORCODE_NONE;
@@ -282,9 +276,6 @@ bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImag
 				}
 				break;
 			case COLORCODE_GRN:
-//				isGreenInThisDirection = true;
-//				dirWithGreen = dir;	// Handles multiple such directions, last processed one overwrites previous ones.
-				//cout << "DirGrn="<<dir<<endl;
 				break;
 			}
 		}
@@ -314,8 +305,6 @@ bool MarkerCC1::findBordersAlongLine(Mat &hueSmaskImg, int dir, Mat *verboseImag
 		}
 	}
 
-	// Eredmény mentése a marker-be... (a végén még lehetnek hibás bitek!)
-	// Meg igazabol a kozeppont szinet is ki lehet dobni az LSB-nel levo 2 bitrol...
 	return isDirectionValid;
 }
 
@@ -326,7 +315,7 @@ CvPoint MarkerCC1::getEndPoint(int x, int y, int distance, int dir)
 	const int dirXMul[] = {0,1,1,1,0,-1,-1,-1};
 	const int dirYMul[] = {-1,-1,0,1,1,1,0,-1};
 
-	// TODO: vajon van annyi esze, hogy nem megy ki a kepbol?!
+	// TODO: is is smart enough not to go outside the image?
 	CvPoint endpoint = cvPoint(
 		x + dirXMul[dir]*distance,
 		y + dirYMul[dir]*distance);
@@ -338,23 +327,27 @@ CvPoint MarkerCC1::getEndPoint(int x, int y, int distance, int dir)
 //	this method calculates the final marker ID and validates it.
 void MarkerCC1::validateAndConsolidateMarkerCode()
 {
-	// Get binary bits and find green color
+	// Get binary bits and finds green color
 	int rawbits[24];
 	int greenIdx = -1;	// Index of last green location
+
+	// --- Convert the color code array into a bit array (only 0 and 1)
+	// --- Meanwhile find the green location (start direction)
 	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
 		cout << "rawBits:";
 	}
+
 	for (int bitIdx=0; bitIdx<24; bitIdx++)
 	{
-		rawbits[bitIdx] = rawMarkerIDBitCC[bitIdx]==COLORCODE_WHT ? 1 : 0;
+		int colorCode = rawMarkerIDBitCC[bitIdx];
+		rawbits[bitIdx] = colorCode==COLORCODE_WHT ? 1 : 0;
 		if (ConfigManager::Current()->verboseMarkerCodeValidation )
 		{
 			cout << rawbits[bitIdx];
 		}
 
-		int colorCode = rawMarkerIDBitCC[bitIdx];
-		// Search for green in the inner ellipse
+		// Search for green color
 		if (colorCode == COLORCODE_GRN)
 		{
 			greenIdx=bitIdx;
@@ -365,7 +358,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 		cout << ", GRN@" << greenIdx << endl;
 	}
 
-	// Collect bits beginning from green location.
+	// --- Reorder bits to start from the green location
 	if (greenIdx<8)	// If green is not on the outer ellipse, marker ID cannot be valid.
 	{
 		isValid = false;
@@ -374,12 +367,13 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 		return;
 	}
 
-	int realBitIdxInner[4];
-	int realBitIdxOuter[8];
-	int finalInnerBits[4];
-	int finalOuterBits[8];
-	unsigned int innerCode = 0;
-	unsigned int outerCode = 0;
+	int realBitIdxInner[4];	// Bit indices (for rawbits[]) used for inner code
+	int realBitIdxOuter[8];	// Bit indices (for rawbits[]) used for outer code
+	int finalInnerBits[4];	// Final bits of inner code
+	int finalOuterBits[8];	// Final bits of outer code
+	unsigned int innerCode = 0;	// Numerical value of inner code
+	unsigned int outerCode = 0;	// Numerical value of outer code
+	// Calculate outer code
 	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
 		cout << "GrnIdx:" << greenIdx << ", Outer code: ";
@@ -396,6 +390,33 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 		if (i<7)
 			outerCode <<= 1;
 	}
+	// Verbose outer code reading and green location
+	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	{
+		// Show locations and corresponding values really used
+		for (int i=0; i<8; i++)
+		{
+			Point location = bitLocations[realBitIdxOuter[i]];
+			if (finalOuterBits[i])	// This bit is 1: white circle with black outer edge
+			{
+				circle(*verboseImage,location,5,Scalar(255,255,255),3);
+				circle(*verboseImage,location,10,Scalar(0,0,0),1);
+			}
+			else	// This bit is 0: black circle with white outer edge
+			{
+				circle(*verboseImage,location,5,Scalar(0,0,0),3);
+				circle(*verboseImage,location,10,Scalar(255,255,255),1);
+			}
+		}
+
+		// Little green circle with white outer edge indicates green location
+		Point greenLocation = bitLocations[greenIdx];
+		circle(*verboseImage,greenLocation,3,Scalar(0,255,0),2);
+		circle(*verboseImage,greenLocation,4,Scalar(255,255,255),1);
+	}
+
+
+	// Calculate inner code
 	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
 		cout << ", inner code: ";
@@ -412,12 +433,31 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 		if (i<3)
 			innerCode <<= 1;
 	}
+	// Verbose outer code reading
+	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	{
+		// Show locations and corresponding values really used
+		for (int i=0; i<4; i++)
+		{
+			Point location = bitLocations[realBitIdxInner[i]];
+			if (finalInnerBits[i])	// This bit is 1
+			{
+				circle(*verboseImage,location,5,Scalar(255,255,255),3);
+				circle(*verboseImage,location,10,Scalar(0,0,0),1);
+			}
+			else	// This bit is 0
+			{
+				circle(*verboseImage,location,5,Scalar(0,0,0),3);
+				circle(*verboseImage,location,10,Scalar(255,255,255),1);
+			}
+		}
+	}
+	// Verbose codes
 	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
 		cout << ", iCode=" << innerCode << " oCode=" << outerCode << endl;
 	}
 
-	// TODO: vegso soron a marker.markerID -t kell beallitani.
 	majorMarkerID = innerCode;
 	minorMarkerID = outerCode;
 	isValid = true;

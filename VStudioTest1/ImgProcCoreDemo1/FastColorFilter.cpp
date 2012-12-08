@@ -7,6 +7,10 @@
 
 #include "FastColorFilter.h"
 
+// REG colors for "unknown color"
+#define NONE_R	100
+#define NONE_G	0
+#define NONE_B	100
 
 using namespace cv;
 
@@ -24,11 +28,11 @@ void FastColorFilter::init()
 		g = ((i >> 3) & 0x07) << 5;
 		b = (i & 0x07) << 5;
 
-		if (r >= 115 && g >= 115 && b >= 115 && abs(r-g)<=30 && abs(r-b)<=30 && abs(g-b)<=30 )
+		if (r >= 115 && g >= 115 && b >= 115 && abs(r-g)<=35 && abs(r-b)<=35 && abs(g-b)<=35 )
 		{
 			RgbLut[i]=COLORCODE_WHT;
 		}
-		if (r <= 30 &&  g <= 30 && b <= 32)
+		if (r <= 64 &&  g <= 64 && b <= 64 && abs(r-g)<=32 && abs(r-b)<=32 && abs(g-b)<=32)
 		{
 			RgbLut[i]=COLORCODE_BLK;
 		}
@@ -163,11 +167,11 @@ void FastColorFilter::VisualizeDecomposedImage(cv::Mat &src, cv::Mat &dst)
 		for (int col=0; col<src.cols; col++)
 		{
 			// Generate B channel
-			*resultPtr++ = ((*ptr == COLORCODE_BLU) || (*ptr == COLORCODE_WHT)) ? 255 : 0;
+			*resultPtr++ = ((*ptr == COLORCODE_BLU) || (*ptr == COLORCODE_WHT)) ? 255 : (*ptr == COLORCODE_NONE ? NONE_B : 0);
 			// Generate G channel
-			*resultPtr++ = ((*ptr == COLORCODE_GRN) || (*ptr == COLORCODE_WHT)) ? 255 : 0;
+			*resultPtr++ = ((*ptr == COLORCODE_GRN) || (*ptr == COLORCODE_WHT)) ? 255 : (*ptr == COLORCODE_NONE ? NONE_G : 0);
 			// Generate R channel
-			*resultPtr++ = ((*ptr == COLORCODE_RED) || (*ptr == COLORCODE_WHT)) ? 255 : 0;
+			*resultPtr++ = ((*ptr == COLORCODE_RED) || (*ptr == COLORCODE_WHT)) ? 255 : (*ptr == COLORCODE_NONE ? NONE_R : 0);
 			ptr++;
 		}
 	}

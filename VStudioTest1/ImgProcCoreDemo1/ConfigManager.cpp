@@ -19,6 +19,8 @@ bool ConfigManager::init(char *filename)
 	verboseMarkerCodeValidation = ini.GetBoolValue("verbose","verboseMarkerCodeValidation",false,NULL);
 	verboseRectConsolidation = ini.GetBoolValue("verbose","verboseRectConsolidation",false,NULL);
 
+	verboseTxt_LineRejectionReason = ini.GetBoolValue("verbosetxt","verboseTxt_LineRejectionReason",false,NULL);
+
 	showMarkerCodeOnImage = ini.GetBoolValue("show","showMarkerCodeOnImage",false,NULL);
 	showInputImage = ini.GetBoolValue("show","showInputImage",false,NULL);
 

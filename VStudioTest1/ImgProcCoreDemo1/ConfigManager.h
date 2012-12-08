@@ -30,6 +30,7 @@ public:
 	bool verboseEllipseScanning;
 	bool verboseMarkerCodeValidation;
 	bool verboseRectConsolidation;
+	bool verboseTxt_LineRejectionReason;
 
 	bool showMarkerCodeOnImage;
 	bool showInputImage;

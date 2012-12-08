@@ -20,6 +20,7 @@ void MarkerCC1Locator::LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRec
 		 rectIt++)
 	{
 		MarkerCC1 newMarker;
-		newMarker.readCode(srcCC,*rectIt,verboseImage);
+		newMarker.verboseImage = this->verboseImage;
+		newMarker.readCode(srcCC,*rectIt);
 	}
 }

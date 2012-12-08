@@ -17,43 +17,43 @@ public:
 	int minorMarkerID;		// real and identified code of the marker
 	bool isValid;
 
+	// Constructor
 	MarkerCC1()
 	{
-		//initHue2CodeLut();
 		majorMarkerID=0;
 		minorMarkerID=0;
-		isValid=0;
+		isValid=false;
+		verboseImage = NULL;
 	}
 
-	void readCode(Mat &srcCC, CvRect &rect, Mat *verboseImage);
+	Mat *verboseImage;
 
-	//static void configTwoColorFilter(TwoColorFilter *filter);
+	// Read the marker code for a given candidate rectangle.
+	// It the read is successful, it is really a valid marker.
+	void readCode(Mat &srcCC, CvRect &rect);
 
 private:
+	// --- Used by ellpise fitting
 	int scanDistance;	// length of scan starting from center (manhattan distance)
-//	unsigned int codeArray[8];	// 8 directions, temporal color codes...
-
-	//void initHue2CodeLut();
-	bool findBordersAlongLine(Mat &srcCC, int dir, Mat *verboseImage);
-	void validateAndConsolidateMarkerCode();
+	bool findBordersAlongLine(Mat &srcCC, int dir);
 	CvPoint getEndPoint(int x, int y, int distance, int dir);
-
-	void fitBorderEllipses(Mat *verboseImage);
-	void scanEllipses(Mat &srcCC, Mat *verboseImage);
-	Point getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier);
-
-	// Temp variables to find ellipses (in 8 directions)
+	void fitBorderEllipses();
+	// Temp variables
 	Point RedInnerBorders[8];
 	Point RedOuterBorders[8];
 	RotatedRect innerEllipse;
 	RotatedRect outerEllipse;
+	// For verbose purposes, stores location of the ellipse scan points for every bit
+	Point bitLocations[24];	// 8 inner and 16 outer ellipse points
 
-	// Direction with green area (default: -1)
-	// Handles multiple such directions, last processed one overwrites previous ones.
-	// Dir=0 is north, increasing clockwise.
-//	int dirWithGreen;
+	// --- Reading marker code areas
+	void scanEllipses(Mat &srcCC);
+	Point getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier, Mat &srcCC);
+	uchar rawMarkerIDBitCC[24];	// Color code values of the scanned points
 
-	uchar rawMarkerIDBitCC[24];	// CC values
+	// --- Marker code processing
+	void validateAndConsolidateMarkerCode();
+
 };
 
 #endif

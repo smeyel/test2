@@ -166,7 +166,8 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
 
 		// MarkerCC1Locator: locateMarkers
-		markerCC1Locator.verboseImage =  &resizedFrame;
+		markerCC1Locator.verboseImage =  &visColorCodeFrame;
+		//markerCC1Locator.verboseImage =  &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::LocateMarkers);
 		markerCC1Locator.LocateMarkers( colorCodeFrame, &(twoColorLocator.resultRectangles) );
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::LocateMarkers);
