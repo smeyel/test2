@@ -15,13 +15,11 @@ class MarkerCC1Locator
 {
 public:
 	Mat *verboseImage;
+
+	// candidateRectList is the list of possible marker inner (blue) circle locations.
 	void LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRectList);
 
 	MarkerCC1Locator();
-
-private:
-	void initHue2CodeLut();
-	Mat h;	// Hue values masked with saturation mask
 };
 
 #endif
