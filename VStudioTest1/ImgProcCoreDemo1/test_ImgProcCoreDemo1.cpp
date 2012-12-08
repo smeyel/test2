@@ -113,7 +113,6 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 	// --- Setup marker locator
 	TwoColorLocator twoColorLocator;
-	twoColorLocator.fastColorFilter = &fastColorFilter;
 
 	MarkerCC1Locator markerCC1Locator;
 
@@ -153,13 +152,13 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
 
 		// --- Processing inputFrame -> resultFrame
-		// TwoColorLocator: applyOnCC, consolidateRects
+		// TwoColorLocator: findInitialRects, consolidateRects
 
 		//twoColorLocator.verboseImage = &visColorCodeFrame;
 		twoColorLocator.verboseImage = &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ApplyOnCC);
-		twoColorLocator.applyOnCC(redMask, blueMask);
+		twoColorLocator.findInitialRects(redMask, blueMask);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ApplyOnCC);
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateRectangles);
 		twoColorLocator.consolidateRects(colorCodeFrame);

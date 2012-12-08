@@ -12,43 +12,33 @@
 // Maximal distance we look for the border of a rectangle
 #define MAXSCANDISTANCE 100
 #define MAXINVALIDCOLORNUM 20	// Number of non-blue pixels we pass while searching for red...
-#define MINBLUEPIXELNUM	2		// Number of blue pixels we need to accept the red pixels after it (rect center should containt blue)
+#define MININNERPIXELNUM	2		// Number of inner (blue) pixels we need to accept the border (red) pixels after it (rect center should containt inner color)
 
 using namespace cv;
 
 TwoColorLocator::TwoColorLocator()
 {
-	fastColorFilter = NULL;
 	verboseImage = NULL;
 }
 
-
-void TwoColorLocator::applyOnCC(Mat &redMask, Mat &blueMask)
+void TwoColorLocator::findInitialRects(Mat &borderColorMask, Mat &innerColorMask)
 {
-	assert(fastColorFilter!=NULL);
-
-	if (verboseImage != NULL)
-	{
-		// Verbose image-nek az alapja az eredeti kep
-		//srcCC.copyTo(*verboseImage);	// NE CSAPJUK FELUL, AMI MAR RAJTA VAN!
-	}
+	CV_Assert(borderColorMask.rows == innerColorMask.rows);
+	CV_Assert(borderColorMask.cols == innerColorMask.cols);
 
 	// --- Calculate integral images of masks
 	Mat h1integral, h2integral;
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::IntegralImages);
-	integral(redMask,h1integral,CV_32S);
-	integral(blueMask,h2integral,CV_32S);
+	integral(borderColorMask,h1integral,CV_32S);
+	integral(innerColorMask,h2integral,CV_32S);
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::IntegralImages);
 
-	CV_Assert(redMask.rows == blueMask.rows);
-	CV_Assert(blueMask.cols == blueMask.cols);
-
-	// --- Az integral image alapjan a sorok es oszopok pixelertek osszegeit szamoljuk ki minden maszkra
+	// --- Calculating occurrance numbers for rows and colums using the integral images
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ProcessIntegralImages);
-	int *h1rowOccNums = new int[redMask.rows];
-	int *h1colOccNums = new int[redMask.cols];
-	int *h2rowOccNums = new int[blueMask.rows];
-	int *h2colOccNums = new int[blueMask.cols];
+	int *h1rowOccNums = new int[borderColorMask.rows];
+	int *h1colOccNums = new int[borderColorMask.cols];
+	int *h2rowOccNums = new int[innerColorMask.rows];
+	int *h2colOccNums = new int[innerColorMask.cols];
 	int rowmax = 0;
 	int colmax = 0;
 	// H1 mask
@@ -56,18 +46,9 @@ void TwoColorLocator::applyOnCC(Mat &redMask, Mat &blueMask)
 	// H2 mask
 	getOccurranceNumbers(h2integral,h2rowOccNums,h2colOccNums,rowmax,colmax);
 
-	// Peremen megjelenitjuk a pixel darabszamokat az egyes maszkok szerint
-	if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
-	{
-		drawValuesOnMargin(*verboseImage,h1rowOccNums,redMask.rows,rowmax/50,Scalar(0,0,255),Right);
-		drawValuesOnMargin(*verboseImage,h1colOccNums,redMask.cols,colmax/50,Scalar(0,0,255),Bot);
-		drawValuesOnMargin(*verboseImage,h2rowOccNums,blueMask.rows,rowmax/50,Scalar(255,0,0),Left);
-		drawValuesOnMargin(*verboseImage,h2colOccNums,blueMask.cols,colmax/50,Scalar(255,0,0),Top);
-	}
-
-	// --- A ket maszk osszevonasa egybe (hol teljesul mindketto "peremfeltetele")
-	int rownum = blueMask.rows;
-	int colnum = blueMask.cols;
+	// Merging two color occurrance numbers
+	int rownum = innerColorMask.rows;
+	int colnum = innerColorMask.cols;
 	int *mergedRowOccNums = new int[rownum];
 	int *mergedColOccNums = new int[colnum];
 	// Calculating minimum of two vectors (merging)
@@ -86,18 +67,29 @@ void TwoColorLocator::applyOnCC(Mat &redMask, Mat &blueMask)
 			mergedColMax = mergedColOccNums[i];
 	}
 
+	// --- Verbose
+	// Pixel numbers on the margins
+	if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
+	{
+		drawValuesOnMargin(*verboseImage,h1rowOccNums,borderColorMask.rows,rowmax/50,Scalar(0,0,255),Right);
+		drawValuesOnMargin(*verboseImage,h1colOccNums,borderColorMask.cols,colmax/50,Scalar(0,0,255),Bot);
+		drawValuesOnMargin(*verboseImage,h2rowOccNums,innerColorMask.rows,rowmax/50,Scalar(255,0,0),Left);
+		drawValuesOnMargin(*verboseImage,h2colOccNums,innerColorMask.cols,colmax/50,Scalar(255,0,0),Top);
+	}
+	// Intersection indication on the margins
+	if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
+	{
+		drawValuesOnMargin(*verboseImage,mergedRowOccNums,innerColorMask.rows,mergedRowMax/50,Scalar(0,255,255),Right);
+		drawValuesOnMargin(*verboseImage,mergedColOccNums,innerColorMask.cols,mergedColMax/50,Scalar(0,255,255),Bot);
+	}
+	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ProcessIntegralImages);
+
 	delete h1rowOccNums;
 	delete h1colOccNums;
 	delete h2rowOccNums;
 	delete h2colOccNums;
 
-	if (verboseImage != NULL && ConfigManager::Current()->verboseTwoColorLocator)
-	{
-		drawValuesOnMargin(*verboseImage,mergedRowOccNums,blueMask.rows,mergedRowMax/50,Scalar(0,255,255),Right);
-		drawValuesOnMargin(*verboseImage,mergedColOccNums,blueMask.cols,mergedColMax/50,Scalar(0,255,255),Bot);
-	}
-	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ProcessIntegralImages);
-
+	// --- Generate initial rectanges from two-color co-occurrances
 	initialRectangles.clear();
 
 	getMarkerCandidateRectanges(mergedRowOccNums, mergedColOccNums, rownum, colnum,
@@ -179,10 +171,10 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, CvRect &newRect, Mat *ver
 	Point center = Point(newRect.x+newRect.width/2, newRect.y+newRect.height/2);
 
 	// TODO: does the iterator stop at the border of the image?
-	int leftLength = findRedAlongLine(srcCC, center, Point(center.x-MAXSCANDISTANCE, center.y), verboseImage);
-	int rightLength = findRedAlongLine(srcCC, center, Point(center.x+MAXSCANDISTANCE, center.y), verboseImage);
-	int topLength = findRedAlongLine(srcCC, center, Point(center.x, center.y-MAXSCANDISTANCE), verboseImage);
-	int bottomLength = findRedAlongLine(srcCC, center, Point(center.x, center.y+MAXSCANDISTANCE), verboseImage);
+	int leftLength = findColorAlongLine(srcCC, center, Point(center.x-MAXSCANDISTANCE, center.y), COLORCODE_BLU, COLORCODE_RED, verboseImage);
+	int rightLength = findColorAlongLine(srcCC, center, Point(center.x+MAXSCANDISTANCE, center.y), COLORCODE_BLU, COLORCODE_RED, verboseImage);
+	int topLength = findColorAlongLine(srcCC, center, Point(center.x, center.y-MAXSCANDISTANCE), COLORCODE_BLU, COLORCODE_RED, verboseImage);
+	int bottomLength = findColorAlongLine(srcCC, center, Point(center.x, center.y+MAXSCANDISTANCE), COLORCODE_BLU, COLORCODE_RED, verboseImage);
 
 	if (ConfigManager::Current()->verboseRectConsolidation)
 	{
@@ -212,22 +204,14 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, CvRect &newRect, Mat *ver
 
 }
 
-// Returns distance of first RED color along the given line, or -1
-int TwoColorLocator::findRedAlongLine(Mat &srcCC, Point startPoint, Point endPoint, Mat *verboseImage)
+// Returns distance of first given color along the given line, or -1
+int TwoColorLocator::findColorAlongLine(Mat &srcCC, Point startPoint, Point endPoint, uchar innerColorCode, uchar borderColorCode,Mat *verboseImage)
 {
-	// Meanwhile, also find inner and outer borders of RED (value 1) area
-	// Fills RedInnerBorders[dir] and RedOuterBorders[]
-	int currentAreaColorCode = COLORCODE_INITIAL;
-	bool isDirectionValid = false;	// True if RED area has been found. False otherwise.
-
 	// Internal valiables to track changes and last locations
-	uchar colorValue = -1;		// Color code for current pixel
-	uchar prevColorValue = -1;	// Used to suppress 1 pixel errors
-	int bluePixelNum = 0;		// Count blue pixels. There must be at least MINBLUEPIXELNUM to accept
-//	Point prevPoint;			// Location of previous point
+	uchar colorValue = COLORCODE_INITIAL;		// Color code for current pixel
+	uchar prevColorValue = COLORCODE_INITIAL;	// Used to suppress 1 pixel errors
+	int innerPixelNum = 0;		// Count blue pixels. There must be at least MINBLUEPIXELNUM to accept
 	int invalidPixelColorCounter = 0;		// Couting the number of pixels with invalid color. Beyond MAXINVALIDCOLORNUM, we do not search for green anymore...
-
-//	bool isGreenInThisDirection = false;	// True if green color was found directly beyond the red area
 
 	// Scan along the given line and store the color codes (using hue2codeLUT)
 	LineIterator lineIt(srcCC,startPoint,endPoint);
@@ -236,13 +220,7 @@ int TwoColorLocator::findRedAlongLine(Mat &srcCC, Point startPoint, Point endPoi
 	{
 		colorValue = *lineIt.ptr;
 
-/*		if (verboseImage != NULL && ConfigManager::Current()->verboseRectConsolidation)
-		{
-			Point pos = lineIt.pos();
-			circle(*verboseImage,pos,3,Scalar(0,0,0));
-		}*/
-
-		if (colorValue != COLORCODE_BLU && colorValue != COLORCODE_RED)
+		if (colorValue != innerColorCode && colorValue != borderColorCode)
 		{
 			invalidPixelColorCounter++;
 			if (invalidPixelColorCounter>MAXINVALIDCOLORNUM)
@@ -252,17 +230,17 @@ int TwoColorLocator::findRedAlongLine(Mat &srcCC, Point startPoint, Point endPoi
 			}
 		}
 
-		if (colorValue == COLORCODE_BLU)
+		if (colorValue == innerColorCode)
 		{
-			bluePixelNum++;
+			innerPixelNum++;
 		}
 
 		// Stop if current and previous colors are both RED
 		// Continue otherwise
-		if (colorValue == COLORCODE_RED && prevColorValue == COLORCODE_RED)
+		if (colorValue == borderColorCode && prevColorValue == borderColorCode)
 		{
 			// If there were insufficient blue pixels, we return -1
-			if (bluePixelNum < MINBLUEPIXELNUM)
+			if (innerPixelNum < MININNERPIXELNUM)
 			{
 				return -1;	// Reject
 			}

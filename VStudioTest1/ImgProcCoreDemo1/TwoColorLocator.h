@@ -13,15 +13,10 @@ typedef enum _Location { Top, Bot, Left, Right } LocationEnum;
 class TwoColorLocator
 {
 public:
-	FastColorFilter *fastColorFilter;
-
-	void apply(Mat &src, Mat &resultMask);
-
 	// Constructors
 	TwoColorLocator();
 
-//	void apply(Mat &src);
-	void applyOnCC(Mat &redMask, Mat &blueMask);
+	void findInitialRects(Mat &redMask, Mat &blueMask);	// Works on uchar masks with values 0 and 255
 	void consolidateRects(Mat &srcCC);
 
 	// Storage of results, cleared before every "apply()"
@@ -31,16 +26,21 @@ public:
 	Mat *verboseImage;
 
 private:
-	std::list<CvRect> initialRectangles;	// created by applyOnCC
+	// Internal storage for initial rectangle candidates
+	std::list<CvRect> initialRectangles;	// created by findInitialRects
 
+	// Updates the size of a rectangle by scanning the image from the center in
+	//	4 directions and finding the borders.
 	bool updateRectToRealSize(Mat &srcCC, CvRect &newRect, Mat *verboseImage);
-	int findRedAlongLine(Mat &srcCC, Point startPoint, Point endPoint, Mat *verboseImage);
 
-	// Az integral image peremosszegeit szamolja ki
+	// Goes along a line with a given (inner) color and returns the distance of the "border color" pixels. -1 indicates invalid situation.
+	int findColorAlongLine(Mat &srcCC, Point startPoint, Point endPoint, uchar innerColorCode, uchar borderColorCode,Mat *verboseImage);
+
+	// Calculates the occurrance numbers per row and column using the provided integral image.
 	void getOccurranceNumbers(Mat &srcIntegral, int* rowOccNums, int *colOccNums, int &rowmax, int &colmax);
-	// Verbose-hoz: integral image peremosszegek a margokon
+	// For verbose: draws results of getOccurranceNumbers on the verbose image.
 	void drawValuesOnMargin(Mat &img, int *values, int valueNum,int scalingDivider, Scalar color, LocationEnum loc);
-	// Verbose-hoz: A peremosszegekbol threshold alapjan letrehozza az eselyes negyzetek listjajat.
+	// Generates the candidate rectangles using the per row/column occurrance numbers and a given threshold.
 	void getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax, double thresholdRate, std::list<CvRect> &resultRectangles, Mat *verboseImage);
 };
 
