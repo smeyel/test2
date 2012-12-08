@@ -147,7 +147,7 @@ void TwoColorLocator::consolidateRects(Mat &srcCC)
 		if (updateRectToRealSize(srcCC, newRect, verboseImage))
 		{
 			// Verbose: show new rectangle
-			if (verboseImage!=NULL && ConfigManager::Current()->verboseRectConsolidation)
+			if (verboseImage!=NULL && ConfigManager::Current()->verboseRectConsolidationResults)
 			{
 				rectangle(*verboseImage,Rect(newRect),Scalar(0,255,0));
 			}
@@ -158,7 +158,7 @@ void TwoColorLocator::consolidateRects(Mat &srcCC)
 		}
 	}
 
-	if (ConfigManager::Current()->verboseRectConsolidation)
+	if (ConfigManager::Current()->verboseTxt_RectConsolidationSummary)
 	{
 		cout << "Rect consolidation effect: " << initialRectNum << " rect -> " << resultRectNum << endl;
 	}
@@ -171,23 +171,39 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, CvRect &newRect, Mat *ver
 	Point center = Point(newRect.x+newRect.width/2, newRect.y+newRect.height/2);
 
 	// TODO: does the iterator stop at the border of the image?
+	// Horizontal scan
 	int leftLength = findColorAlongLine(srcCC, center, Point(center.x-MAXSCANDISTANCE, center.y), COLORCODE_BLU, COLORCODE_RED, verboseImage);
 	int rightLength = findColorAlongLine(srcCC, center, Point(center.x+MAXSCANDISTANCE, center.y), COLORCODE_BLU, COLORCODE_RED, verboseImage);
+	if (leftLength != -1 && rightLength != -1)
+	{
+		// update center location
+		center.x = center.x + (rightLength - leftLength)/2;
+	}
+	else
+	{
+		if (ConfigManager::Current()->verboseTxt_RectConsolidation)
+		{
+			cout << "TwoColorLocator::updateRectToRealSize(): horizontal -> REJECT" << endl;
+		}
+		return false;
+	}
+
+
 	int topLength = findColorAlongLine(srcCC, center, Point(center.x, center.y-MAXSCANDISTANCE), COLORCODE_BLU, COLORCODE_RED, verboseImage);
 	int bottomLength = findColorAlongLine(srcCC, center, Point(center.x, center.y+MAXSCANDISTANCE), COLORCODE_BLU, COLORCODE_RED, verboseImage);
 
-	if (ConfigManager::Current()->verboseRectConsolidation)
+	if (ConfigManager::Current()->verboseTxt_RectConsolidation)
 	{
 		cout << "Rect consolidation: x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height;
 	}
 	// Update rect sizes (if the borders were really found)
-	if (leftLength != -1 && rightLength != -1 && topLength != -1 && bottomLength != -1)
+	if (topLength != -1 && bottomLength != -1)
 	{
 		newRect.x = center.x-leftLength;
 		newRect.y = center.y-topLength;
 		newRect.width = leftLength + rightLength;
 		newRect.height = topLength + bottomLength;
-		if (ConfigManager::Current()->verboseRectConsolidation)
+		if (ConfigManager::Current()->verboseTxt_RectConsolidation)
 		{
 			cout << " -> x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height << endl;
 		}
@@ -195,7 +211,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, CvRect &newRect, Mat *ver
 	}
 	else
 	{
-		if (ConfigManager::Current()->verboseRectConsolidation)
+		if (ConfigManager::Current()->verboseTxt_RectConsolidation)
 		{
 			cout << " -> REJECT" << endl;
 		}

@@ -29,14 +29,17 @@ public:
 	bool verboseEllipseFitting;
 	bool verboseEllipseScanning;
 	bool verboseMarkerCodeValidation;
-	bool verboseRectConsolidation;
+	bool verboseRectConsolidationResults;
 	bool verboseTxt_LineRejectionReason;
+	bool verboseTxt_RectConsolidation;
+	bool verboseTxt_RectConsolidationSummary;
 
 	bool showMarkerCodeOnImage;
 	bool showInputImage;
 
 	bool resizeImage;
 	bool waitFor25Fps;
+	bool pauseIfNoValidMarkers;
 };
 
 #endif

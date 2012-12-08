@@ -4,9 +4,6 @@
 #include <opencv2\opencv.hpp>
 #include <opencv2\core\core.hpp>
 #include <opencv2\core\mat.hpp>
-#include "TwoColorLocator.h"
-#include "MarkerCC1Locator.h"
-#include "MarkerCC1.h"
 
 using namespace cv;
 
@@ -16,8 +13,12 @@ class MarkerCC1Locator
 public:
 	Mat *verboseImage;
 
+	bool foundValidMarker;	// After every frame, may be queried if there was a valid marker.
+
 	// candidateRectList is the list of possible marker inner (blue) circle locations.
 	void LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRectList);
+	// returns true if given code is valid
+	bool validateMarkerID(int majorCode, int minorCode);
 
 	MarkerCC1Locator();
 };

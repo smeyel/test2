@@ -4,18 +4,20 @@
 #include <opencv2\opencv.hpp>
 #include <opencv2\core\core.hpp>
 #include <opencv2\core\mat.hpp>
-//#include "TwoColorLocator.h"
+#include "MarkerCC1Locator.h"
 
 using namespace cv;
 
 class MarkerCC1
 {
-	//uchar hue2codeLUT[256];	// erteke -1, 0-3 lehet. -1: ervenytelen, egyebkent 2 bit.
 public:
 	Point2d center;
 	int majorMarkerID;		// real and identified code of the marker
 	int minorMarkerID;		// real and identified code of the marker
 	bool isValid;
+
+	Mat *verboseImage;
+	MarkerCC1Locator *markerLocator;
 
 	// Constructor
 	MarkerCC1()
@@ -24,9 +26,8 @@ public:
 		minorMarkerID=0;
 		isValid=false;
 		verboseImage = NULL;
+		markerLocator = NULL;
 	}
-
-	Mat *verboseImage;
 
 	// Read the marker code for a given candidate rectangle.
 	// It the read is successful, it is really a valid marker.
@@ -43,13 +44,13 @@ private:
 	Point RedOuterBorders[8];
 	RotatedRect innerEllipse;
 	RotatedRect outerEllipse;
-	// For verbose purposes, stores location of the ellipse scan points for every bit
-	Point bitLocations[24];	// 8 inner and 16 outer ellipse points
 
 	// --- Reading marker code areas
 	void scanEllipses(Mat &srcCC);
 	Point getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier, Mat &srcCC);
-	uchar rawMarkerIDBitCC[24];	// Color code values of the scanned points
+	// For verbose purposes, stores location of the ellipse scan points for every bit
+	Point bitLocations[48];	// 4x4 inner and 4x8 outer ellipse points
+	uchar rawMarkerIDBitCC[48];	// Color code values of the scanned points
 
 	// --- Marker code processing
 	void validateAndConsolidateMarkerCode();

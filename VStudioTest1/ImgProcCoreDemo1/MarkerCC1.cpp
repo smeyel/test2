@@ -116,8 +116,8 @@ void MarkerCC1::scanEllipses(Mat &srcCC)
 	RotatedRect baseEllipse(markerCenter,baseSize,outerEllipse.angle);
 
 	int bitIdx = 0;
-	// Inner scanning ellipse (8 points)
-	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 45.0)
+	// Inner scanning ellipse (16 points)
+	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 22.5)
 	{
 		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,2.5, srcCC);
 		rawMarkerIDBitCC[bitIdx]=srcCC.at<uchar>(location);
@@ -126,10 +126,14 @@ void MarkerCC1::scanEllipses(Mat &srcCC)
 		if (verboseImage!=NULL && ConfigManager::Current()->verboseEllipseScanning)
 		{
 			circle(*verboseImage,location,3,Scalar(255,255,255));
+/*			if (directionAngle==0.0)	// Indicate start direction
+			{
+				line(*verboseImage,markerCenter,location,Scalar(0,0,0));
+			} */
 		}
 	}
-	// Outer scanning ellpise (16 points)
-	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 22.5)
+	// Outer scanning ellpise (32 points)
+	for(float directionAngle=0.0; directionAngle<359.0; directionAngle += 11.25)
 	{
 		Point location = getEllipsePointInDirection(baseEllipse,directionAngle,3.5, srcCC);
 
@@ -328,7 +332,12 @@ CvPoint MarkerCC1::getEndPoint(int x, int y, int distance, int dir)
 void MarkerCC1::validateAndConsolidateMarkerCode()
 {
 	// Get binary bits and finds green color
-	int rawbits[24];
+	int rawbits[48];
+	// helper variables to find best green index
+	int firstGreenIdx = -1;
+	int lastGreenIdx = -1;
+	int greenRunLength = 0;	// How many greens are there after each other?
+
 	int greenIdx = -1;	// Index of last green location
 
 	// --- Convert the color code array into a bit array (only 0 and 1)
@@ -338,28 +347,67 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 		cout << "rawBits:";
 	}
 
-	for (int bitIdx=0; bitIdx<24; bitIdx++)
+	bool isGreen;
+	for (int bitIdx=0; bitIdx<48; bitIdx++)
 	{
+		isGreen = false;
 		int colorCode = rawMarkerIDBitCC[bitIdx];
+		// White is 1, other colors are 0.
 		rawbits[bitIdx] = colorCode==COLORCODE_WHT ? 1 : 0;
-		if (ConfigManager::Current()->verboseMarkerCodeValidation )
+
+		// Search for green color (only on outer ellipse)
+		if (colorCode == COLORCODE_GRN && bitIdx>=16)
 		{
-			cout << rawbits[bitIdx];
+			greenRunLength++;
+			isGreen = true;
+		}
+		else
+		{
+			greenRunLength=0;
 		}
 
-		// Search for green color
-		if (colorCode == COLORCODE_GRN)
+		if (greenRunLength > 1)	// We have a longer green sequence
 		{
-			greenIdx=bitIdx;
+			firstGreenIdx = bitIdx - greenRunLength + 1;
+			lastGreenIdx = bitIdx;
 		}
+
+		if (ConfigManager::Current()->verboseMarkerCodeValidation )
+		{
+			if (isGreen)
+			{
+				if (greenRunLength>1)
+				{
+					cout << "G";	// longer green sequence
+				}
+				else
+				{
+					cout << "g";	// short green sequence
+				}
+			}
+			else
+			{
+				cout << rawbits[bitIdx];
+			}
+		}
+
 	}
+	if (lastGreenIdx >= firstGreenIdx)
+	{
+		greenIdx = (lastGreenIdx + firstGreenIdx) / 2;
+	}
+	else	// May wrap around!
+	{
+		greenIdx = firstGreenIdx;	// Green must be at the wrap around location...
+	}
+
 	if (ConfigManager::Current()->verboseMarkerCodeValidation )
 	{
-		cout << ", GRN@" << greenIdx << endl;
+		cout << ", GRN@(" << firstGreenIdx << "-" << lastGreenIdx << ")->" << greenIdx << endl;
 	}
 
 	// --- Reorder bits to start from the green location
-	if (greenIdx<8)	// If green is not on the outer ellipse, marker ID cannot be valid.
+	if (greenIdx<16)	// If green is not on the outer ellipse, marker ID cannot be valid.
 	{
 		isValid = false;
 		majorMarkerID=0;
@@ -380,7 +428,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	}
 	for(int i=0; i<8; i++)
 	{
-		realBitIdxOuter[i] = 8 + ((greenIdx-8)+2*i) % 16;
+		realBitIdxOuter[i] = 16 + ((greenIdx-16)+4*i) % 32;
 		finalOuterBits[i] = rawbits[realBitIdxOuter[i]];
 		if (ConfigManager::Current()->verboseMarkerCodeValidation )
 		{
@@ -423,7 +471,12 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	}
 	for(int i=0; i<4; i++)
 	{
-		realBitIdxInner[i] = (realBitIdxOuter[2*i]-8)/2;
+		// Calculate index from index for corresponding direction
+		//	on the outer ellipse (twice as many bits, indexing of outer
+		//	ellipse begins with 16).
+		//realBitIdxInner[i] = ((greenIdx-16)+4*i) % 16;
+
+		realBitIdxInner[i] = ((realBitIdxOuter[2*i]-16)/2 + 2) % 16;
 		finalInnerBits[i] = rawbits[realBitIdxInner[i]];
 		if (ConfigManager::Current()->verboseMarkerCodeValidation )
 		{
@@ -460,6 +513,8 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 
 	majorMarkerID = innerCode;
 	minorMarkerID = outerCode;
-	isValid = true;
+
+	// Is this a valid code?
+	isValid = markerLocator->validateMarkerID(majorMarkerID, minorMarkerID);
 }
 

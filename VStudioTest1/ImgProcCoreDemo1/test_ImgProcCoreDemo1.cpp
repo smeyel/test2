@@ -53,9 +53,8 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 int main()
 {
 	ConfigManager::Current()->init("../testini.ini");
-	//do_test4("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
-	//do_test5("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
-	do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
+	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
+	do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Valosaghu1.mp4");
 }
 
 void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldogozas - marker kereses szinekkel
@@ -117,8 +116,10 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	MarkerCC1Locator markerCC1Locator;
 
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FullExecution);
+	bool pauseDueToSettings = false;	// true means some setting wants to pause the processing
 	while(true)
 	{
+		pauseDueToSettings = false;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FrameAll);
 		// Get next frame
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::Capture);
@@ -166,11 +167,18 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
 
 		// MarkerCC1Locator: locateMarkers
-		markerCC1Locator.verboseImage =  &visColorCodeFrame;
-		//markerCC1Locator.verboseImage =  &resizedFrame;
+		//markerCC1Locator.verboseImage =  &visColorCodeFrame;
+		markerCC1Locator.verboseImage =  &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::LocateMarkers);
 		markerCC1Locator.LocateMarkers( colorCodeFrame, &(twoColorLocator.resultRectangles) );
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::LocateMarkers);
+
+		if (!markerCC1Locator.foundValidMarker && ConfigManager::Current()->pauseIfNoValidMarkers)
+		{
+			// No valid markers found, settings request processing pause (for inspection).
+			cout << "PAUSE: no valid markers found on this frame!" << endl;
+			pauseDueToSettings = true;
+		}
 
 		// show frames
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ShowImages);
@@ -197,7 +205,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 			}
 			c = cvWaitKey(delay);
 			if (c==27) break;
-			if (c=='p')	// Wait until another keypress
+			if (c=='p' || pauseDueToSettings)	// Wait until another keypress
 			{
 				c = cvWaitKey(0);
 			}
