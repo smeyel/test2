@@ -79,14 +79,6 @@
   <ItemGroup>
     <None Include="ReadMe.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\marker.cpp" />
-    <ClCompile Include="src\markersearch.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\marker.h" />
-    <ClInclude Include="include\markersearch.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

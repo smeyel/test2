@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "TwoColorLocator.h"
-#include "MarkerCC1Locator.h"
+#include "MarkerCC2Locator.h"
 
 #include "TimeMeasurementCodeDefines.h"
 #include "ConfigManager.h"
@@ -55,7 +55,9 @@ int main()
 {
 	ConfigManager::Current()->init("../testini.ini");
 	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
-	do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Valosaghu1.mp4");
+	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Valosaghu1.mp4");
+	do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test1.mp4");
+
 }
 
 void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldogozas - marker kereses szinekkel
@@ -115,7 +117,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	// --- Setup marker locator
 	TwoColorLocator twoColorLocator;
 
-	MarkerCC1Locator markerCC1Locator;
+	MarkerCC2Locator markerCC2Locator;
 
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FullExecution);
 	bool pauseDueToSettings = false;	// true means some setting wants to pause the processing
@@ -170,14 +172,14 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateRectangles);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
 
-		// MarkerCC1Locator: locateMarkers
-		//markerCC1Locator.verboseImage =  &visColorCodeFrame;
-		markerCC1Locator.verboseImage =  &resizedFrame;
+		// MarkerCC2Locator: locateMarkers
+		//markerCC2Locator.verboseImage =  &visColorCodeFrame;
+		markerCC2Locator.verboseImage =  &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::LocateMarkers);
-		markerCC1Locator.LocateMarkers( colorCodeFrame, &(twoColorLocator.resultRectangles) );
+		markerCC2Locator.LocateMarkers( colorCodeFrame, &(twoColorLocator.resultRectangles) );
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::LocateMarkers);
 
-		if (!markerCC1Locator.foundValidMarker && ConfigManager::Current()->pauseIfNoValidMarkers)
+		if (!markerCC2Locator.foundValidMarker && ConfigManager::Current()->pauseIfNoValidMarkers)
 		{
 			// No valid markers found, settings request processing pause (for inspection).
 			cout << "PAUSE: no valid markers found on this frame!" << endl;

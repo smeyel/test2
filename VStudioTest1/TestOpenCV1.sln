@@ -11,6 +11,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libImageProcessingCore", ".
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoCircleLocator1", "StereoCircleLocator1\StereoCircleLocator1.vcxproj", "{7E68BC84-3CFB-4E94-884A-D5D5463388C5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libMiscTimeAndConfig", "libMiscTimeAndConfig\libMiscTimeAndConfig.vcxproj", "{FE3097B6-9FDD-4CB5-B42F-BB5DDC61DF7C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libTwoColorCircleMarker", "libTwoColorCircleMarker\libTwoColorCircleMarker.vcxproj", "{5E2BAF4F-7A41-42BD-AF52-6EB68AC460DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -37,6 +41,14 @@ Global
 		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Debug|Win32.Build.0 = Debug|Win32
 		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Release|Win32.ActiveCfg = Release|Win32
 		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Release|Win32.Build.0 = Release|Win32
+		{FE3097B6-9FDD-4CB5-B42F-BB5DDC61DF7C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FE3097B6-9FDD-4CB5-B42F-BB5DDC61DF7C}.Debug|Win32.Build.0 = Debug|Win32
+		{FE3097B6-9FDD-4CB5-B42F-BB5DDC61DF7C}.Release|Win32.ActiveCfg = Release|Win32
+		{FE3097B6-9FDD-4CB5-B42F-BB5DDC61DF7C}.Release|Win32.Build.0 = Release|Win32
+		{5E2BAF4F-7A41-42BD-AF52-6EB68AC460DA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5E2BAF4F-7A41-42BD-AF52-6EB68AC460DA}.Debug|Win32.Build.0 = Debug|Win32
+		{5E2BAF4F-7A41-42BD-AF52-6EB68AC460DA}.Release|Win32.ActiveCfg = Release|Win32
+		{5E2BAF4F-7A41-42BD-AF52-6EB68AC460DA}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
