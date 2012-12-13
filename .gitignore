@@ -12,3 +12,5 @@
 Debug/
 ipch/
 Release/
+*.txt
+

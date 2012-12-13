@@ -43,11 +43,11 @@ void FastColorFilter::init()
 		{
 			RgbLut[i]=COLORCODE_RED;
 		}
-		if (r <= 65 &&  g >= 96 && b <= 150 || (g < 96 && g >= 64 && g >= r+64 && g >= r+64))
+		if ((r <= 65 &&  g >= 96 && b <= 150) || (r <= 96 &&  g >= 128 && b <= 128) || (g < 96 && g >= 64 && g >= r+64 && g >= r+64))
 		{
 			RgbLut[i]=COLORCODE_GRN;
 		}
-		if (r <= 64 &&  g <= 64 && b >= 64)
+		if ((r <= 64 &&  g <= 64 && b >= 64) || (r == 0 &&  g == 0 && b >= 32))	// 2nd condition overrides some blacks...
 		{
 			RgbLut[i]=COLORCODE_BLU;
 		}
