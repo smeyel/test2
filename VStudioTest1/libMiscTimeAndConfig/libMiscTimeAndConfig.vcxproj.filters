@@ -18,7 +18,7 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\ConfigManager.cpp">
+    <ClCompile Include="src\ConfigManagerBase.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\TimeMeasurement.cpp">
@@ -26,13 +26,13 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ConfigManager.h">
+    <ClInclude Include="include\SimpleIni.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ConfigManagerBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\TimeMeasurement.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\SimpleIni.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -73,11 +73,11 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\ConfigManager.cpp" />
+    <ClCompile Include="src\ConfigManagerBase.cpp" />
     <ClCompile Include="src\TimeMeasurement.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ConfigManager.h" />
+    <ClInclude Include="include\ConfigManagerBase.h" />
     <ClInclude Include="include\SimpleIni.h" />
     <ClInclude Include="include\TimeMeasurement.h" />
   </ItemGroup>

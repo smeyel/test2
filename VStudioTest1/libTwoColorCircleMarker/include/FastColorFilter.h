@@ -16,58 +16,61 @@
 
 using namespace cv;
 
-// Warning: do not re-create for every frame! Try to re-use!
-class FastColorFilter
+namespace TwoColorCircleMarker
 {
-	uchar LutR[256];
-	uchar LutG[256];
-	uchar LutB[256];
-
-	static const uchar rUnit = 9;
-	static const uchar gUnit = 3;
-	static const uchar bUnit = 1;
-
-	uchar getR(uchar code)
+	// Warning: do not re-create for every frame! Try to re-use!
+	class FastColorFilter
 	{
-		return code/9;
-	}
-	uchar getG(uchar code)
-	{
-		return (code % 9) / 3;
-	}
-	uchar getB(uchar code)
-	{
-		return code % 3;
-	}
+		uchar LutR[256];
+		uchar LutG[256];
+		uchar LutB[256];
 
-	// Internal use by filtering
-	// Current data pointers for all masks, indexed by colorcode
-	(uchar*)currentMaskDataPtr[2];
-	uchar* currentOverlapMaskDataPtr;
+		static const uchar rUnit = 9;
+		static const uchar gUnit = 3;
+		static const uchar bUnit = 1;
 
-	// --- Color remapping
-	// code remap and its functions
-	uchar RgbLut[512];	// 3 bit / RGB color layer -> 9 bit, 512 values. 0 means undefined color.
+		uchar getR(uchar code)
+		{
+			return code/9;
+		}
+		uchar getG(uchar code)
+		{
+			return (code % 9) / 3;
+		}
+		uchar getB(uchar code)
+		{
+			return code % 3;
+		}
 
-public:
-	// --- Mask management
-	// Pointers for all masks
-	(Mat *)masks[2];
-	// Color code for the masks to indicate
-	uchar maskColorCode[2];	// Colorcode for the 2 masks they indicate.
-	// Overlap mask
-	Mat *overlapMask;
+		// Internal use by filtering
+		// Current data pointers for all masks, indexed by colorcode
+		(uchar*)currentMaskDataPtr[2];
+		uchar* currentOverlapMaskDataPtr;
+
+		// --- Color remapping
+		// code remap and its functions
+		uchar RgbLut[512];	// 3 bit / RGB color layer -> 9 bit, 512 values. 0 means undefined color.
+
+	public:
+		// --- Mask management
+		// Pointers for all masks
+		(Mat *)masks[2];
+		// Color code for the masks to indicate
+		uchar maskColorCode[2];	// Colorcode for the 2 masks they indicate.
+		// Overlap mask
+		Mat *overlapMask;
 
 
-	// --- inits RgbLut
-	void init();
+		// --- inits RgbLut
+		void init();
 
-	// --- Image decomposition (filtering)
-	void DecomposeImage(Mat &src, Mat &dst);
-	void DecomposeImageCreateMasks(Mat &src, Mat &dst);
-	void DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat &dst);
-	// Code image visualization: amplification of colors in BGR space
-	void VisualizeDecomposedImage(Mat &src, Mat &dst);
-};
+		// --- Image decomposition (filtering)
+		void DecomposeImage(Mat &src, Mat &dst);
+		void DecomposeImageCreateMasks(Mat &src, Mat &dst);
+		void DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat &dst);
+		// Code image visualization: amplification of colors in BGR space
+		void VisualizeDecomposedImage(Mat &src, Mat &dst);
+	};
+}
 
 #endif

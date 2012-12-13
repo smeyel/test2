@@ -15,6 +15,8 @@
 
 using namespace cv;
 using namespace std;
+using namespace TwoColorCircleMarker;
+
 
 // Entry of marker identification
 void MarkerCC2::readCode(Mat &srcCC, CvRect &rect)
@@ -206,17 +208,25 @@ bool MarkerCC2::findBordersAlongLine(Mat &srcCC, int dir)
 			switch(currentAreaColorCode)
 			{
 			case COLORCODE_INITIAL:
-				// In the middle, we have to find blue color. Otherwise, the marker is rejected.
-				if (colorValue != COLORCODE_BLU)
+				// In the middle, we have to find blue color (maybe black or none). Otherwise, the marker is rejected.
+				switch (colorValue)
 				{
+				case COLORCODE_BLU:
+					// This is OK.
+					currentAreaColorCode = COLORCODE_BLU;
+					break;
+				case COLORCODE_BLK:
+				case COLORCODE_NONE:
+					// OK, but we will need a blue location first...
+					break;
+				default:
+					// This cannot be OK.
 					if (ConfigManager::Current()->verboseTxt_LineRejectionReason)
 					{
-						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: first color is not BLU, dir="<<dir<<endl;
+						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir="<<dir<<endl;
 					}
-
 					return false;	// Immediate reject
 				}
-				currentAreaColorCode = COLORCODE_BLU;
 				break;
 			case COLORCODE_BLU:
 				// This is the initial area code

@@ -15,6 +15,8 @@
 
 using namespace cv;
 using namespace std;
+using namespace TwoColorCircleMarker;
+
 
 // Entry of marker identification
 void MarkerCC1::readCode(Mat &srcCC, CvRect &rect)

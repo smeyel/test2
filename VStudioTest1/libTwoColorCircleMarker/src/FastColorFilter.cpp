@@ -15,6 +15,7 @@
 #define OVERLAPCHECKLENGTH 5	// Max distance of two colors to trigger overlap
 
 using namespace cv;
+using namespace TwoColorCircleMarker;
 
 // ----------------------- Color remap functions
 

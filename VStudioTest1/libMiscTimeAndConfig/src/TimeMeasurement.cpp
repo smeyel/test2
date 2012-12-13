@@ -1,5 +1,7 @@
 #include "TimeMeasurement.h"
 
+using namespace MiscTimeAndConfig;
+
 TimeMeasurement TimeMeasurement::instance;
 
 void TimeMeasurement::init()

@@ -8,51 +8,54 @@
 
 using namespace cv;
 
-class MarkerCC2
+namespace TwoColorCircleMarker
 {
-public:
-	Point2d center;
-	int MarkerID;
-	bool isValid;
-
-	Mat *verboseImage;
-	MarkerCC2Locator *markerLocator;
-
-	// Constructor
-	MarkerCC2()
+	class MarkerCC2
 	{
-		MarkerID=0;
-		isValid=false;
-		verboseImage = NULL;
-		markerLocator = NULL;
-	}
+	public:
+		Point2d center;
+		int MarkerID;
+		bool isValid;
 
-	// Read the marker code for a given candidate rectangle.
-	// It the read is successful, it is really a valid marker.
-	void readCode(Mat &srcCC, CvRect &rect);
+		Mat *verboseImage;
+		MarkerCC2Locator *markerLocator;
 
-private:
-	// --- Used by ellpise fitting
-	int scanDistance;	// length of scan starting from center (manhattan distance)
-	bool findBordersAlongLine(Mat &srcCC, int dir);
-	CvPoint getEndPoint(int x, int y, int distance, int dir);
-	void fitBorderEllipses();
-	// Temp variables
-	Point RedInnerBorders[8];
-	Point RedOuterBorders[8];
-	RotatedRect innerEllipse;
-	RotatedRect outerEllipse;
+		// Constructor
+		MarkerCC2()
+		{
+			MarkerID=0;
+			isValid=false;
+			verboseImage = NULL;
+			markerLocator = NULL;
+		}
 
-	// --- Reading marker code areas
-	void scanEllipses(Mat &srcCC);
-	Point getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier, Mat &srcCC);
-	// For verbose purposes, stores location of the ellipse scan points for every bit
-	Point bitLocations[32];	// 4x8 ellipse points
-	uchar rawMarkerIDBitCC[32];	// Color code values of the scanned points
+		// Read the marker code for a given candidate rectangle.
+		// It the read is successful, it is really a valid marker.
+		void readCode(Mat &srcCC, CvRect &rect);
 
-	// --- Marker code processing
-	void validateAndConsolidateMarkerCode();
+	private:
+		// --- Used by ellpise fitting
+		int scanDistance;	// length of scan starting from center (manhattan distance)
+		bool findBordersAlongLine(Mat &srcCC, int dir);
+		CvPoint getEndPoint(int x, int y, int distance, int dir);
+		void fitBorderEllipses();
+		// Temp variables
+		Point RedInnerBorders[8];
+		Point RedOuterBorders[8];
+		RotatedRect innerEllipse;
+		RotatedRect outerEllipse;
 
-};
+		// --- Reading marker code areas
+		void scanEllipses(Mat &srcCC);
+		Point getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier, Mat &srcCC);
+		// For verbose purposes, stores location of the ellipse scan points for every bit
+		Point bitLocations[32];	// 4x8 ellipse points
+		uchar rawMarkerIDBitCC[32];	// Color code values of the scanned points
+
+		// --- Marker code processing
+		void validateAndConsolidateMarkerCode();
+
+	};
+}
 
 #endif

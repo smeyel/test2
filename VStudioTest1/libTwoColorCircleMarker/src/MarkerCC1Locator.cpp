@@ -6,6 +6,8 @@
 #include "MarkerCC1.h"
 
 using namespace cv;
+using namespace TwoColorCircleMarker;
+
 
 MarkerCC1Locator::MarkerCC1Locator()
 {

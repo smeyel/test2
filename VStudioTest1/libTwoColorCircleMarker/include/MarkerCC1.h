@@ -8,53 +8,56 @@
 
 using namespace cv;
 
-class MarkerCC1
+namespace TwoColorCircleMarker
 {
-public:
-	Point2d center;
-	int majorMarkerID;		// real and identified code of the marker
-	int minorMarkerID;		// real and identified code of the marker
-	bool isValid;
-
-	Mat *verboseImage;
-	MarkerCC1Locator *markerLocator;
-
-	// Constructor
-	MarkerCC1()
+	class MarkerCC1
 	{
-		majorMarkerID=0;
-		minorMarkerID=0;
-		isValid=false;
-		verboseImage = NULL;
-		markerLocator = NULL;
-	}
+	public:
+		Point2d center;
+		int majorMarkerID;		// real and identified code of the marker
+		int minorMarkerID;		// real and identified code of the marker
+		bool isValid;
 
-	// Read the marker code for a given candidate rectangle.
-	// It the read is successful, it is really a valid marker.
-	void readCode(Mat &srcCC, CvRect &rect);
+		Mat *verboseImage;
+		MarkerCC1Locator *markerLocator;
 
-private:
-	// --- Used by ellpise fitting
-	int scanDistance;	// length of scan starting from center (manhattan distance)
-	bool findBordersAlongLine(Mat &srcCC, int dir);
-	CvPoint getEndPoint(int x, int y, int distance, int dir);
-	void fitBorderEllipses();
-	// Temp variables
-	Point RedInnerBorders[8];
-	Point RedOuterBorders[8];
-	RotatedRect innerEllipse;
-	RotatedRect outerEllipse;
+		// Constructor
+		MarkerCC1()
+		{
+			majorMarkerID=0;
+			minorMarkerID=0;
+			isValid=false;
+			verboseImage = NULL;
+			markerLocator = NULL;
+		}
 
-	// --- Reading marker code areas
-	void scanEllipses(Mat &srcCC);
-	Point getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier, Mat &srcCC);
-	// For verbose purposes, stores location of the ellipse scan points for every bit
-	Point bitLocations[48];	// 4x4 inner and 4x8 outer ellipse points
-	uchar rawMarkerIDBitCC[48];	// Color code values of the scanned points
+		// Read the marker code for a given candidate rectangle.
+		// It the read is successful, it is really a valid marker.
+		void readCode(Mat &srcCC, CvRect &rect);
 
-	// --- Marker code processing
-	void validateAndConsolidateMarkerCode();
+	private:
+		// --- Used by ellpise fitting
+		int scanDistance;	// length of scan starting from center (manhattan distance)
+		bool findBordersAlongLine(Mat &srcCC, int dir);
+		CvPoint getEndPoint(int x, int y, int distance, int dir);
+		void fitBorderEllipses();
+		// Temp variables
+		Point RedInnerBorders[8];
+		Point RedOuterBorders[8];
+		RotatedRect innerEllipse;
+		RotatedRect outerEllipse;
 
-};
+		// --- Reading marker code areas
+		void scanEllipses(Mat &srcCC);
+		Point getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier, Mat &srcCC);
+		// For verbose purposes, stores location of the ellipse scan points for every bit
+		Point bitLocations[48];	// 4x4 inner and 4x8 outer ellipse points
+		uchar rawMarkerIDBitCC[48];	// Color code values of the scanned points
+
+		// --- Marker code processing
+		void validateAndConsolidateMarkerCode();
+
+	};
+}
 
 #endif

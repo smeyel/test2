@@ -10,24 +10,27 @@
 
 using namespace std;
 
-class TimeMeasurement
+namespace MiscTimeAndConfig
 {
-	clock_t currentStartValues[MAX_TIMING_CODE];
-	long sumvalues[MAX_TIMING_CODE];
-	int numvalues[MAX_TIMING_CODE];
-	string names[MAX_TIMING_CODE];
+	class TimeMeasurement
+	{
+		clock_t currentStartValues[MAX_TIMING_CODE];
+		long sumvalues[MAX_TIMING_CODE];
+		int numvalues[MAX_TIMING_CODE];
+		string names[MAX_TIMING_CODE];
 
-public:
+	public:
 
-	static TimeMeasurement instance;
+		static TimeMeasurement instance;
 
-	void init();
-	void setname(int measurementid, string name);
-	void start(int measurementid);
-	long finish(int measurementid);
-	float getavgms(int measurementid);
-	float getmaxfps(int measurementid);
-	void showresults();
-};
+		void init();
+		void setname(int measurementid, string name);
+		void start(int measurementid);
+		long finish(int measurementid);
+		float getavgms(int measurementid);
+		float getmaxfps(int measurementid);
+		void showresults();
+	};
+}
 
 #endif

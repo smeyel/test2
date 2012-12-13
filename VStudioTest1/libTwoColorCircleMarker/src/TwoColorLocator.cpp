@@ -16,6 +16,7 @@
 #define MINRECTINTEGRAL 1		// Minimum of integral image sum of a rectangle to be candidate (used with overlapMask)
 
 using namespace cv;
+using namespace TwoColorCircleMarker;
 
 TwoColorLocator::TwoColorLocator()
 {

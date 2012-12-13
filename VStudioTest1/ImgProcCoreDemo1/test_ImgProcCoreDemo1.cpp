@@ -13,6 +13,8 @@
 
 using namespace cv;
 using namespace std;
+using namespace TwoColorCircleMarker;
+using namespace MiscTimeAndConfig;
 
 void do_test4(const string filename);
 void do_test5(const string filename);

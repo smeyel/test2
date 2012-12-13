@@ -8,41 +8,44 @@
 
 using namespace cv;
 
-typedef enum _Location { Top, Bot, Left, Right } LocationEnum;
-
-class TwoColorLocator
+namespace TwoColorCircleMarker
 {
-public:
-	// Constructors
-	TwoColorLocator();
+	typedef enum _Location { Top, Bot, Left, Right } LocationEnum;
 
-	void findInitialRects(Mat &redMask, Mat &blueMask);	// Works on uchar masks with values 0 and 255
-	void findInitialRectsFromOverlapMask(Mat &overlapMask);
-	void consolidateRects(Mat &srcCC);
+	class TwoColorLocator
+	{
+	public:
+		// Constructors
+		TwoColorLocator();
 
-	// Storage of results, cleared before every "apply()"
-	std::list<CvRect> resultRectangles;		// final result created by consolidateRects
+		void findInitialRects(Mat &redMask, Mat &blueMask);	// Works on uchar masks with values 0 and 255
+		void findInitialRectsFromOverlapMask(Mat &overlapMask);
+		void consolidateRects(Mat &srcCC);
 
-	// Image for subresult visualization
-	Mat *verboseImage;
+		// Storage of results, cleared before every "apply()"
+		std::list<CvRect> resultRectangles;		// final result created by consolidateRects
 
-private:
-	// Internal storage for initial rectangle candidates
-	std::list<CvRect> initialRectangles;	// created by findInitialRects
+		// Image for subresult visualization
+		Mat *verboseImage;
 
-	// Updates the size of a rectangle by scanning the image from the center in
-	//	4 directions and finding the borders.
-	bool updateRectToRealSize(Mat &srcCC, CvRect &newRect, Mat *verboseImage);
+	private:
+		// Internal storage for initial rectangle candidates
+		std::list<CvRect> initialRectangles;	// created by findInitialRects
 
-	// Goes along a line with a given (inner) color and returns the distance of the "border color" pixels. -1 indicates invalid situation.
-	int findColorAlongLine(Mat &srcCC, Point startPoint, Point endPoint, uchar innerColorCode, uchar borderColorCode,Mat *verboseImage);
+		// Updates the size of a rectangle by scanning the image from the center in
+		//	4 directions and finding the borders.
+		bool updateRectToRealSize(Mat &srcCC, CvRect &newRect, Mat *verboseImage);
 
-	// Calculates the occurrance numbers per row and column using the provided integral image.
-	void getOccurranceNumbers(Mat &srcIntegral, int* rowOccNums, int *colOccNums, int &rowmax, int &colmax);
-	// For verbose: draws results of getOccurranceNumbers on the verbose image.
-	void drawValuesOnMargin(Mat &img, int *values, int valueNum,int scalingDivider, Scalar color, LocationEnum loc);
-	// Generates the candidate rectangles using the per row/column occurrance numbers and a given threshold.
-	void getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax, double thresholdRate, std::list<CvRect> &resultRectangles, Mat *integralMask, Mat *verboseImage);
-};
+		// Goes along a line with a given (inner) color and returns the distance of the "border color" pixels. -1 indicates invalid situation.
+		int findColorAlongLine(Mat &srcCC, Point startPoint, Point endPoint, uchar innerColorCode, uchar borderColorCode,Mat *verboseImage);
+
+		// Calculates the occurrance numbers per row and column using the provided integral image.
+		void getOccurranceNumbers(Mat &srcIntegral, int* rowOccNums, int *colOccNums, int &rowmax, int &colmax);
+		// For verbose: draws results of getOccurranceNumbers on the verbose image.
+		void drawValuesOnMargin(Mat &img, int *values, int valueNum,int scalingDivider, Scalar color, LocationEnum loc);
+		// Generates the candidate rectangles using the per row/column occurrance numbers and a given threshold.
+		void getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax, double thresholdRate, std::list<CvRect> &resultRectangles, Mat *integralMask, Mat *verboseImage);
+	};
+}
 
 #endif

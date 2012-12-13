@@ -75,6 +75,7 @@
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\ConfigManager.h" />
     <ClInclude Include="include\FastColorFilter.h" />
     <ClInclude Include="include\MarkerCC1.h" />
     <ClInclude Include="include\MarkerCC1Locator.h" />
@@ -84,6 +85,7 @@
     <ClInclude Include="include\TwoColorLocator.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\ConfigManager.cpp" />
     <ClCompile Include="src\FastColorFilter.cpp" />
     <ClCompile Include="src\MarkerCC1.cpp" />
     <ClCompile Include="src\MarkerCC1Locator.cpp" />

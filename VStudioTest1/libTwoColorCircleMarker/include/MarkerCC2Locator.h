@@ -7,20 +7,23 @@
 
 using namespace cv;
 
-// CC1 marker: Color Circles 1
-class MarkerCC2Locator
+namespace TwoColorCircleMarker
 {
-public:
-	Mat *verboseImage;
+	// CC1 marker: Color Circles 1
+	class MarkerCC2Locator
+	{
+	public:
+		Mat *verboseImage;
 
-	bool foundValidMarker;	// After every frame, may be queried if there was a valid marker.
+		bool foundValidMarker;	// After every frame, may be queried if there was a valid marker.
 
-	// candidateRectList is the list of possible marker inner (blue) circle locations.
-	void LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRectList);
-	// returns true if given code is valid
-	bool validateMarkerID(int code);
+		// candidateRectList is the list of possible marker inner (blue) circle locations.
+		void LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRectList);
+		// returns true if given code is valid
+		bool validateMarkerID(int code);
 
-	MarkerCC2Locator();
-};
+		MarkerCC2Locator();
+	};
+}
 
 #endif
