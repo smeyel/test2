@@ -13,6 +13,7 @@
 #define NONE_B	100
 
 #define OVERLAPCHECKLENGTH 5	// Max distance of two colors to trigger overlap
+#define BKGNDOVERLAPCHECKLENGTH 10	// Same for background color
 
 using namespace cv;
 using namespace TwoColorCircleMarker;
@@ -43,11 +44,11 @@ void FastColorFilter::init()
 		{
 			RgbLut[i]=COLORCODE_RED;
 		}
-		if ((r <= 65 &&  g >= 96 && b <= 150) || (r <= 96 &&  g >= 128 && b <= 128) || (g < 96 && g >= 64 && g >= r+64 && g >= r+64))
+		if ((r <= 64 &&  g >= 96 && b <= 150) || (r <= 96 &&  g >= 128 && b <= 128) || (g < 96 && g >= 64 && g >= r+64 && g >= r+64))
 		{
 			RgbLut[i]=COLORCODE_GRN;
 		}
-		if ((r <= 64 &&  g <= 64 && b >= 64) || (r == 0 &&  g == 0 && b >= 32))	// 2nd condition overrides some blacks...
+		if ((r <= 64 &&  g <= 64 && b >= 64) || (r == 0 &&  g == 0 && b >= 32) || (r == 0 &&  g == 64 && b == 64))	// 2nd condition overrides some blacks...
 		{
 			RgbLut[i]=COLORCODE_BLU;
 		}
@@ -99,6 +100,7 @@ void FastColorFilter::DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat
 	//	also active not so far away.
 	//	Processed in every row separately.
 	int mask0shiftCounter;
+	int backgroundShiftCounter;
 	// Go along every pixel and do the following:
 	for (int row=0; row<src.rows; row++)
 	{
@@ -111,7 +113,9 @@ void FastColorFilter::DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat
 		currentMaskDataPtr[1] =  (uchar *)(masks[1]->data + row*masks[1]->step);
 		currentOverlapMaskDataPtr = (uchar *)(overlapMask->data + row*overlapMask->step);
 
+		// New row, resetting color counters
 		mask0shiftCounter = 0;
+		backgroundShiftCounter = 0;
 
 		// Go along every BGR colorspace pixel
 		for (int col=0; col<src.cols; col++)
@@ -132,27 +136,39 @@ void FastColorFilter::DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat
 			*currentOverlapMaskDataPtr = 0;
 
 			// Process mask overlap
-			if (*(currentMaskDataPtr[0]) == 255)
+			if (*(currentMaskDataPtr[0]) == 255 && backgroundShiftCounter>0)	// mask0 triggered with its own color setting
 			{
 				// Mask 0 active, trigger checking
 				mask0shiftCounter = OVERLAPCHECKLENGTH;
 			}
 			else
 			{
-				if (mask0shiftCounter>0)
+				if (colorCode == backgroundColorCode)	// We are outside a marker...
 				{
-					// Still checking
-					if (*(currentMaskDataPtr[1]) == 255)
+					// We are not inside a marker
+					mask0shiftCounter = 0;	// Warning! This might be caused by pixel error!
+					backgroundShiftCounter = BKGNDOVERLAPCHECKLENGTH;
+				}
+				else
+				{
+					// Not background and not outer mask color
+					if (mask0shiftCounter>0 && backgroundShiftCounter>0)	// If we look for inner mask color at all...
 					{
-						// Overlap
-						*currentOverlapMaskDataPtr = 255;
-					}
-					else
-					{
-						// We do not decrease this during overlap
-						// This helps detection of full overlap and not
-						//	only its border...
-						mask0shiftCounter--;
+						// Still checking
+						if (*(currentMaskDataPtr[1]) == 255)	// Inner mask triggers
+						{
+							// Overlap
+							// We do not decrease counters during overlap
+							// This helps detection of full overlap and not
+							//	only its border...
+							*currentOverlapMaskDataPtr = 255;
+						}
+						else
+						{
+							// Waiting for inner mask to appear...
+							backgroundShiftCounter--;
+							mask0shiftCounter--;
+						}
 					}
 				}
 			}

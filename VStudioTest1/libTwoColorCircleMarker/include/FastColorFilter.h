@@ -57,6 +57,7 @@ namespace TwoColorCircleMarker
 		(Mat *)masks[2];
 		// Color code for the masks to indicate
 		uchar maskColorCode[2];	// Colorcode for the 2 masks they indicate.
+		uchar backgroundColorCode;	// Colorcode for the color outside the marker circles
 		// Overlap mask
 		Mat *overlapMask;
 

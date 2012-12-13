@@ -144,6 +144,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	fastColorFilter.masks[1]=&blueMask;
 	fastColorFilter.maskColorCode[1]=COLORCODE_BLU;
 	fastColorFilter.overlapMask=&overlapMask;
+	fastColorFilter.backgroundColorCode=COLORCODE_WHT;
 
 	// Init result exporter
 	ResultExporter resultExporter;
