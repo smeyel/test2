@@ -5,13 +5,16 @@
 #include "MarkerCC2Locator.h"
 #include "MarkerCC2.h"
 
+#include "DetectionResultExporterBase.h"
+
 using namespace cv;
 using namespace TwoColorCircleMarker;
 
 
 MarkerCC2Locator::MarkerCC2Locator()
 {
-	verboseImage=NULL;
+	verboseImage = NULL;
+	ResultExporter = NULL;
 }
 
 void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRectList)
@@ -31,10 +34,16 @@ void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRec
 		{
 			foundValidMarker = true;
 		}
+
+		if ((newMarker.isCenterValid || newMarker.isValid) && ResultExporter!=NULL)
+		{
+			ResultExporter->writeResult(newMarker.MarkerID,newMarker.center.x,newMarker.center.y,newMarker.isCenterValid,newMarker.isValid);
+		}
 	}
 }
 
 bool MarkerCC2Locator::validateMarkerID(int code)
 {
-	return true;	// May check a list of valid marker codes here...
+	if (code == 76 || code == 42) return true; //  :)
+	return false;	// May check a list of valid marker codes here...
 }

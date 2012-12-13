@@ -35,5 +35,8 @@
     <ClInclude Include="include\TimeMeasurement.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\DetectionResultExporterBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

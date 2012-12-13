@@ -43,6 +43,7 @@ void MarkerCC2::readCode(Mat &srcCC, CvRect &rect)
 	}
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::MarkerScanlines);
 	// If we get here, all directions were successfully processed and the borders detected.
+	isCenterValid=true;
 
 	// Fit ellipses to borders
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::MarkerFitEllipses);

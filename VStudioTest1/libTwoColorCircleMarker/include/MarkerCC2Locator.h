@@ -1,9 +1,12 @@
 #ifndef __MARKERCC2LOCATOR_H_
 #define __MARKERCC2LOCATOR_H_
+#include <iostream>
 
 #include <opencv2\opencv.hpp>
 #include <opencv2\core\core.hpp>
 #include <opencv2\core\mat.hpp>
+
+#include "DetectionResultExporterBase.h"
 
 using namespace cv;
 
@@ -14,6 +17,8 @@ namespace TwoColorCircleMarker
 	{
 	public:
 		Mat *verboseImage;
+		MiscTimeAndConfig::DetectionResultExporterBase *ResultExporter;
+
 
 		bool foundValidMarker;	// After every frame, may be queried if there was a valid marker.
 

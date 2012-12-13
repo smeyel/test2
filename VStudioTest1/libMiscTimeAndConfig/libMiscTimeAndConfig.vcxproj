@@ -78,6 +78,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\ConfigManagerBase.h" />
+    <ClInclude Include="include\DetectionResultExporterBase.h" />
     <ClInclude Include="include\SimpleIni.h" />
     <ClInclude Include="include\TimeMeasurement.h" />
   </ItemGroup>

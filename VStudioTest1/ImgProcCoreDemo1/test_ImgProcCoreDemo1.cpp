@@ -3,6 +3,7 @@
 #include <opencv2/core/mat.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
+#include <fstream>
 
 #include "TwoColorLocator.h"
 #include "MarkerCC2Locator.h"
@@ -10,6 +11,8 @@
 #include "TimeMeasurementCodeDefines.h"
 #include "ConfigManager.h"
 #include "FastColorFilter.h"
+
+#include "DetectionResultExporterBase.h"
 
 using namespace cv;
 using namespace std;
@@ -32,7 +35,6 @@ FastColorFilter *twoColorFilter;	// Used by mouse handler
 Mat *bgrImage;
 Mat *colorCodeImage;
 
-
 void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 {
 	if (eventtype == CV_EVENT_LBUTTONDOWN)
@@ -52,6 +54,33 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 		}
 	}
 }
+
+class ResultExporter : public MiscTimeAndConfig::DetectionResultExporterBase
+{
+	ofstream stream;
+public:
+	void open(char *filename)
+	{
+		stream.open(filename);
+	}
+
+	void close()
+	{
+		stream.flush();
+		stream.close();
+	}
+
+	int currentFrameIdx;
+	int currentCamID;
+
+	virtual void writeResult(int markerID, int frameX, int frameY, bool isCenterValid, bool isMarkerCodeValid)
+	{
+		stream << "FrameID:" << currentFrameIdx << ", CamID:" << currentCamID <<
+			", imgX:" << frameX << ", imgY:" << frameY <<
+			", isCenterValid:" << isCenterValid << ", isMarkerCodeValid:" << isMarkerCodeValid <<
+			", markerID:" << markerID << endl;
+	}
+};
 
 int main()
 {
@@ -116,15 +145,25 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	fastColorFilter.maskColorCode[1]=COLORCODE_BLU;
 	fastColorFilter.overlapMask=&overlapMask;
 
+	// Init result exporter
+	ResultExporter resultExporter;
+	resultExporter.open("output.txt");
+	resultExporter.currentCamID = 0;
+
 	// --- Setup marker locator
 	TwoColorLocator twoColorLocator;
 
 	MarkerCC2Locator markerCC2Locator;
+	markerCC2Locator.ResultExporter = &resultExporter;
 
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FullExecution);
 	bool pauseDueToSettings = false;	// true means some setting wants to pause the processing
+	int frameID=-1;
 	while(true)
 	{
+		frameID++;
+		resultExporter.currentFrameIdx = frameID;
+
 		pauseDueToSettings = false;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FrameAll);
 		// Get next frame
@@ -226,6 +265,8 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::InterFrameDelay);
 	}
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FullExecution);
+
+	resultExporter.close();
 
 	TimeMeasurement::instance.showresults();
 	cout << "max fps: " << TimeMeasurement::instance.getmaxfps(TimeMeasurementCodeDefs::FrameAll) << endl;

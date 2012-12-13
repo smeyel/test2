@@ -16,6 +16,7 @@ namespace TwoColorCircleMarker
 		Point2d center;
 		int MarkerID;
 		bool isValid;
+		bool isCenterValid;	// Center is located. May be true if MarkerID is not valid.
 
 		Mat *verboseImage;
 		MarkerCC2Locator *markerLocator;
@@ -25,6 +26,7 @@ namespace TwoColorCircleMarker
 		{
 			MarkerID=0;
 			isValid=false;
+			isCenterValid=false;
 			verboseImage = NULL;
 			markerLocator = NULL;
 		}
