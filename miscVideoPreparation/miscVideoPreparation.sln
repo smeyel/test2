@@ -5,6 +5,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CpVideoPart", "CpVideoPart\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FrameFinder", "FrameFinder\FrameFinder.vcxproj", "{29F509FB-C132-45CE-A13D-B87F69C4229B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MarkerCodeCalculator", "MarkerCodeCalculator\MarkerCodeCalculator.vcxproj", "{08ACB71D-A044-4EE1-B8A1-08AB3FB069EF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,10 @@ Global
 		{29F509FB-C132-45CE-A13D-B87F69C4229B}.Debug|Win32.Build.0 = Debug|Win32
 		{29F509FB-C132-45CE-A13D-B87F69C4229B}.Release|Win32.ActiveCfg = Release|Win32
 		{29F509FB-C132-45CE-A13D-B87F69C4229B}.Release|Win32.Build.0 = Release|Win32
+		{08ACB71D-A044-4EE1-B8A1-08AB3FB069EF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{08ACB71D-A044-4EE1-B8A1-08AB3FB069EF}.Debug|Win32.Build.0 = Debug|Win32
+		{08ACB71D-A044-4EE1-B8A1-08AB3FB069EF}.Release|Win32.ActiveCfg = Release|Win32
+		{08ACB71D-A044-4EE1-B8A1-08AB3FB069EF}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
