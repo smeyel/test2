@@ -1,70 +1,13 @@
 #include <iostream>
+#include "CodeValidator7bit.h"
 
 using namespace std;
 
-class CodeValidator
-{
-private:
-	//unsigned int masks[7] = { 0xC0, 0x60, 0x30, 0x18, 0x0C, 0x06, 0x03 };	// XOR of adjacent bit pairs
-	unsigned int masks[7];
-	//unsigned int masks[7] = { 0x40, 0x20, 0x10, 0x08, 0x04, 0x02, 0x01 };	// copy 1st 7 bits
 
-	unsigned int get8bitXor(unsigned int value);
-	unsigned int getValidationCode(unsigned int code);
-	unsigned int getHammingDistance(unsigned int value1, unsigned int value2);
-
-public:
-	CodeValidator();
-
-	unsigned int getValidatedCode(unsigned int pureCode);
-	bool isValid(unsigned int fullCode);
-
-	void showEvalResults(void);
-};
-
-CodeValidator::CodeValidator()
-{
-	unsigned int currentMasks[] = { 0x55, 0xAA, 0x33, 0xCC, 0xC7, 0x38, 0x0F };
-	for(int i=0; i<7; i++)
-	{
-		masks[i] = currentMasks[i];
-	}
-}
-
-unsigned int CodeValidator::get8bitXor(unsigned int value)
-{
-	unsigned int result = 0;
-	for (int bitIdx = 7; bitIdx>=0; bitIdx--)
-	{
-		result ^= ((value >> bitIdx) & 0x01);
-	}
-	return result;
-}
-
-unsigned int CodeValidator::getValidationCode(unsigned int code)
-{
-	unsigned int resultCheckCode = 0;
-
-	for(int i=6; i>=0; i--)
-	{
-		resultCheckCode |= get8bitXor(code & masks[i]) << i;
-	}
-	return resultCheckCode;
-}
-
-
-bool CodeValidator::isValid(unsigned int fullCode)
-{
-	unsigned char code = fullCode & 0x00FF;
-	unsigned char check = (fullCode >> 8) & 0x00FF;
-	unsigned char calculatedCheck = getValidationCode(code);
-	return (check == calculatedCheck);
-}
-
-unsigned int CodeValidator::getHammingDistance(unsigned int value1, unsigned int value2)
+unsigned int get7bitHammingDistance(unsigned int value1, unsigned int value2)
 {
 	int distance=0;
-	for (unsigned int bit = 0x8000; bit>0; bit >>= 1)
+	for (unsigned int bit = 0x40; bit>0; bit >>= 1)
 	{
 		if ((value1 & bit) ^ (value2 & bit))
 		{
@@ -74,66 +17,106 @@ unsigned int CodeValidator::getHammingDistance(unsigned int value1, unsigned int
 	return distance;
 }
 
-unsigned int CodeValidator::getValidatedCode(unsigned int pureCode)
-{
-	return (getValidationCode(pureCode) << 8) | pureCode;
-}
+#define MAX_N 20
+#define MAX_CODEVALUE 0x7F
 
+unsigned int bestCodeList[MAX_N];
+unsigned int bestHammingDistance = 0;
 
-/*void printBinary(unsigned int value, int bitNumber)
+unsigned int currentCodeList[MAX_N];
+
+void checkCodesRecursive(int n, int level, int prevLevelMinHammingDistance)
 {
-	for(int bitIdx=bitNumber-1; bitIdx>=0; bitIdx--)
+	// Iterate along the valid values on level "level"
+	// For each of them, calculate minimal hamming code with previous levels,
+	//	if min. hamming code is higher than bestHammingDistance, call recursively for next level
+	if (level <= n)
 	{
-		cout << ((value & (1 << bitIdx)) ? "1" : "0");
-	}
-	cout << endl;
-}
-
-void showResults(unsigned int checkCode, unsigned int result)
-{
-	cout << "Check code binary: ";
-	printBinary(checkCode,7);
-	cout << endl << "Full code in hex: " << hex << result << endl << "in bin: ";
-	printBinary(result,15);
-}*/
-
-
-
-void CodeValidator::showEvalResults(void)
-{
-	int sumDistValidCounters[5];
-	for (int i=0; i<5; i++) 
-		sumDistValidCounters[i]=0;
-
-	for(int code = 0; code <= 0xFF; code++)
-	{
-		unsigned int fullCode = (getValidationCode(code) << 8) | code;
-
-		for(int otherFullCode = 0; otherFullCode < 0x7FFF; otherFullCode++)
+		// Go along all possible codes
+		for (unsigned int currentCode = 0; currentCode <= MAX_CODEVALUE; currentCode++)
 		{
-			if (otherFullCode == fullCode)
-				continue;	// Skip this one...
-			if (isValid(otherFullCode))
+			if (level == 0)
 			{
-				unsigned int dist = getHammingDistance(fullCode, otherFullCode);
-				if (dist<5)
+				cout << "L0 value: " << currentCode << endl;
+			}
+
+
+			//cout << "Checking value " << currentCode << " on level " << level << endl;
+			currentCodeList[level] = currentCode;
+
+			int minHammingDist = MAX_CODEVALUE;	// Surely maximal
+			// Check min. hamming distance with all previous codes
+			for (int checkedLevel = 0; checkedLevel < level; checkedLevel++)
+			{
+				int hdist = get7bitHammingDistance(currentCode,currentCodeList[checkedLevel]);
+				if (hdist<minHammingDist)
 				{
-					sumDistValidCounters[dist]++;
+					minHammingDist = hdist;
 				}
+			}
+			//cout << "  Min H-dist from here: " << minHammingDist;
+			// h-dist among codes of previous levels may be higher then current min:
+			if (minHammingDist>prevLevelMinHammingDistance)
+			{
+				minHammingDist=prevLevelMinHammingDistance;
+				//cout << " taking prev: " << minHammingDist;
+			}
+			//cout << endl;
+
+			// If the h-dist of this value is higher than the best until now (bestHammingDistance),
+			// (that is, we can still improve it), go on for the next level
+			if (minHammingDist > bestHammingDistance)
+			{
+				//cout << "  Still better than best (" << bestHammingDistance << "), going to next level." << endl;
+				checkCodesRecursive(n,level+1,minHammingDist);
 			}
 		}
 	}
-
-	for (int i=0; i<5; i++) 
+	else
 	{
-		cout << "Avg number of valid codes with Hamming distance " << i << " : " << (float)(sumDistValidCounters[i])/256.0 << endl;
+		// No more levels.
+		cout << "Checking current solution: ";
+		for(int i=0; i<n; i++)
+			cout << currentCodeList[i] << " ";
+		cout << ", min h-dist: " << prevLevelMinHammingDistance << " -> ";
+
+		// Store if result is better.
+		if (prevLevelMinHammingDistance > bestHammingDistance)
+		{
+			// Copy (until now) best solution
+			cout << "New best!";
+			for(int i=0; i<n; i++)
+			{
+				bestCodeList[i]=currentCodeList[i];
+				bestHammingDistance = prevLevelMinHammingDistance;
+			}
+		}
+		cout << endl;
 	}
 }
 
 
+void GetN7bitCodesBruteForce(int n)
+{
+	checkCodesRecursive(n, 0, MAX_CODEVALUE);
+}
+
 void main()
 {
-	CodeValidator validator;
+	int n=5;
+	GetN7bitCodesBruteForce(n);
+	cout << "ready (hex): ";
+	for(int i=0; i<n; i++)
+	{
+		cout << hex << bestCodeList[i] << " ";
+	}
+	cout << " H-dist=" << bestHammingDistance << endl;
+	int dummy;
+	cin >> dummy;
+
+
+
+/*	CodeValidator7bit validator;
 	validator.showEvalResults();
 
 	unsigned int code, result;
@@ -149,5 +132,5 @@ void main()
 	}
 
 	cout << endl << "press enter..." << endl;
-	cin.ignore();
+	cin.ignore(); */
 }
