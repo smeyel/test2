@@ -73,12 +73,13 @@ public:
 	int currentFrameIdx;
 	int currentCamID;
 
-	virtual void writeResult(int markerID, int frameX, int frameY, bool isCenterValid, bool isMarkerCodeValid)
+	virtual void writeResult(int markerID, int frameX, int frameY, bool isCenterValid, bool isMarkerCodeValid, float orientation, bool isOrientationValid)
 	{
-		stream << "FrameID:" << currentFrameIdx << ", CamID:" << currentCamID <<
-			", imgX:" << frameX << ", imgY:" << frameY <<
-			", isCenterValid:" << isCenterValid << ", isMarkerCodeValid:" << isMarkerCodeValid <<
-			", markerID:" << markerID << endl;
+		stream << "FID:" << currentFrameIdx << ",CID:" << currentCamID <<
+			",X:" << frameX << ",Y:" << frameY <<
+			",isCValid:" << isCenterValid << ",isIDValid:" << isMarkerCodeValid <<
+			",ID:" << markerID <<
+			",or:" << orientation << ",isOrValid:" << isOrientationValid << endl;
 	}
 };
 

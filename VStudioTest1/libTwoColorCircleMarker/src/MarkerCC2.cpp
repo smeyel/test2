@@ -134,6 +134,11 @@ void MarkerCC2::scanEllipses(Mat &srcCC)
 	}
 }
 
+float MarkerCC2::bitIdx2Angle(int bitIdx)
+{
+	return (float)bitIdx * 11.25;
+}
+
 // srcCC is only used to check wether location is inside the image
 Point MarkerCC2::getEllipsePointInDirection(RotatedRect baseEllipse,float directionAngle,float distanceMultiplier, Mat &srcCC)
 {
@@ -394,6 +399,12 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	else	// May wrap around!
 	{
 		greenIdx = firstGreenIdx;	// Green must be at the wrap around location...
+	}
+
+	if (greenIdx != -1)	// If valid, we store the orientation information
+	{
+		orientationReferenceAngle = bitIdx2Angle(greenIdx);
+		isOrientationReferenceAngleValid = true;
 	}
 
 	if (ConfigManager::Current()->verboseMarkerCodeValidation )

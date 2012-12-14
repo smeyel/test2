@@ -35,9 +35,10 @@ void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRec
 			foundValidMarker = true;
 		}
 
+		// Exports invalid markers (promising candidate rectangles) as well! (But with isCenterValid=false)
 		if ((newMarker.isCenterValid || newMarker.isValid) && ResultExporter!=NULL)
 		{
-			ResultExporter->writeResult(newMarker.MarkerID,newMarker.center.x,newMarker.center.y,newMarker.isCenterValid,newMarker.isValid);
+			ResultExporter->writeResult(newMarker.MarkerID,newMarker.center.x,newMarker.center.y,newMarker.isCenterValid,newMarker.isValid,newMarker.orientationReferenceAngle, newMarker.isOrientationReferenceAngleValid);
 		}
 	}
 }

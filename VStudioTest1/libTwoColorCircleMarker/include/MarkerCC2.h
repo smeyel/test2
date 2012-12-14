@@ -18,6 +18,11 @@ namespace TwoColorCircleMarker
 		bool isValid;
 		bool isCenterValid;	// Center is located. May be true if MarkerID is not valid.
 
+		// Direction (in degrees) of the center of the green area.
+		// Warning: this value has low resolution!
+		float orientationReferenceAngle;
+		bool isOrientationReferenceAngleValid;
+
 		Mat *verboseImage;
 		MarkerCC2Locator *markerLocator;
 
@@ -29,6 +34,8 @@ namespace TwoColorCircleMarker
 			isCenterValid=false;
 			verboseImage = NULL;
 			markerLocator = NULL;
+			orientationReferenceAngle = 0.0;
+			isOrientationReferenceAngleValid = false;
 		}
 
 		// Read the marker code for a given candidate rectangle.
@@ -38,8 +45,14 @@ namespace TwoColorCircleMarker
 	private:
 		// --- Used by ellpise fitting
 		int scanDistance;	// length of scan starting from center (manhattan distance)
+		// Scans along a line for the borders of the red circle
 		bool findBordersAlongLine(Mat &srcCC, int dir);
+		// Returns direction in degrees for given bit of marker ID
+		float bitIdx2Angle(int bitIdx);
+		// Returns the endpoint of a line in a given direction
 		CvPoint getEndPoint(int x, int y, int distance, int dir);
+		// Fits an ellipse on the inner and outer borders of the red circle
+		//	based on the results of findBordersAlongLine calls.
 		void fitBorderEllipses();
 		// Temp variables
 		Point RedInnerBorders[8];
