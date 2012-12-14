@@ -7,8 +7,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VStudioTest1_Basics", "VStu
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImgProcCoreDemo1", "ImgProcCoreDemo1\ImgProcCoreDemo1.vcxproj", "{A5C7EEDB-3CEE-4A8F-991A-485180BBFF9C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libImageProcessingCore", "..\libImageProcessingCore\libImageProcessingCore.vcxproj", "{17562A75-D514-4B23-AFCE-AF4B7C0542BF}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "StereoCircleLocator1", "StereoCircleLocator1\StereoCircleLocator1.vcxproj", "{7E68BC84-3CFB-4E94-884A-D5D5463388C5}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libMiscTimeAndConfig", "libMiscTimeAndConfig\libMiscTimeAndConfig.vcxproj", "{FE3097B6-9FDD-4CB5-B42F-BB5DDC61DF7C}"
@@ -33,10 +31,6 @@ Global
 		{A5C7EEDB-3CEE-4A8F-991A-485180BBFF9C}.Debug|Win32.Build.0 = Debug|Win32
 		{A5C7EEDB-3CEE-4A8F-991A-485180BBFF9C}.Release|Win32.ActiveCfg = Release|Win32
 		{A5C7EEDB-3CEE-4A8F-991A-485180BBFF9C}.Release|Win32.Build.0 = Release|Win32
-		{17562A75-D514-4B23-AFCE-AF4B7C0542BF}.Debug|Win32.ActiveCfg = Debug|Win32
-		{17562A75-D514-4B23-AFCE-AF4B7C0542BF}.Debug|Win32.Build.0 = Debug|Win32
-		{17562A75-D514-4B23-AFCE-AF4B7C0542BF}.Release|Win32.ActiveCfg = Release|Win32
-		{17562A75-D514-4B23-AFCE-AF4B7C0542BF}.Release|Win32.Build.0 = Release|Win32
 		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Debug|Win32.ActiveCfg = Debug|Win32
 		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Debug|Win32.Build.0 = Debug|Win32
 		{7E68BC84-3CFB-4E94-884A-D5D5463388C5}.Release|Win32.ActiveCfg = Release|Win32

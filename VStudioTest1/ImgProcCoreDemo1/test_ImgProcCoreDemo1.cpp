@@ -84,11 +84,10 @@ public:
 
 int main()
 {
-	ConfigManager::Current()->init("../testini.ini");
+	TwoColorCircleMarker::ConfigManager::Current()->init("../testini.ini");
 	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
 	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Valosaghu1.mp4");
 	do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test1.mp4");
-
 }
 
 void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldogozas - marker kereses szinekkel

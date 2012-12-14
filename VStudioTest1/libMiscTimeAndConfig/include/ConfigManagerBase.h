@@ -6,7 +6,6 @@
 
 namespace MiscTimeAndConfig
 {
-
 	class ConfigManagerBase
 	{
 		CSimpleIniA ini;

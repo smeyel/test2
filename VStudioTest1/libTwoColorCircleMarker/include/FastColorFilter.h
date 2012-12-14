@@ -1,9 +1,9 @@
 #ifndef __FASTCOLORFILTER_H_
 #define __FASTCOLORFILTER_H_
 
-//#include <opencv2\opencv.hpp>
-//#include <opencv2\core\core.hpp>
-#include <opencv2\core\mat.hpp>
+//#include <opencv2/opencv.hpp>
+//#include <opencv2/core/core.hpp>
+#include <opencv2/core/mat.hpp>
 
 #define COLORCODE_INITIAL 254	// A color code different from all other ones. Used as initial (unknown) value.
 #define COLORCODE_NONE 0

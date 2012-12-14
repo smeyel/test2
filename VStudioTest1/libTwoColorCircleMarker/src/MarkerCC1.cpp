@@ -1,6 +1,6 @@
-#include <opencv2\opencv.hpp>
-#include <opencv2\core\core.hpp>
-#include <opencv2\core\mat.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/core/mat.hpp>
 #include <stdlib.h>
 #include <math.h>
 #include "FastColorFilter.h"	// For color codes
