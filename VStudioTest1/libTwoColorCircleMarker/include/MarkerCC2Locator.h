@@ -17,7 +17,7 @@ namespace TwoColorCircleMarker
 	{
 	public:
 		Mat *verboseImage;
-		MiscTimeAndConfig::DetectionResultExporterBase *ResultExporter;
+		DetectionResultExporterBase *ResultExporter;
 
 
 		bool foundValidMarker;	// After every frame, may be queried if there was a valid marker.

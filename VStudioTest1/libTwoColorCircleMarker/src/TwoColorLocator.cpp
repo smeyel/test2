@@ -153,7 +153,6 @@ void TwoColorLocator::consolidateRects(Mat &srcCC)
 	//	create new rectangle using the new sizes.
 	// Finally, skip every rectangle with a center inside
 	//	the new rectangle.
-	CvRect newRect;
 	while (!initialRectangles.empty())	// As long as there are rectangles to consolidate
 	{
 		initialRectNum++;
@@ -387,8 +386,8 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::GetCandidateRectangles);
 
 	// Thresholding for 30%
-	int rowValThreshold = rowMax * thresholdRate;
-	int colValThreshold = colMax * thresholdRate;
+	int rowValThreshold = (int)(rowMax * thresholdRate);
+	int colValThreshold = (int)(colMax * thresholdRate);
 	if (thresholdRate == 0.0)	// Used with overlap mask, where a single line is also very important
 	{
 		rowValThreshold = 1;
@@ -466,14 +465,14 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 			rowIt != rowIntervalList.end();
 			rowIt++ )
 	{
-		int y = (*rowIt)[0];
-		int height = (*rowIt)[1] - y;
+		int y = (int)((*rowIt)[0]);
+		int height = (int)((*rowIt)[1] - y);
 		for (	std::list<Scalar>::iterator colIt = colIntervalList.begin();
 				colIt != colIntervalList.end();
 				colIt++ )
 		{
-			int x = (*colIt)[0];
-			int width = (*colIt)[1] - x;
+			int x = (int)((*colIt)[0]);
+			int width = (int)((*colIt)[1] - x);
 
 			CvRect newRect = cvRect(x,y,width,height);
 

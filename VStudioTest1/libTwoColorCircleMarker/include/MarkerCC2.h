@@ -1,22 +1,21 @@
 #ifndef __MARKERCC2_H_
 #define __MARKERCC2_H_
-
+#include <ostream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
+#include "MarkerBase.h"
 #include "MarkerCC2Locator.h"
 
 using namespace cv;
 
 namespace TwoColorCircleMarker
 {
-	class MarkerCC2
+	class MarkerCC2 : public MarkerBase
 	{
 	public:
-		Point2d center;
 		int MarkerID;
 		bool isValid;
-		bool isCenterValid;	// Center is located. May be true if MarkerID is not valid.
 
 		// Direction (in degrees) of the center of the green area.
 		// Warning: this value has low resolution!
@@ -41,6 +40,9 @@ namespace TwoColorCircleMarker
 		// Read the marker code for a given candidate rectangle.
 		// It the read is successful, it is really a valid marker.
 		void readCode(Mat &srcCC, CvRect &rect);
+
+		// Export marker information in human readable format to a stream
+		virtual void exportToTextStream(std::ostream *stream);
 
 	private:
 		// --- Used by ellpise fitting

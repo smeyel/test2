@@ -7,6 +7,7 @@
 
 #include "TwoColorLocator.h"
 #include "MarkerCC2Locator.h"
+#include "MarkerCC2.h"
 
 #include "TimeMeasurementCodeDefines.h"
 #include "ConfigManager.h"
@@ -55,7 +56,7 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 	}
 }
 
-class ResultExporter : public MiscTimeAndConfig::DetectionResultExporterBase
+class ResultExporter : public TwoColorCircleMarker::DetectionResultExporterBase
 {
 	ofstream stream;
 public:
@@ -73,13 +74,11 @@ public:
 	int currentFrameIdx;
 	int currentCamID;
 
-	virtual void writeResult(int markerID, int frameX, int frameY, bool isCenterValid, bool isMarkerCodeValid, float orientation, bool isOrientationValid)
+	virtual void writeResult(MarkerBase *marker)
 	{
-		stream << "FID:" << currentFrameIdx << ",CID:" << currentCamID <<
-			",X:" << frameX << ",Y:" << frameY <<
-			",isCValid:" << isCenterValid << ",isIDValid:" << isMarkerCodeValid <<
-			",ID:" << markerID <<
-			",or:" << orientation << ",isOrValid:" << isOrientationValid << endl;
+		stream << "FID:" << currentFrameIdx << ",CID:" << currentCamID << " ";
+		marker->exportToTextStream(&stream);
+		stream << endl;
 	}
 };
 

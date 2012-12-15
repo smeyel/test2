@@ -520,3 +520,10 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	isValid = markerLocator->validateMarkerID(majorMarkerID, minorMarkerID);
 }
 
+void MarkerCC1::exportToTextStream(ostream *stream)
+{
+	(*stream) << "MCC2 X:" << center.x << ",Y:" << center.y <<
+			",isCValid:" << isCenterValid << ",isIDValid:" << isValid <<
+			",ID:" << majorMarkerID << "-" << minorMarkerID;
+}
+

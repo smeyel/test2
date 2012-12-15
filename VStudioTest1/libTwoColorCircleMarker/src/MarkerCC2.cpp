@@ -1,3 +1,4 @@
+#include <fstream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -476,5 +477,13 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 
 	// Is this a valid code?
 	isValid = markerLocator->validateMarkerID(code);
+}
+
+void MarkerCC2::exportToTextStream(ostream *stream)
+{
+	(*stream) << "MCC2 X:" << center.x << ",Y:" << center.y <<
+			",isCValid:" << isCenterValid << ",isIDValid:" << isValid <<
+			",ID:" << MarkerID <<
+			",or:" << orientationReferenceAngle << ",isOrValid:" << isOrientationReferenceAngleValid;
 }
 
