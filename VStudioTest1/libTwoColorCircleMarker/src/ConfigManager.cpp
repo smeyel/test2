@@ -19,7 +19,8 @@ bool ConfigManager::readConfiguration(CSimpleIniA *ini)
 	verboseTxt_RectConsolidationSummary = ini->GetBoolValue("verbosetxt","RectConsolidationSummary",false,NULL);
 	verboseTwoColorLocatorIntegralReject = ini->GetBoolValue("verbosetxt","TwoColorLocatorIntegralReject",false,NULL);
 
-	showMarkerCodeOnImage = ini->GetBoolValue("show","showMarkerCodeOnImage",false,NULL);
+	showMarkerCodeOnImageDec = ini->GetBoolValue("show","showMarkerCodeOnImageDec",false,NULL);
+	showMarkerCodeOnImageHex = ini->GetBoolValue("show","showMarkerCodeOnImageHex",false,NULL);
 	showInputImage = ini->GetBoolValue("show","showInputImage",false,NULL);
 	verboseColorCodedFrame = ini->GetBoolValue("show","ColorCodedFrame",false,NULL);
 

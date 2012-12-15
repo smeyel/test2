@@ -35,7 +35,8 @@ namespace TwoColorCircleMarker
 		bool verboseOverlapMask;
 		bool verboseTwoColorLocatorIntegralReject;
 
-		bool showMarkerCodeOnImage;
+		bool showMarkerCodeOnImageDec;
+		bool showMarkerCodeOnImageHex;
 		bool showInputImage;
 
 		bool resizeImage;

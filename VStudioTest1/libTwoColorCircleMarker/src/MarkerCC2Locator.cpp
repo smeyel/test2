@@ -45,6 +45,6 @@ void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRec
 
 bool MarkerCC2Locator::validateMarkerID(int code)
 {
-	if (code == 76 || code == 42) return true; //  :)
+	if (code == 0x70 || code == 0x4C || code == 0x43 || code == 0x2A || code == 0x7F) return true;
 	return false;	// May check a list of valid marker codes here...
 }

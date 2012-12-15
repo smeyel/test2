@@ -63,10 +63,17 @@ void MarkerCC2::readCode(Mat &srcCC, CvRect &rect)
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateValidate);
 
 	// --- Verbose
-	if (verboseImage != NULL && ConfigManager::Current()->showMarkerCodeOnImage)
+	if (verboseImage != NULL && (ConfigManager::Current()->showMarkerCodeOnImageDec || ConfigManager::Current()->showMarkerCodeOnImageHex))
 	{
 		char tmpCodeString[255];
-		sprintf(tmpCodeString,"%d",MarkerID);
+		if (ConfigManager::Current()->showMarkerCodeOnImageDec)
+		{
+			sprintf(tmpCodeString,"%d",MarkerID);
+		}
+		else
+		{
+			sprintf(tmpCodeString,"%X",MarkerID);
+		}
 		string debugtxt(tmpCodeString);
 
 		if (isValid)

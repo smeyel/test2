@@ -87,7 +87,10 @@ int main()
 	TwoColorCircleMarker::ConfigManager::Current()->init("../testini.ini");
 	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
 	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Valosaghu1.mp4");
-	do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test1.mp4");
+
+	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test1.mp4");
+	do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test2.mp4");
+
 }
 
 void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldogozas - marker kereses szinekkel
@@ -110,13 +113,12 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		cvSetMouseCallback(wndCode, mouse_callback);
 	}
 
-
 	Mat inputFrame, resizedFrame, resultFrame;
 	char c;
 
 	// size for resizing
-	const Size dsize(640,480);
-	//const Size dsize(320,200);
+	const Size dsize(640,480);	// TODO: should always correspond to the real frame size!
+	//const Size dsize(320,240);
 
 	TimeMeasurement::instance.init();
 	TimeMeasurementCodeDefs::setnames();
@@ -270,6 +272,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 	TimeMeasurement::instance.showresults();
 	cout << "max fps: " << TimeMeasurement::instance.getmaxfps(TimeMeasurementCodeDefs::FrameAll) << endl;
+	cout << "Number of processed frames: " << frameID << endl;
 	cout << "Press any key..." << endl;
 	c = cvWaitKey(0);
 
