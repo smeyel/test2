@@ -186,7 +186,9 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		}
 		else
 		{
-			inputFrame.copyTo(resizedFrame);
+			// TODO: warning, this makes it unnecessary slow...
+			//inputFrame.copyTo(resizedFrame);
+			resizedFrame = inputFrame;
 		}
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::Resize);
 
@@ -247,6 +249,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ShowImages);
 
 		int totalFrameTime = TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FrameAll);
+		//cout << totalFrameTime << " ";
 
 		// Time measurement summary and delay, + pause control
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::InterFrameDelay);
