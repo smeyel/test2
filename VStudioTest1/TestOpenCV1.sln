@@ -13,6 +13,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libMiscTimeAndConfig", "lib
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libTwoColorCircleMarker", "libTwoColorCircleMarker\libTwoColorCircleMarker.vcxproj", "{5E2BAF4F-7A41-42BD-AF52-6EB68AC460DA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{12B52AE9-8F07-44E4-A955-AB4259E12ED1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32

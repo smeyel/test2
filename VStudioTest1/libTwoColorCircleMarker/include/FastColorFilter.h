@@ -44,6 +44,7 @@ namespace TwoColorCircleMarker
 
 		// Internal use by filtering
 		// Current data pointers for all masks, indexed by colorcode
+		// TODO: should be inside the functions, not here! (Slow!)
 		(uchar*)currentMaskDataPtr[2];
 		uchar* currentOverlapMaskDataPtr;
 
@@ -69,6 +70,8 @@ namespace TwoColorCircleMarker
 		void DecomposeImage(Mat &src, Mat &dst);
 		void DecomposeImageCreateMasks(Mat &src, Mat &dst);
 		void DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat &dst);
+		//void DecomposeImageCreateOverlap_NoBranch(cv::Mat &src, cv::Mat &dst);
+		void DecomposeImageCreateOverlap(cv::Mat &src, cv::Mat &dst);
 		// Code image visualization: amplification of colors in BGR space
 		void VisualizeDecomposedImage(Mat &src, Mat &dst);
 	};

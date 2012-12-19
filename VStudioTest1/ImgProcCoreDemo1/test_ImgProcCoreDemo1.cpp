@@ -15,6 +15,9 @@
 
 #include "DetectionResultExporterBase.h"
 
+#define WAITKEYPRESSATEND	// Wait for keypress at the end (disable for profiling!)
+//#define MULTIPLEITERATIONS	// Perform everything multiple times (enable for profiling)
+
 using namespace cv;
 using namespace std;
 using namespace TwoColorCircleMarker;
@@ -89,7 +92,15 @@ int main()
 	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Valosaghu1.mp4");
 
 	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test1.mp4");
-	do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test2.mp4");
+#ifdef MULTIPLEITERATIONS
+	for(int i=0; i<10; i++)
+	{
+		cout << "Iteration: " << i << endl;
+#endif
+		do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test2.mp4");
+#ifdef MULTIPLEITERATIONS
+	}
+#endif
 
 }
 
@@ -194,8 +205,10 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 		// Apply color filtering. Create masks and color coded image
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
-		//fastColorFilter.DecomposeImageCreateMasks(resizedFrame,colorCodeFrame);
-		fastColorFilter.DecomposeImageCreateMasksWithOverlap(resizedFrame,colorCodeFrame);
+		//fastColorFilter.DecomposeImageCreateMasksWithOverlap(resizedFrame,colorCodeFrame);
+		//fastColorFilter.DecomposeImageCreateOverlap_NoBranch(resizedFrame,colorCodeFrame);
+		fastColorFilter.DecomposeImageCreateOverlap(resizedFrame,colorCodeFrame);
+
 		if (ConfigManager::Current()->verboseColorCodedFrame)
 		{
 			fastColorFilter.VisualizeDecomposedImage(colorCodeFrame,visColorCodeFrame);
@@ -276,8 +289,10 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	TimeMeasurement::instance.showresults();
 	cout << "max fps: " << TimeMeasurement::instance.getmaxfps(TimeMeasurementCodeDefs::FrameAll) << endl;
 	cout << "Number of processed frames: " << frameID << endl;
+#ifdef WAITKEYPRESSATEND
 	cout << "Press any key..." << endl;
 	c = cvWaitKey(0);
+#endif
 
 	return;
 }
