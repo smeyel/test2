@@ -17,11 +17,11 @@ MarkerCC2Locator::MarkerCC2Locator()
 	ResultExporter = NULL;
 }
 
-void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRectList)
+void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<Rect> *candidateRectList)
 {
 	foundValidMarker = false;
 	// Markerek leolvasasa
-	for (std::list<CvRect>::iterator rectIt = candidateRectList->begin();
+	for (std::list<Rect>::iterator rectIt = candidateRectList->begin();
 		 rectIt != candidateRectList->end();
 		 rectIt++)
 	{

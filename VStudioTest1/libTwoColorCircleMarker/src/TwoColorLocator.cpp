@@ -23,7 +23,7 @@ TwoColorLocator::TwoColorLocator()
 	verboseImage = NULL;
 }
 
-void TwoColorLocator::findInitialRectsFromOverlapMask(Mat &overlapMask)
+/*void TwoColorLocator::findInitialRectsFromOverlapMask(Mat &overlapMask)
 {
 	// --- Calculate integral images of masks
 	Mat integralMask;
@@ -58,8 +58,8 @@ void TwoColorLocator::findInitialRectsFromOverlapMask(Mat &overlapMask)
 	delete rowOccNums;
 	delete colOccNums;
 }
-
-void TwoColorLocator::findInitialRects(Mat &borderColorMask, Mat &innerColorMask)
+*/
+/*void TwoColorLocator::findInitialRects(Mat &borderColorMask, Mat &innerColorMask)
 {
 	CV_Assert(borderColorMask.rows == innerColorMask.rows);
 	CV_Assert(borderColorMask.cols == innerColorMask.cols);
@@ -136,9 +136,9 @@ void TwoColorLocator::findInitialRects(Mat &borderColorMask, Mat &innerColorMask
 	delete mergedRowOccNums;
 	delete mergedColOccNums;
 }
-
+*/
 // Called externally after apply to consolidate the initial rectangles.
-void TwoColorLocator::consolidateRects(Mat &srcCC)
+/*void TwoColorLocator::consolidateRects(Mat &srcCC)
 {
 	int initialRectNum = 0;
 	int resultRectNum = 0;
@@ -200,9 +200,85 @@ void TwoColorLocator::consolidateRects(Mat &srcCC)
 		cout << "Rect consolidation effect: " << initialRectNum << " rect -> " << resultRectNum << endl;
 	}
 }
+*/
 
+// Called externally after FastColorFilter has detected its candidate rectangles
+void TwoColorLocator::consolidateFastColorFilterRects(Rect* candidateRects, int candidateRectNum, Mat &srcCC)
+{
+	int initialRectNum = 0;
+	int resultRectNum = 0;
+	resultRectangles.clear();
+	if (candidateRectNum<=0)
+	{
+		return;	// Nothing to do.
+	}
+
+	// Load candidates into initialRectangles
+	std::list<Rect> candidateRectList;
+	candidateRectList.clear();	// obsolete
+	for(int i=0; i<candidateRectNum; i++)
+	{
+		candidateRectList.push_front(candidateRects[i]);
+		if (verboseImage!=NULL && ConfigManager::Current()->verboseRectConsolidationResults)
+		{
+			rectangle(*verboseImage,candidateRects[i],Scalar(200,255,200));
+		}
+	}
+
+	// Go along every candidate rectangle,
+	//	find real limits in 4 directions and
+	//	create new rectangle using the new sizes.
+	// Finally, skip every rectangle with a center inside
+	//	the new rectangle.
+	while (!candidateRectList.empty())	// As long as there are rectangles to consolidate
+	{
+		initialRectNum++;
+		// Copy newRect (we will need a copy later anyway)
+		Rect newRect = candidateRectList.front();
+		candidateRectList.pop_front();
+
+		// Check for overlapping with already present result rectangles
+		bool isOverlapping = false;
+		list<Rect>::iterator it;
+		for ( it=resultRectangles.begin() ; it != resultRectangles.end(); it++ )
+		{
+			// is the center of newRect inside *it?
+			Point center = Point(newRect.x + newRect.width / 2, newRect.y + newRect.height / 2);
+			if (center.x >= it->x && center.x <= it->x+it->width && 
+				center.y >= it->y && center.y <= it->y+it->height)
+			{
+				isOverlapping = true;
+				break;
+			}
+		}
+		if (isOverlapping)
+		{
+			// Jump to next initial rectangle, as this is overlapping with an already consolidated one.
+			continue;
+		}
+
+		// Update rect to its real size
+		if (updateRectToRealSize(srcCC, newRect, verboseImage))
+		{
+			// Verbose: show new rectangle
+			if (verboseImage!=NULL && ConfigManager::Current()->verboseRectConsolidationResults)
+			{
+				rectangle(*verboseImage,newRect,Scalar(0,255,0));
+			}
+
+			// Add to resultRectangles
+			resultRectangles.push_back(newRect);
+			resultRectNum++;
+		}
+	}
+
+	if (ConfigManager::Current()->verboseTxt_RectConsolidationSummary)
+	{
+		cout << "Rect consolidation effect: " << initialRectNum << " rect -> " << resultRectNum << endl;
+	}
+}
 // Returns true if rect seems to be valid
-bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, CvRect &newRect, Mat *verboseImage)
+bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verboseImage)
 {
 	// From the center, scan in every direction and find the first RED pixel
 	Point center = Point(newRect.x+newRect.width/2, newRect.y+newRect.height/2);
@@ -310,7 +386,7 @@ int TwoColorLocator::findColorAlongLine(Mat &srcCC, Point startPoint, Point endP
 }
 
 // Az integral image peremosszegeit szamolja ki
-void TwoColorLocator::getOccurranceNumbers(Mat &srcIntegral, int* rowOccNums, int *colOccNums, int &rowmax, int &colmax)
+/*void TwoColorLocator::getOccurranceNumbers(Mat &srcIntegral, int* rowOccNums, int *colOccNums, int &rowmax, int &colmax)
 {
 	// rowmax and colmax should not be reset as they might have other, already calculated values.
 
@@ -336,10 +412,10 @@ void TwoColorLocator::getOccurranceNumbers(Mat &srcIntegral, int* rowOccNums, in
 		if (colmax < diff)
 			colmax=diff;
 	}
-}
+}*/
 
 // Draws the integral image margin sums on the margins of the image
-void TwoColorLocator::drawValuesOnMargin(Mat &img, int *values, int valueNum,
+/*void TwoColorLocator::drawValuesOnMargin(Mat &img, int *values, int valueNum,
 	int scalingDivider, Scalar color, LocationEnum loc)
 {
 	if (scalingDivider==0)
@@ -373,11 +449,11 @@ void TwoColorLocator::drawValuesOnMargin(Mat &img, int *values, int valueNum,
 
 		line(img,start,end,color);
 	}
-}
+}*/
 
 // Creates candidate rectangles from the row and column sums
 // If integralMask is given (for cases with overlapMask), integral of candidate rectangles are calculated checked.
-void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax,
+/*void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, int rownum, int colnum, int rowMax, int colMax,
 	double thresholdRate, std::list<CvRect> &resultRectangles, Mat *integralMask, Mat *verboseImage)
 {
 	CV_Assert(sizeof(int) == 4);	// Used to handle integralMask (assuming type int matrix)
@@ -508,4 +584,4 @@ void TwoColorLocator::getMarkerCandidateRectanges(int *rowVals, int *colVals, in
 		}
 	}
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::GetCandidateRectangles);
-}
+}*/

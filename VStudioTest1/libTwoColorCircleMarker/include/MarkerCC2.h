@@ -39,7 +39,7 @@ namespace TwoColorCircleMarker
 
 		// Read the marker code for a given candidate rectangle.
 		// It the read is successful, it is really a valid marker.
-		void readCode(Mat &srcCC, CvRect &rect);
+		void readCode(Mat &srcCC, Rect &rect);
 
 		// Export marker information in human readable format to a stream
 		virtual void exportToTextStream(std::ostream *stream);

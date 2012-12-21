@@ -20,7 +20,7 @@ using namespace TwoColorCircleMarker;
 
 
 // Entry of marker identification
-void MarkerCC2::readCode(Mat &srcCC, CvRect &rect)
+void MarkerCC2::readCode(Mat &srcCC, Rect &rect)
 {
 	CV_Assert(srcCC.depth() == CV_8U);	// Assuming every pixel to have 8 bits...
 
