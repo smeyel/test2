@@ -29,6 +29,7 @@ namespace TwoColorCircleMarker
 		bool verboseEllipseScanning;
 		bool verboseMarkerCodeValidation;
 		bool verboseRectConsolidationResults;
+		bool verboseRectConsolidationCandidates;
 		bool verboseTxt_LineRejectionReason;
 		bool verboseTxt_RectConsolidation;
 		bool verboseTxt_RectConsolidationSummary;

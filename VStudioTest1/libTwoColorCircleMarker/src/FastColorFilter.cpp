@@ -7,6 +7,8 @@
 
 #include "FastColorFilter.h"
 
+using namespace std;
+
 // REG colors for "unknown color"
 #define NONE_R	100
 #define NONE_G	0
@@ -15,8 +17,10 @@
 #define OVERLAPCHECKLENGTH 5	// Max distance of two colors to trigger overlap
 #define BKGNDOVERLAPCHECKLENGTH 10	// Same for background color
 
-#define BACKGROUNDSHIFTCOUNTER_INIT	0x03FF	// 10 bits
-#define OUTERCOLORSHIFTCOUNTER_INIT	0x001F	// 5 bits
+//#define BACKGROUNDSHIFTCOUNTER_INIT	0x03FF	// 10 bits
+//#define OUTERCOLORSHIFTCOUNTER_INIT	0x001F	// 5 bits
+
+#define LASTDETECTIONCOL_NONE -1
 
 using namespace cv;
 using namespace TwoColorCircleMarker;
@@ -60,9 +64,122 @@ void FastColorFilter::init()
 
 // ----------------------- Image filtering functions
 
+void FastColorFilter::StartNewFrame()
+{
+	for (int i=0; i<MAXDETECTIONRECTNUM; i++)
+	{
+		detectionRects[i].isAlive = false;
+	}
+	lastUsedDetectionRectIdx = -1;
+	nextFreeCandidateRectIdx = 0;
+}
 
-// Creates only overlap mask beside the LUT color recognition
-/*void FastColorFilter::DecomposeImageCreateOverlap_NoBranch(cv::Mat &src, cv::Mat &dst)
+void FastColorFilter::RegisterDetection(int row, int colStart, int colEnd)
+{
+	//cout << "FFC.RegDetection: row=" << row << ", start="<<colStart<<", end="<<colEnd<<endl;
+
+	// Search for detection rects with overlapping with given interval
+	bool newRect=true;
+	for(int i=0; i<=lastUsedDetectionRectIdx; i++)
+	{
+		if (!detectionRects[i].isAlive)
+		{
+			continue;
+		}
+		// If there is an overlap (no sure gap on either sides)
+		if (!(
+			// detection is before the rect
+			(detectionRects[i].colMin > colEnd) 
+			// detection is after the rect
+			|| (detectionRects[i].colMax < colStart) ))
+		{
+			// Update boundaries colMin and colMax
+			if (detectionRects[i].colMin > colStart)
+			{
+				detectionRects[i].colMin = colStart;
+			}
+			if (detectionRects[i].colMax < colEnd)
+			{
+				detectionRects[i].colMax = colEnd;
+			}
+
+			// Register to keep this rect alive
+			detectionRects[i].isDetectedInCurrentRow = true;
+
+			// Should not create a new detection for this
+			newRect=false;
+		}
+	}
+
+	if(newRect)
+	{
+		// Create new detection rect (find a place for it...)
+		bool foundFreeDetectionRect = false;
+		for(int i=0; i<MAXDETECTIONRECTNUM; i++)	// Find first !isAlive
+		{
+			if (!detectionRects[i].isAlive)
+			{
+				detectionRects[i].isAlive = true;
+				detectionRects[i].rowMin = row;
+				detectionRects[i].colMin = colStart;
+				detectionRects[i].colMax = colEnd;
+				detectionRects[i].isDetectedInCurrentRow = true;
+				foundFreeDetectionRect = true;
+				if (lastUsedDetectionRectIdx < i)
+				{
+					lastUsedDetectionRectIdx = i;
+				}
+				break;	// Stop searching
+			}
+		}
+		// If there was no free detectionRect, do nothing...
+		if (!foundFreeDetectionRect)
+		{
+			// Send warning in this case!
+			std::cout << "WARNING: FastColorFilter: no enough detection rectangle space to store detections!" << std::endl;
+		}
+	}
+}
+
+void FastColorFilter::FinishRow(int rowIdx)
+{
+	// Create marker candidate from every discontinued detection rectangle
+	// TODO: this will not create candidate rect for detections touching the last row of the image!
+	for(int i=0; i<=lastUsedDetectionRectIdx; i++)
+	{
+		if (!detectionRects[i].isAlive)
+		{
+			continue;
+		}
+		// Ends in current row or not?
+		if (!detectionRects[i].isDetectedInCurrentRow)
+		{
+			// Not seen anymore, store as candidate
+			candidateRects[nextFreeCandidateRectIdx].x = detectionRects[i].colMin;
+			candidateRects[nextFreeCandidateRectIdx].y = detectionRects[i].rowMin;
+			candidateRects[nextFreeCandidateRectIdx].width = detectionRects[i].colMax-detectionRects[i].colMin;
+			candidateRects[nextFreeCandidateRectIdx].height = rowIdx-detectionRects[i].rowMin;
+
+			nextFreeCandidateRectIdx++;
+			if (nextFreeCandidateRectIdx >= MAXCANDIDATERECTNUM)
+			{
+				nextFreeCandidateRectIdx = MAXCANDIDATERECTNUM;
+				std::cout << "WARNING: FastColorFilter: no enough candidate marker rectangle space!" << std::endl;
+			}
+
+			// Delete detection rect
+			detectionRects[i].isAlive = false;
+		}
+		else
+		{
+			// Reset detection status for next row
+			detectionRects[i].isDetectedInCurrentRow = false;
+		}
+	}
+}
+
+// The most advanced, all-in-one solution so far... :)
+void FastColorFilter::FindMarkerCandidates(cv::Mat &src, cv::Mat &dst)
 {
 	// Assert for only 8UC3 input images (BGR)
 	assert(src.type() == CV_8UC3);
@@ -96,17 +213,24 @@ void FastColorFilter::init()
 	assert(overlapMask->cols == dst.cols);
 	assert(overlapMask->rows == dst.rows);
 
-	uchar colorCode;	// code of current color
-	uchar outerColorCode = maskColorCode[0];	// color of outer part of marker
-	uchar innerColorCode = maskColorCode[1];	// color of inner part of marker
+	uchar colorCode;
+	uchar mask0ColorCode = maskColorCode[0];
+	uchar mask1ColorCode = maskColorCode[1];
+
+	int lastDetectionCol = LASTDETECTIONCOL_NONE;
+	int continuousDetectionStartCol = -1;
 
 	// Mask 0 shift counter:
 	//	Set when mask[0] is active. Otherwise decreased until 0.
 	//	Used to find areas where mask[1] is active and mask[0] was
 	//	also active not so far away.
 	//	Processed in every row separately.
-	unsigned int outerColorShiftCounter;
-	unsigned int backgroundShiftCounter;
+	int mask0shiftCounter;
+	int backgroundShiftCounter;
+
+	// Init processing of a new frame
+	StartNewFrame();
+
 	// Go along every pixel and do the following:
 	for (int row=0; row<src.rows; row++)
 	{
@@ -115,16 +239,19 @@ void FastColorFilter::init()
 		// Result pointer
 		uchar *resultPtr = (uchar *)(dst.data + row*dst.step);
 		// Update mask data pointers
-		uchar *currentOverlapMaskDataPtr = (uchar *)(overlapMask->data + row*overlapMask->step);
+		uchar *overlapDataPtr = (uchar *)(overlapMask->data + row*overlapMask->step);
 
 		// New row, resetting color counters
-		outerColorShiftCounter = 0;
+		mask0shiftCounter = 0;
 		backgroundShiftCounter = 0;
+
+		// Reset tracking of continuous detections
+		lastDetectionCol = LASTDETECTIONCOL_NONE;
+		continuousDetectionStartCol = -1;
 
 		// Go along every BGR colorspace pixel
 		for (int col=0; col<src.cols; col++)
 		{
-			// Get RGB and colorCode
 			uchar B = *ptr++;
 			uchar G = *ptr++;
 			uchar R = *ptr++;
@@ -133,35 +260,83 @@ void FastColorFilter::init()
 			unsigned int idxB = B >> 5;
 			unsigned int idx = (idxR << 6) | (idxG << 3) | idxB;
 			colorCode = RgbLut[idx];
-			// Store code of recognized color
 			*resultPtr++ = colorCode;
 
-			// Processing of overlap mask
+			// Handle masks (2 masks)
+			bool isMask0Color = (colorCode==mask0ColorCode)?255:0;
+			bool isMask1Color = (colorCode==mask1ColorCode)?255:0;
+			*overlapDataPtr = 0;
 
-			// Is it background color?
-			uchar isBackground = (colorCode==backgroundColorCode) ? 0x01 : 0x00;
-			uchar isOuterColor = (colorCode==outerColorCode) ? 0x01 : 0x00;
-			uchar isInnerColor = (colorCode==innerColorCode) ? 0x01 : 0x00;
-			
-			// By default, overlap mask is 0
-			uchar mask = (backgroundShiftCounter & outerColorShiftCounter & isInnerColor) ? 0xFF : 0x00;	// Mask is 0x00 or 0xFF
-			// Store result and go on
-			*currentOverlapMaskDataPtr = mask;
-			currentOverlapMaskDataPtr++;
+			// Process mask overlap
+			if (isMask0Color && backgroundShiftCounter>0)	// mask0 triggered with its own color setting
+			{
+				// Mask 0 active, trigger checking
+				mask0shiftCounter = OVERLAPCHECKLENGTH;
+			}
+			else
+			{
+				if (colorCode == backgroundColorCode)	// We are outside a marker...
+				{
+					// We are not inside a marker
+					mask0shiftCounter = 0;	// Warning! This might be caused by pixel error!
+					backgroundShiftCounter = BKGNDOVERLAPCHECKLENGTH;
+				}
+				else
+				{
+					// Not background and not outer mask color
+					if (mask0shiftCounter>0 && backgroundShiftCounter>0)	// If we look for inner mask color at all...
+					{
+						// Still checking
+						if (isMask1Color)	// Inner mask triggers
+						{
+							// Overlap
+							// We do not decrease counters during overlap
+							// This helps detection of full overlap and not
+							//	only its border...
+							*overlapDataPtr = 255;
 
-			// Decreasing counters if necessary
-			backgroundShiftCounter >>= (isOuterColor | isInnerColor) ^ 0x01;	// Shift by 1 if color is nor outerColor, neither innerColor
-			outerColorShiftCounter >>= isInnerColor ^ 0x01;	// Shift by 1 if color is nor outerColor, neither innerColor
+							// Handle detection collection
+							if (lastDetectionCol == LASTDETECTIONCOL_NONE)	// Starting first detection in this row
+							{
+								// Start new continuous detection
+								continuousDetectionStartCol = col;
+							}
+							else if (lastDetectionCol < col-1)	// There was a gap since last detection
+							{
+								// Register last continuous detection
+								RegisterDetection(row,continuousDetectionStartCol,lastDetectionCol);
 
-			// Reset counters if corresponding color is recognized (after decrement to overwrite current decrement)
-			backgroundShiftCounter |= isBackground ? BACKGROUNDSHIFTCOUNTER_INIT : 0x0000;
-			outerColorShiftCounter |= isOuterColor ? OUTERCOLORSHIFTCOUNTER_INIT : 0x0000;
+								// Start new continuous detection
+								continuousDetectionStartCol = col;
+							}
+							lastDetectionCol = col;
+						}
+						else
+						{
+							// Waiting for inner mask to appear...
+							backgroundShiftCounter--;
+							mask0shiftCounter--;
+						}
+					}
+				} // end else of if colorCode==backgroundColorCode
+			}
+
+			overlapDataPtr++;
+		}	// end for col
+		// Starting new row (if any...)
+		if (lastDetectionCol != LASTDETECTIONCOL_NONE)
+		{
+			// There is still an unregistered detection left
+			RegisterDetection(row,continuousDetectionStartCol,lastDetectionCol);
 		}
-	}
-} */
+
+		FinishRow(row);
+	}	// end for row
+}
 
 
-// Also creates overlap mask
+
+/*// Also creates overlap mask
 void FastColorFilter::DecomposeImageCreateOverlap(cv::Mat &src, cv::Mat &dst)
 {
 	// Assert for only 8UC3 input images (BGR)
@@ -215,8 +390,6 @@ void FastColorFilter::DecomposeImageCreateOverlap(cv::Mat &src, cv::Mat &dst)
 		// Result pointer
 		uchar *resultPtr = (uchar *)(dst.data + row*dst.step);
 		// Update mask data pointers
-//		currentMaskDataPtr[0] =  (uchar *)(masks[0]->data + row*masks[0]->step);
-//		currentMaskDataPtr[1] =  (uchar *)(masks[1]->data + row*masks[1]->step);
 		uchar *overlapDataPtr = (uchar *)(overlapMask->data + row*overlapMask->step);
 
 		// New row, resetting color counters
@@ -239,7 +412,6 @@ void FastColorFilter::DecomposeImageCreateOverlap(cv::Mat &src, cv::Mat &dst)
 			// Handle masks (2 masks)
 			bool isMask0Color = (colorCode==mask0ColorCode)?255:0;
 			bool isMask1Color = (colorCode==mask1ColorCode)?255:0;
-//			*(currentMaskDataPtr[1]) = (colorCode==maskColorCode[1])?255:0;
 			*overlapDataPtr = 0;
 
 			// Process mask overlap
@@ -280,16 +452,13 @@ void FastColorFilter::DecomposeImageCreateOverlap(cv::Mat &src, cv::Mat &dst)
 				}
 			}
 
-//			currentMaskDataPtr[0]++;
-//			currentMaskDataPtr[1]++;
 			overlapDataPtr++;
 		}
 	}
-}
-
+}*/
 
 // Also creates overlap mask
-void FastColorFilter::DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat &dst)
+/*void FastColorFilter::DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat &dst)
 {
 	// Assert for only 8UC3 input images (BGR)
 	assert(src.type() == CV_8UC3);
@@ -409,8 +578,7 @@ void FastColorFilter::DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat
 			currentOverlapMaskDataPtr++;
 		}
 	}
-}
-
+}*/
 
 void FastColorFilter::DecomposeImageCreateMasks(cv::Mat &src, cv::Mat &dst)
 {

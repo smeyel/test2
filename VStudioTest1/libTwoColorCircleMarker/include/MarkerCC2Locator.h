@@ -23,7 +23,7 @@ namespace TwoColorCircleMarker
 		bool foundValidMarker;	// After every frame, may be queried if there was a valid marker.
 
 		// candidateRectList is the list of possible marker inner (blue) circle locations.
-		void LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRectList);
+		void LocateMarkers(Mat &srcCC, std::list<Rect> *candidateRectList);
 		// returns true if given code is valid
 		bool validateMarkerID(int code);
 

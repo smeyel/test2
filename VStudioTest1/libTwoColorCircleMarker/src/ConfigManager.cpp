@@ -12,6 +12,7 @@ bool ConfigManager::readConfiguration(CSimpleIniA *ini)
 	verboseEllipseScanning = ini->GetBoolValue("verbose","verboseEllipseScanning",false,NULL);
 	verboseMarkerCodeValidation = ini->GetBoolValue("verbose","verboseMarkerCodeValidation",false,NULL);
 	verboseRectConsolidationResults = ini->GetBoolValue("verbose","verboseRectConsolidationResults",false,NULL);
+	verboseRectConsolidationCandidates = ini->GetBoolValue("verbose","verboseRectConsolidationCandidates",false,NULL);
 	verboseOverlapMask = ini->GetBoolValue("verbose","verboseOverlapMask",false,NULL);
 
 	verboseTxt_LineRejectionReason = ini->GetBoolValue("verbosetxt","LineRejectionReason",false,NULL);
