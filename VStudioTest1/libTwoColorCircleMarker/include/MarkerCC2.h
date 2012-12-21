@@ -11,9 +11,12 @@ using namespace cv;
 
 namespace TwoColorCircleMarker
 {
+	// THis class represents a marker of type CC2 (Color Circle 2)
+
 	class MarkerCC2 : public MarkerBase
 	{
 	public:
+		// ID and its validity (result of readCode())
 		int MarkerID;
 		bool isValid;
 
@@ -39,9 +42,11 @@ namespace TwoColorCircleMarker
 
 		// Read the marker code for a given candidate rectangle.
 		// It the read is successful, it is really a valid marker.
+		// Called by marker locator to read the code of the marker.
 		void readCode(Mat &srcCC, Rect &rect);
 
-		// Export marker information in human readable format to a stream
+		// MISC: Export marker information in human readable format to a stream
+		// Used by detection exporter functions.
 		virtual void exportToTextStream(std::ostream *stream);
 
 	private:

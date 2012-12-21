@@ -350,7 +350,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 
 	// --- Convert the color code array into a bit array (only 0 and 1)
 	// --- Meanwhile find the green location (start direction)
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << "rawBits:";
 	}
@@ -380,7 +380,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 			lastGreenIdx = bitIdx;
 		}
 
-		if (ConfigManager::Current()->verboseMarkerCodeValidation )
+		if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 		{
 			if (isGreen)
 			{
@@ -415,7 +415,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 		isOrientationReferenceAngleValid = true;
 	}
 
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << ", GRN@(" << firstGreenIdx << "-" << lastGreenIdx << ")->" << greenIdx << endl;
 	}
@@ -432,7 +432,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	int finalBits[8];	// Final bits of outer code
 	unsigned int code = 0;	// Numerical value of code
 	// Calculate code
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << "GrnIdx:" << greenIdx << ", code: ";
 	}
@@ -440,7 +440,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	{
 		realBitIdx[i] = (greenIdx+4*i) % 32;
 		finalBits[i] = rawbits[realBitIdx[i]];
-		if (ConfigManager::Current()->verboseMarkerCodeValidation )
+		if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 		{
 			cout << finalBits[i];
 		}
@@ -475,7 +475,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 
 
 	// Verbose codes
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << ", code=" << code << endl;
 	}
@@ -493,4 +493,3 @@ void MarkerCC2::exportToTextStream(ostream *stream)
 			",ID:" << MarkerID <<
 			",or:" << orientationReferenceAngle << ",isOrValid:" << isOrientationReferenceAngleValid;
 }
-

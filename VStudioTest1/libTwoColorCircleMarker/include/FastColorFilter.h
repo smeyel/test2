@@ -1,8 +1,6 @@
 #ifndef __FASTCOLORFILTER_H_
 #define __FASTCOLORFILTER_H_
 
-//#include <opencv2/opencv.hpp>
-//#include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
 
 #define COLORCODE_INITIAL 254	// A color code different from all other ones. Used as initial (unknown) value.
@@ -38,6 +36,7 @@ namespace TwoColorCircleMarker
 		uchar LutG[256];
 		uchar LutB[256];
 
+		// Used only by init() internally
 		static const uchar rUnit = 9;
 		static const uchar gUnit = 3;
 		static const uchar bUnit = 1;
@@ -55,12 +54,6 @@ namespace TwoColorCircleMarker
 			return code % 3;
 		}
 
-		// Internal use by filtering
-		// Current data pointers for all masks, indexed by colorcode
-		// TODO: should be inside the functions, not here! (Slow!)
-		(uchar*)currentMaskDataPtr[2];
-		uchar* currentOverlapMaskDataPtr;
-
 		// --- Color remapping
 		// code remap and its functions
 		uchar RgbLut[512];	// 3 bit / RGB color layer -> 9 bit, 512 values. 0 means undefined color.
@@ -68,11 +61,9 @@ namespace TwoColorCircleMarker
 		// Used by FindMarkerCandidates
 		struct DetectionRect detectionRects[MAXDETECTIONRECTNUM];
 		int lastUsedDetectionRectIdx;
+		void StartNewFrame();
 		void RegisterDetection(int row, int colStart, int colEnd);
 		void FinishRow(int rowIdx);
-
-		// Call this at the start of a new frame!
-		void StartNewFrame();
 
 		// --- inits RgbLut, called from constructor
 		void init();
@@ -84,28 +75,24 @@ namespace TwoColorCircleMarker
 			init();
 		}
 
-		// --- Mask management
-		// Pointers for all masks
-		(Mat *)masks[2];
-		// Color code for the masks to indicate
+		// --- Mask colors, needs to be set according to marker colors.
 		uchar maskColorCode[2];	// Colorcode for the 2 masks they indicate.
 		uchar backgroundColorCode;	// Colorcode for the color outside the marker circles
+
+		// --- Results
 		// Overlap mask
 		Mat *overlapMask;
-
 		// List of marker candidate rectangles
 		Rect candidateRects[MAXCANDIDATERECTNUM];
 		int nextFreeCandidateRectIdx;
 
-		// --- Image decomposition (filtering)
-		void DecomposeImage(Mat &src, Mat &dst);	// deprecated
-		void DecomposeImageCreateMasks(Mat &src, Mat &dst);	// deprecated
-		//void DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat &dst);	// deprecated
-		//void DecomposeImageCreateOverlap(cv::Mat &src, cv::Mat &dst);
-
-		// The most advanced, all-in-one solution so far... :)
+		// --- Image decomposition functions ("entry points")
+		// Color recognition and marker candidate localization
 		void FindMarkerCandidates(cv::Mat &src, cv::Mat &dst);
+		// Color recognition only (unlikely to be used)
+		void DecomposeImage(Mat &src, Mat &dst);
 
+		// --- Helpers
 		// Code image visualization: amplification of colors in BGR space
 		void VisualizeDecomposedImage(Mat &src, Mat &dst);
 	};

@@ -21,28 +21,33 @@ namespace TwoColorCircleMarker
 			return (ConfigManager*)instance;
 		}
 
-		// Config settings
+		// --- Settings
+		bool resizeImage;
+
+		// --- Visualization settings
+		// Result visualization
+		bool showInputImage;
+		bool showMarkerCodeOnImageDec;
+		bool showMarkerCodeOnImageHex;
+		bool waitFor25Fps;
+		bool pauseIfNoValidMarkers;
+
+		// --- Verbose functions
+		// Show verbose frames
 		bool verboseColorCodedFrame;
-		bool verboseTwoColorLocator;
+		bool verboseOverlapMask;
+		// Verbose marker processing (orientation detection, code reading etc.)
 		bool verboseLineScanning;
+		bool verboseTxt_LineRejectionReason;
 		bool verboseEllipseFitting;
 		bool verboseEllipseScanning;
 		bool verboseMarkerCodeValidation;
-		bool verboseRectConsolidationResults;
+		bool verboseTxt_MarkerCodeValidation;
+		// Verbose marker localization
 		bool verboseRectConsolidationCandidates;
-		bool verboseTxt_LineRejectionReason;
+		bool verboseRectConsolidationResults;
 		bool verboseTxt_RectConsolidation;
 		bool verboseTxt_RectConsolidationSummary;
-		bool verboseOverlapMask;
-		bool verboseTwoColorLocatorIntegralReject;
-
-		bool showMarkerCodeOnImageDec;
-		bool showMarkerCodeOnImageHex;
-		bool showInputImage;
-
-		bool resizeImage;
-		bool waitFor25Fps;
-		bool pauseIfNoValidMarkers;
 	};
 }
 

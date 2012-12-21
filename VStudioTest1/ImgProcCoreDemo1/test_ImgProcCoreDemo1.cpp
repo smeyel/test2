@@ -88,10 +88,7 @@ public:
 int main()
 {
 	TwoColorCircleMarker::ConfigManager::Current()->init("../testini.ini");
-	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
-	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Valosaghu1.mp4");
-
-	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test1.mp4");
+	//TwoColorCircleMarker::ConfigManager::Current()->init("../speedtest.ini");
 #ifdef MULTIPLEITERATIONS
 	for(int i=0; i<10; i++)
 	{
@@ -145,8 +142,8 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 	// Create images and masks
 	Mat colorCodeFrame(dsize.height, dsize.width,CV_8UC1);
-	Mat redMask(dsize.height, dsize.width,CV_8UC1);
-	Mat blueMask(dsize.height, dsize.width,CV_8UC1);
+//	Mat redMask(dsize.height, dsize.width,CV_8UC1);
+//	Mat blueMask(dsize.height, dsize.width,CV_8UC1);
 	Mat overlapMask(dsize.height, dsize.width,CV_8UC1);
 	Mat visColorCodeFrame(dsize.height, dsize.width,CV_8UC3);
 
@@ -155,9 +152,9 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	colorCodeImage = &colorCodeFrame;
 
 	// Setup mask creation (define target Mat and observed color code)
-	fastColorFilter.masks[0]=&redMask;
+//	fastColorFilter.masks[0]=&redMask;
 	fastColorFilter.maskColorCode[0]=COLORCODE_RED;
-	fastColorFilter.masks[1]=&blueMask;
+//	fastColorFilter.masks[1]=&blueMask;
 	fastColorFilter.maskColorCode[1]=COLORCODE_BLU;
 	fastColorFilter.overlapMask=&overlapMask;
 	fastColorFilter.backgroundColorCode=COLORCODE_WHT;

@@ -3,7 +3,6 @@
 #include <opencv2/core/mat.hpp>
 
 #include <assert.h>
-#include <math.h>
 
 #include "FastColorFilter.h"
 
@@ -14,11 +13,10 @@ using namespace std;
 #define NONE_G	0
 #define NONE_B	100
 
+// Max. how many pixels may come after mask color 0 and before mask color 1 to accept marker candidate
 #define OVERLAPCHECKLENGTH 5	// Max distance of two colors to trigger overlap
+// How many pixels may come with illegal color after last background color pixel to still accept marker candidate
 #define BKGNDOVERLAPCHECKLENGTH 10	// Same for background color
-
-//#define BACKGROUNDSHIFTCOUNTER_INIT	0x03FF	// 10 bits
-//#define OUTERCOLORSHIFTCOUNTER_INIT	0x001F	// 5 bits
 
 #define LASTDETECTIONCOL_NONE -1
 
@@ -76,8 +74,6 @@ void FastColorFilter::StartNewFrame()
 
 void FastColorFilter::RegisterDetection(int row, int colStart, int colEnd)
 {
-	//cout << "FFC.RegDetection: row=" << row << ", start="<<colStart<<", end="<<colEnd<<endl;
-
 	// Search for detection rects with overlapping with given interval
 	bool newRect=true;
 	for(int i=0; i<=lastUsedDetectionRectIdx; i++)
@@ -178,7 +174,6 @@ void FastColorFilter::FinishRow(int rowIdx)
 	}
 }
 
-// The most advanced, all-in-one solution so far... :)
 void FastColorFilter::FindMarkerCandidates(cv::Mat &src, cv::Mat &dst)
 {
 	// Assert for only 8UC3 input images (BGR)
@@ -332,310 +327,6 @@ void FastColorFilter::FindMarkerCandidates(cv::Mat &src, cv::Mat &dst)
 
 		FinishRow(row);
 	}	// end for row
-}
-
-
-
-/*// Also creates overlap mask
-void FastColorFilter::DecomposeImageCreateOverlap(cv::Mat &src, cv::Mat &dst)
-{
-	// Assert for only 8UC3 input images (BGR)
-	assert(src.type() == CV_8UC3);
-	// Assert for only 8UC1 output images
-	assert(dst.type() == CV_8UC1);
-	// Assert dst has same size as src
-	assert(src.cols == dst.cols);
-	assert(src.rows == dst.rows);
-
-	// Assert masks array (check 0th element)
-	assert(masks[0]!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(masks[0]->type() == CV_8UC1);
-	// Assert mask size
-	assert(masks[0]->cols == dst.cols);
-	assert(masks[0]->rows == dst.rows);
-
-	// Assert masks array (check 1st element)
-	assert(masks[1]!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(masks[1]->type() == CV_8UC1);
-	// Assert mask size
-	assert(masks[1]->cols == dst.cols);
-	assert(masks[1]->rows == dst.rows);
-
-	// Assert masks array (check 1st element)
-	assert(overlapMask!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(overlapMask->type() == CV_8UC1);
-	// Assert mask size
-	assert(overlapMask->cols == dst.cols);
-	assert(overlapMask->rows == dst.rows);
-
-	uchar colorCode;
-	uchar mask0ColorCode = maskColorCode[0];
-	uchar mask1ColorCode = maskColorCode[1];
-
-	// Mask 0 shift counter:
-	//	Set when mask[0] is active. Otherwise decreased until 0.
-	//	Used to find areas where mask[1] is active and mask[0] was
-	//	also active not so far away.
-	//	Processed in every row separately.
-	int mask0shiftCounter;
-	int backgroundShiftCounter;
-	// Go along every pixel and do the following:
-	for (int row=0; row<src.rows; row++)
-	{
-		// Calculate pointer to the beginning of the current row
-		const uchar *ptr = (const uchar *)(src.data + row*src.step);
-		// Result pointer
-		uchar *resultPtr = (uchar *)(dst.data + row*dst.step);
-		// Update mask data pointers
-		uchar *overlapDataPtr = (uchar *)(overlapMask->data + row*overlapMask->step);
-
-		// New row, resetting color counters
-		mask0shiftCounter = 0;
-		backgroundShiftCounter = 0;
-
-		// Go along every BGR colorspace pixel
-		for (int col=0; col<src.cols; col++)
-		{
-			uchar B = *ptr++;
-			uchar G = *ptr++;
-			uchar R = *ptr++;
-			unsigned int idxR = R >> 5;
-			unsigned int idxG = G >> 5;
-			unsigned int idxB = B >> 5;
-			unsigned int idx = (idxR << 6) | (idxG << 3) | idxB;
-			colorCode = RgbLut[idx];
-			*resultPtr++ = colorCode;
-
-			// Handle masks (2 masks)
-			bool isMask0Color = (colorCode==mask0ColorCode)?255:0;
-			bool isMask1Color = (colorCode==mask1ColorCode)?255:0;
-			*overlapDataPtr = 0;
-
-			// Process mask overlap
-			if (isMask0Color && backgroundShiftCounter>0)	// mask0 triggered with its own color setting
-			{
-				// Mask 0 active, trigger checking
-				mask0shiftCounter = OVERLAPCHECKLENGTH;
-			}
-			else
-			{
-				if (colorCode == backgroundColorCode)	// We are outside a marker...
-				{
-					// We are not inside a marker
-					mask0shiftCounter = 0;	// Warning! This might be caused by pixel error!
-					backgroundShiftCounter = BKGNDOVERLAPCHECKLENGTH;
-				}
-				else
-				{
-					// Not background and not outer mask color
-					if (mask0shiftCounter>0 && backgroundShiftCounter>0)	// If we look for inner mask color at all...
-					{
-						// Still checking
-						if (isMask1Color)	// Inner mask triggers
-						{
-							// Overlap
-							// We do not decrease counters during overlap
-							// This helps detection of full overlap and not
-							//	only its border...
-							*overlapDataPtr = 255;
-						}
-						else
-						{
-							// Waiting for inner mask to appear...
-							backgroundShiftCounter--;
-							mask0shiftCounter--;
-						}
-					}
-				}
-			}
-
-			overlapDataPtr++;
-		}
-	}
-}*/
-
-// Also creates overlap mask
-/*void FastColorFilter::DecomposeImageCreateMasksWithOverlap(cv::Mat &src, cv::Mat &dst)
-{
-	// Assert for only 8UC3 input images (BGR)
-	assert(src.type() == CV_8UC3);
-	// Assert for only 8UC1 output images
-	assert(dst.type() == CV_8UC1);
-	// Assert dst has same size as src
-	assert(src.cols == dst.cols);
-	assert(src.rows == dst.rows);
-
-	// Assert masks array (check 0th element)
-	assert(masks[0]!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(masks[0]->type() == CV_8UC1);
-	// Assert mask size
-	assert(masks[0]->cols == dst.cols);
-	assert(masks[0]->rows == dst.rows);
-
-	// Assert masks array (check 1st element)
-	assert(masks[1]!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(masks[1]->type() == CV_8UC1);
-	// Assert mask size
-	assert(masks[1]->cols == dst.cols);
-	assert(masks[1]->rows == dst.rows);
-
-	// Assert masks array (check 1st element)
-	assert(overlapMask!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(overlapMask->type() == CV_8UC1);
-	// Assert mask size
-	assert(overlapMask->cols == dst.cols);
-	assert(overlapMask->rows == dst.rows);
-
-	uchar colorCode;
-
-	// Mask 0 shift counter:
-	//	Set when mask[0] is active. Otherwise decreased until 0.
-	//	Used to find areas where mask[1] is active and mask[0] was
-	//	also active not so far away.
-	//	Processed in every row separately.
-	int mask0shiftCounter;
-	int backgroundShiftCounter;
-	// Go along every pixel and do the following:
-	for (int row=0; row<src.rows; row++)
-	{
-		// Calculate pointer to the beginning of the current row
-		const uchar *ptr = (const uchar *)(src.data + row*src.step);
-		// Result pointer
-		uchar *resultPtr = (uchar *)(dst.data + row*dst.step);
-		// Update mask data pointers
-		currentMaskDataPtr[0] =  (uchar *)(masks[0]->data + row*masks[0]->step);
-		currentMaskDataPtr[1] =  (uchar *)(masks[1]->data + row*masks[1]->step);
-		currentOverlapMaskDataPtr = (uchar *)(overlapMask->data + row*overlapMask->step);
-
-		// New row, resetting color counters
-		mask0shiftCounter = 0;
-		backgroundShiftCounter = 0;
-
-		// Go along every BGR colorspace pixel
-		for (int col=0; col<src.cols; col++)
-		{
-			uchar B = *ptr++;
-			uchar G = *ptr++;
-			uchar R = *ptr++;
-			unsigned int idxR = R >> 5;
-			unsigned int idxG = G >> 5;
-			unsigned int idxB = B >> 5;
-			unsigned int idx = (idxR << 6) | (idxG << 3) | idxB;
-			colorCode = RgbLut[idx];
-			*resultPtr++ = colorCode;
-
-			// Handle masks (2 masks)
-			*(currentMaskDataPtr[0]) = (colorCode==maskColorCode[0])?255:0;
-			*(currentMaskDataPtr[1]) = (colorCode==maskColorCode[1])?255:0;
-			*currentOverlapMaskDataPtr = 0;
-
-			// Process mask overlap
-			if (*(currentMaskDataPtr[0]) == 255 && backgroundShiftCounter>0)	// mask0 triggered with its own color setting
-			{
-				// Mask 0 active, trigger checking
-				mask0shiftCounter = OVERLAPCHECKLENGTH;
-			}
-			else
-			{
-				if (colorCode == backgroundColorCode)	// We are outside a marker...
-				{
-					// We are not inside a marker
-					mask0shiftCounter = 0;	// Warning! This might be caused by pixel error!
-					backgroundShiftCounter = BKGNDOVERLAPCHECKLENGTH;
-				}
-				else
-				{
-					// Not background and not outer mask color
-					if (mask0shiftCounter>0 && backgroundShiftCounter>0)	// If we look for inner mask color at all...
-					{
-						// Still checking
-						if (*(currentMaskDataPtr[1]) == 255)	// Inner mask triggers
-						{
-							// Overlap
-							// We do not decrease counters during overlap
-							// This helps detection of full overlap and not
-							//	only its border...
-							*currentOverlapMaskDataPtr = 255;
-						}
-						else
-						{
-							// Waiting for inner mask to appear...
-							backgroundShiftCounter--;
-							mask0shiftCounter--;
-						}
-					}
-				}
-			}
-
-			currentMaskDataPtr[0]++;
-			currentMaskDataPtr[1]++;
-			currentOverlapMaskDataPtr++;
-		}
-	}
-}*/
-
-void FastColorFilter::DecomposeImageCreateMasks(cv::Mat &src, cv::Mat &dst)
-{
-	// Assert for only 8UC3 input images (BGR)
-	assert(src.type() == CV_8UC3);
-	// Assert for only 8UC1 output images
-	assert(dst.type() == CV_8UC1);
-	// Assert dst has same size as src
-	assert(src.cols == dst.cols);
-	assert(src.rows == dst.rows);
-	// Assert masks array (check 0th element)
-	assert(masks[0]!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(masks[0]->type() == CV_8UC1);
-	// Assert mask size
-	assert(masks[0]->cols == dst.cols);
-	assert(masks[0]->rows == dst.rows);
-	// Assert masks array (check 1st element)
-	assert(masks[1]!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(masks[1]->type() == CV_8UC1);
-	// Assert mask size
-	assert(masks[1]->cols == dst.cols);
-	assert(masks[1]->rows == dst.rows);
-
-	uchar colorCode;
-	// Go along every pixel and do the following:
-	for (int row=0; row<src.rows; row++)
-	{
-		// Calculate pointer to the beginning of the current row
-		const uchar *ptr = (const uchar *)(src.data + row*src.step);
-		// Result pointer
-		uchar *resultPtr = (uchar *)(dst.data + row*dst.step);
-		// Update mask data pointers
-		currentMaskDataPtr[0] =  (uchar *)(masks[0]->data + row*masks[0]->step);
-		currentMaskDataPtr[1] =  (uchar *)(masks[1]->data + row*masks[1]->step);
-
-		// Go along every BGR colorspace pixel
-		for (int col=0; col<src.cols; col++)
-		{
-			uchar B = *ptr++;
-			uchar G = *ptr++;
-			uchar R = *ptr++;
-			unsigned int idxR = R >> 5;
-			unsigned int idxG = G >> 5;
-			unsigned int idxB = B >> 5;
-			unsigned int idx = (idxR << 6) | (idxG << 3) | idxB;
-			colorCode = RgbLut[idx];
-			*resultPtr++ = colorCode;
-
-			// Handle masks (2 masks)
-			*(currentMaskDataPtr[0]) = (colorCode==maskColorCode[0])?255:0;
-			*(currentMaskDataPtr[1]) = (colorCode==maskColorCode[1])?255:0;
-			currentMaskDataPtr[0]++;
-			currentMaskDataPtr[1]++;
-		}
-	}
 }
 
 void FastColorFilter::DecomposeImage(Mat &src, Mat &dst)
