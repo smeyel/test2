@@ -4,16 +4,16 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
+#include "MarkerBase.h"
 #include "MarkerCC1Locator.h"
 
 using namespace cv;
 
 namespace TwoColorCircleMarker
 {
-	class MarkerCC1
+	class MarkerCC1 : public MarkerBase
 	{
 	public:
-		Point2d center;
 		int majorMarkerID;		// real and identified code of the marker
 		int minorMarkerID;		// real and identified code of the marker
 		bool isValid;
@@ -34,6 +34,9 @@ namespace TwoColorCircleMarker
 		// Read the marker code for a given candidate rectangle.
 		// It the read is successful, it is really a valid marker.
 		void readCode(Mat &srcCC, CvRect &rect);
+
+		// Export marker information in human readable format to a stream
+		virtual void exportToTextStream(std::ostream *stream);
 
 	private:
 		// --- Used by ellpise fitting

@@ -14,10 +14,12 @@ namespace MiscTimeAndConfig
 {
 	class TimeMeasurement
 	{
-		clock_t currentStartValues[MAX_TIMING_CODE];
-		long sumvalues[MAX_TIMING_CODE];
-		int numvalues[MAX_TIMING_CODE];
+		int64 currentStartValues[MAX_TIMING_CODE];
+		int64 sumvalues[MAX_TIMING_CODE];
+		int64 numvalues[MAX_TIMING_CODE];
 		string names[MAX_TIMING_CODE];
+
+		double tickFrequency;
 
 	public:
 
@@ -26,9 +28,9 @@ namespace MiscTimeAndConfig
 		void init();
 		void setname(int measurementid, string name);
 		void start(int measurementid);
-		long finish(int measurementid);
-		float getavgms(int measurementid);
-		float getmaxfps(int measurementid);
+		double finish(int measurementid);
+		double getavgms(int measurementid);
+		double getmaxfps(int measurementid);
 		void showresults();
 	};
 }

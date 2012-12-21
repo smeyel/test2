@@ -7,12 +7,16 @@
 
 #include "TwoColorLocator.h"
 #include "MarkerCC2Locator.h"
+#include "MarkerCC2.h"
 
 #include "TimeMeasurementCodeDefines.h"
 #include "ConfigManager.h"
 #include "FastColorFilter.h"
 
 #include "DetectionResultExporterBase.h"
+
+#define WAITKEYPRESSATEND	// Wait for keypress at the end (disable for profiling!)
+//#define MULTIPLEITERATIONS	// Perform everything multiple times (enable for profiling)
 
 using namespace cv;
 using namespace std;
@@ -55,7 +59,7 @@ void mouse_callback(int eventtype, int x, int y, int flags, void *param)
 	}
 }
 
-class ResultExporter : public MiscTimeAndConfig::DetectionResultExporterBase
+class ResultExporter : public TwoColorCircleMarker::DetectionResultExporterBase
 {
 	ofstream stream;
 public:
@@ -73,21 +77,32 @@ public:
 	int currentFrameIdx;
 	int currentCamID;
 
-	virtual void writeResult(int markerID, int frameX, int frameY, bool isCenterValid, bool isMarkerCodeValid)
+	virtual void writeResult(MarkerBase *marker)
 	{
-		stream << "FrameID:" << currentFrameIdx << ", CamID:" << currentCamID <<
-			", imgX:" << frameX << ", imgY:" << frameY <<
-			", isCenterValid:" << isCenterValid << ", isMarkerCodeValid:" << isMarkerCodeValid <<
-			", markerID:" << markerID << endl;
+		stream << "FID:" << currentFrameIdx << ",CID:" << currentCamID << " ";
+		marker->exportToTextStream(&stream);
+		stream << endl;
 	}
 };
 
 int main()
 {
 	TwoColorCircleMarker::ConfigManager::Current()->init("../testini.ini");
-	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Single2outerGrn.mp4");
-	//do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC1\\Valosaghu1.mp4");
-	do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test1.mp4");
+	//TwoColorCircleMarker::ConfigManager::Current()->init("../speedtest.ini");
+#ifdef MULTIPLEITERATIONS
+	for(int i=0; i<10; i++)
+	{
+		cout << "Iteration: " << i << endl;
+#endif
+		do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test2.mp4");
+#ifdef MULTIPLEITERATIONS
+	}
+#endif
+
+#ifdef WAITKEYPRESSATEND
+	cout << "Press any key..." << endl;
+	char c = cvWaitKey(0);
+#endif
 }
 
 void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldogozas - marker kereses szinekkel
@@ -110,13 +125,12 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		cvSetMouseCallback(wndCode, mouse_callback);
 	}
 
-
 	Mat inputFrame, resizedFrame, resultFrame;
 	char c;
 
 	// size for resizing
-	const Size dsize(640,480);
-	//const Size dsize(320,200);
+	const Size dsize(640,480);	// TODO: should always correspond to the real frame size!
+	//const Size dsize(320,240);
 
 	TimeMeasurement::instance.init();
 	TimeMeasurementCodeDefs::setnames();
@@ -124,12 +138,12 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 	// --- Setup color filtering
 	FastColorFilter fastColorFilter;
-	fastColorFilter.init();
+	//fastColorFilter.init();
 
 	// Create images and masks
 	Mat colorCodeFrame(dsize.height, dsize.width,CV_8UC1);
-	Mat redMask(dsize.height, dsize.width,CV_8UC1);
-	Mat blueMask(dsize.height, dsize.width,CV_8UC1);
+//	Mat redMask(dsize.height, dsize.width,CV_8UC1);
+//	Mat blueMask(dsize.height, dsize.width,CV_8UC1);
 	Mat overlapMask(dsize.height, dsize.width,CV_8UC1);
 	Mat visColorCodeFrame(dsize.height, dsize.width,CV_8UC3);
 
@@ -138,9 +152,9 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	colorCodeImage = &colorCodeFrame;
 
 	// Setup mask creation (define target Mat and observed color code)
-	fastColorFilter.masks[0]=&redMask;
+//	fastColorFilter.masks[0]=&redMask;
 	fastColorFilter.maskColorCode[0]=COLORCODE_RED;
-	fastColorFilter.masks[1]=&blueMask;
+//	fastColorFilter.masks[1]=&blueMask;
 	fastColorFilter.maskColorCode[1]=COLORCODE_BLU;
 	fastColorFilter.overlapMask=&overlapMask;
 	fastColorFilter.backgroundColorCode=COLORCODE_WHT;
@@ -184,19 +198,25 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		}
 		else
 		{
-			inputFrame.copyTo(resizedFrame);
+			// TODO: warning, this makes it unnecessary slow...
+			//inputFrame.copyTo(resizedFrame);
+			resizedFrame = inputFrame;
 		}
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::Resize);
 
 		// Apply color filtering. Create masks and color coded image
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
-		//fastColorFilter.DecomposeImageCreateMasks(resizedFrame,colorCodeFrame);
-		fastColorFilter.DecomposeImageCreateMasksWithOverlap(resizedFrame,colorCodeFrame);
+		//fastColorFilter.DecomposeImageCreateMasksWithOverlap(resizedFrame,colorCodeFrame);
+		//fastColorFilter.DecomposeImageCreateOverlap_NoBranch(resizedFrame,colorCodeFrame);
+		//fastColorFilter.DecomposeImageCreateOverlap(resizedFrame,colorCodeFrame);
+		fastColorFilter.FindMarkerCandidates(resizedFrame,colorCodeFrame);
+		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
+
+		// Not included into FastColorFilter execution time
 		if (ConfigManager::Current()->verboseColorCodedFrame)
 		{
 			fastColorFilter.VisualizeDecomposedImage(colorCodeFrame,visColorCodeFrame);
 		}
-		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
 
 		// --- Processing inputFrame -> resultFrame
 		// TwoColorLocator: findInitialRects, consolidateRects
@@ -204,12 +224,12 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		//twoColorLocator.verboseImage = &visColorCodeFrame;
 		twoColorLocator.verboseImage = &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
-		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ApplyOnCC);
+//		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ApplyOnCC);
 		//twoColorLocator.findInitialRects(redMask, blueMask);
-		twoColorLocator.findInitialRectsFromOverlapMask(overlapMask);
-		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ApplyOnCC);
+//		twoColorLocator.findInitialRectsFromOverlapMask(overlapMask);
+//		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ApplyOnCC);
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateRectangles);
-		twoColorLocator.consolidateRects(colorCodeFrame);
+		twoColorLocator.consolidateFastColorFilterRects(fastColorFilter.candidateRects,fastColorFilter.nextFreeCandidateRectIdx,colorCodeFrame);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateRectangles);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
 
@@ -245,6 +265,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ShowImages);
 
 		int totalFrameTime = TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FrameAll);
+		//cout << totalFrameTime << " ";
 
 		// Time measurement summary and delay, + pause control
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::InterFrameDelay);
@@ -270,9 +291,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 	TimeMeasurement::instance.showresults();
 	cout << "max fps: " << TimeMeasurement::instance.getmaxfps(TimeMeasurementCodeDefs::FrameAll) << endl;
-	cout << "Press any key..." << endl;
-	c = cvWaitKey(0);
-
+	cout << "Number of processed frames: " << frameID << endl;
 	return;
 }
 

@@ -1,3 +1,4 @@
+#include <fstream>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
@@ -19,7 +20,7 @@ using namespace TwoColorCircleMarker;
 
 
 // Entry of marker identification
-void MarkerCC2::readCode(Mat &srcCC, CvRect &rect)
+void MarkerCC2::readCode(Mat &srcCC, Rect &rect)
 {
 	CV_Assert(srcCC.depth() == CV_8U);	// Assuming every pixel to have 8 bits...
 
@@ -62,10 +63,17 @@ void MarkerCC2::readCode(Mat &srcCC, CvRect &rect)
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateValidate);
 
 	// --- Verbose
-	if (verboseImage != NULL && ConfigManager::Current()->showMarkerCodeOnImage)
+	if (verboseImage != NULL && (ConfigManager::Current()->showMarkerCodeOnImageDec || ConfigManager::Current()->showMarkerCodeOnImageHex))
 	{
 		char tmpCodeString[255];
-		sprintf(tmpCodeString,"%d",MarkerID);
+		if (ConfigManager::Current()->showMarkerCodeOnImageDec)
+		{
+			sprintf(tmpCodeString,"%d",MarkerID);
+		}
+		else
+		{
+			sprintf(tmpCodeString,"%X",MarkerID);
+		}
 		string debugtxt(tmpCodeString);
 
 		if (isValid)
@@ -132,6 +140,11 @@ void MarkerCC2::scanEllipses(Mat &srcCC)
 			circle(*verboseImage,location,3,Scalar(255,255,255));
 		}
 	}
+}
+
+float MarkerCC2::bitIdx2Angle(int bitIdx)
+{
+	return (float)bitIdx * 11.25;
 }
 
 // srcCC is only used to check wether location is inside the image
@@ -337,7 +350,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 
 	// --- Convert the color code array into a bit array (only 0 and 1)
 	// --- Meanwhile find the green location (start direction)
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << "rawBits:";
 	}
@@ -367,7 +380,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 			lastGreenIdx = bitIdx;
 		}
 
-		if (ConfigManager::Current()->verboseMarkerCodeValidation )
+		if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 		{
 			if (isGreen)
 			{
@@ -396,7 +409,13 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 		greenIdx = firstGreenIdx;	// Green must be at the wrap around location...
 	}
 
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (greenIdx != -1)	// If valid, we store the orientation information
+	{
+		orientationReferenceAngle = bitIdx2Angle(greenIdx);
+		isOrientationReferenceAngleValid = true;
+	}
+
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << ", GRN@(" << firstGreenIdx << "-" << lastGreenIdx << ")->" << greenIdx << endl;
 	}
@@ -413,7 +432,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	int finalBits[8];	// Final bits of outer code
 	unsigned int code = 0;	// Numerical value of code
 	// Calculate code
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << "GrnIdx:" << greenIdx << ", code: ";
 	}
@@ -421,7 +440,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	{
 		realBitIdx[i] = (greenIdx+4*i) % 32;
 		finalBits[i] = rawbits[realBitIdx[i]];
-		if (ConfigManager::Current()->verboseMarkerCodeValidation )
+		if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 		{
 			cout << finalBits[i];
 		}
@@ -456,7 +475,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 
 
 	// Verbose codes
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << ", code=" << code << endl;
 	}
@@ -467,3 +486,10 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	isValid = markerLocator->validateMarkerID(code);
 }
 
+void MarkerCC2::exportToTextStream(ostream *stream)
+{
+	(*stream) << "MCC2 X:" << center.x << ",Y:" << center.y <<
+			",isCValid:" << isCenterValid << ",isIDValid:" << isValid <<
+			",ID:" << MarkerID <<
+			",or:" << orientationReferenceAngle << ",isOrValid:" << isOrientationReferenceAngleValid;
+}

@@ -61,7 +61,7 @@ void MarkerCC1::readCode(Mat &srcCC, CvRect &rect)
 	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateValidate);
 
 	// --- Verbose
-	if (verboseImage != NULL && ConfigManager::Current()->showMarkerCodeOnImage)
+	if (verboseImage != NULL && ConfigManager::Current()->showMarkerCodeOnImageDec)
 	{
 		char tmpCodeString[255];
 		sprintf(tmpCodeString,"%d-%d",majorMarkerID,minorMarkerID);
@@ -344,7 +344,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 
 	// --- Convert the color code array into a bit array (only 0 and 1)
 	// --- Meanwhile find the green location (start direction)
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << "rawBits:";
 	}
@@ -374,7 +374,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 			lastGreenIdx = bitIdx;
 		}
 
-		if (ConfigManager::Current()->verboseMarkerCodeValidation )
+		if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 		{
 			if (isGreen)
 			{
@@ -403,7 +403,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 		greenIdx = firstGreenIdx;	// Green must be at the wrap around location...
 	}
 
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << ", GRN@(" << firstGreenIdx << "-" << lastGreenIdx << ")->" << greenIdx << endl;
 	}
@@ -424,7 +424,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	unsigned int innerCode = 0;	// Numerical value of inner code
 	unsigned int outerCode = 0;	// Numerical value of outer code
 	// Calculate outer code
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << "GrnIdx:" << greenIdx << ", Outer code: ";
 	}
@@ -432,7 +432,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 	{
 		realBitIdxOuter[i] = 16 + ((greenIdx-16)+4*i) % 32;
 		finalOuterBits[i] = rawbits[realBitIdxOuter[i]];
-		if (ConfigManager::Current()->verboseMarkerCodeValidation )
+		if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 		{
 			cout << finalOuterBits[i];
 		}
@@ -467,7 +467,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 
 
 	// Calculate inner code
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << ", inner code: ";
 	}
@@ -480,7 +480,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 
 		realBitIdxInner[i] = ((realBitIdxOuter[2*i]-16)/2 + 2) % 16;
 		finalInnerBits[i] = rawbits[realBitIdxInner[i]];
-		if (ConfigManager::Current()->verboseMarkerCodeValidation )
+		if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 		{
 			cout << finalInnerBits[i];
 		}
@@ -508,7 +508,7 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 		}
 	}
 	// Verbose codes
-	if (ConfigManager::Current()->verboseMarkerCodeValidation )
+	if (ConfigManager::Current()->verboseTxt_MarkerCodeValidation )
 	{
 		cout << ", iCode=" << innerCode << " oCode=" << outerCode << endl;
 	}
@@ -518,5 +518,12 @@ void MarkerCC1::validateAndConsolidateMarkerCode()
 
 	// Is this a valid code?
 	isValid = markerLocator->validateMarkerID(majorMarkerID, minorMarkerID);
+}
+
+void MarkerCC1::exportToTextStream(ostream *stream)
+{
+	(*stream) << "MCC2 X:" << center.x << ",Y:" << center.y <<
+			",isCValid:" << isCenterValid << ",isIDValid:" << isValid <<
+			",ID:" << majorMarkerID << "-" << minorMarkerID;
 }
 

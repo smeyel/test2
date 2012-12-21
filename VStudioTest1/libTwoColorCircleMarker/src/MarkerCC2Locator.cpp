@@ -17,11 +17,11 @@ MarkerCC2Locator::MarkerCC2Locator()
 	ResultExporter = NULL;
 }
 
-void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRectList)
+void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<Rect> *candidateRectList)
 {
 	foundValidMarker = false;
 	// Markerek leolvasasa
-	for (std::list<CvRect>::iterator rectIt = candidateRectList->begin();
+	for (std::list<Rect>::iterator rectIt = candidateRectList->begin();
 		 rectIt != candidateRectList->end();
 		 rectIt++)
 	{
@@ -35,15 +35,16 @@ void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<CvRect> *candidateRec
 			foundValidMarker = true;
 		}
 
+		// Exports invalid markers (promising candidate rectangles) as well! (But with isCenterValid=false)
 		if ((newMarker.isCenterValid || newMarker.isValid) && ResultExporter!=NULL)
 		{
-			ResultExporter->writeResult(newMarker.MarkerID,newMarker.center.x,newMarker.center.y,newMarker.isCenterValid,newMarker.isValid);
+			ResultExporter->writeResult(&newMarker);
 		}
 	}
 }
 
 bool MarkerCC2Locator::validateMarkerID(int code)
 {
-	if (code == 76 || code == 42) return true; //  :)
+	if (code == 0x70 || code == 0x4C || code == 0x43 || code == 0x2A || code == 0x7F) return true;
 	return false;	// May check a list of valid marker codes here...
 }

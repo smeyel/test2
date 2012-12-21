@@ -1,4 +1,8 @@
+#include <opencv2/core/core.hpp>
+
 #include "TimeMeasurement.h"
+
+#define USEPRECISIONTIMING	// Use getTickCount() instead of clock()
 
 using namespace MiscTimeAndConfig;
 
@@ -12,6 +16,7 @@ void TimeMeasurement::init()
 		sumvalues[i]=0;
 		numvalues[i]=0;
 	}
+	tickFrequency = cv::getTickFrequency();
 }
 
 void TimeMeasurement::setname(int measurementid, string name)
@@ -23,36 +28,56 @@ void TimeMeasurement::setname(int measurementid, string name)
 void TimeMeasurement::start(int measurementid)
 {
 	assert(measurementid<MAX_TIMING_CODE);
+#ifdef USEPRECISIONTIMING
+	currentStartValues[measurementid] = cv::getTickCount();
+#else
 	currentStartValues[measurementid] = clock();
+#endif
 }
 
-long TimeMeasurement::finish(int measurementid)
+double TimeMeasurement::finish(int measurementid)
 {
 	assert(measurementid<MAX_TIMING_CODE);
-	long current = clock() - currentStartValues[measurementid];
+	int64 currentTime;
+#ifdef USEPRECISIONTIMING
+	currentTime = cv::getTickCount();
+#else
+	currentTime = clock();
+#endif
+
+	long current = currentTime - currentStartValues[measurementid];
 	sumvalues[measurementid] += current;
 	numvalues[measurementid]++;
-	return current;
+	// Returns in ms
+	return (double)current / tickFrequency * 1000.0;
 }
 
-float TimeMeasurement::getavgms(int measurementid)
+double TimeMeasurement::getavgms(int measurementid)
 {
 	assert(measurementid<MAX_TIMING_CODE);
 	if (numvalues[measurementid]==0)
 	{
 		return 0.0;	// Avoiding division by zero
 	}
-	float avg = (float)sumvalues[measurementid] / (float)numvalues[measurementid];
-	return avg;
+	double avgMs;
+#ifdef USEPRECISIONTIMING
+	// tick frequency is given in Hz
+	avgMs = (double)sumvalues[measurementid] / tickFrequency / (double)numvalues[measurementid] * 1000.0;
+#else
+	// clock() uses milliseconds
+	avgMs = (double)sumvalues[measurementid] / (double)numvalues[measurementid];
+#endif
+	return avgMs;
 }
 
-float TimeMeasurement::getmaxfps(int measurementid)
+double TimeMeasurement::getmaxfps(int measurementid)
 {
-	return 1000.0F/getavgms(measurementid);
+	return 1000.0/getavgms(measurementid);
 }
 
 void TimeMeasurement::showresults()
 {
+	cout << "Average execution times (using tick frequency " << tickFrequency << " Hz):" << endl;
 	for (int i=0; i<MAX_TIMING_CODE; i++)
 	{
 		float avg = getavgms(i);

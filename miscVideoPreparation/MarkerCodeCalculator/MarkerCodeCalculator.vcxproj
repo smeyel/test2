@@ -74,7 +74,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CodeValidator15bit.cpp" />
+    <ClCompile Include="CodeValidator7bit.cpp" />
     <ClCompile Include="MarkerCodeCalculator.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="CodeValidator15bit.h" />
+    <ClInclude Include="CodeValidator7bit.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

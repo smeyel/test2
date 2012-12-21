@@ -1,12 +1,14 @@
 #ifndef __DETECTIONRESULTEXPORTERBASE_H
 #define __DETECTIONRESULTEXPORTERBASE_H
 
-namespace MiscTimeAndConfig
+#include "MarkerBase.h"
+
+namespace TwoColorCircleMarker
 {
 	class DetectionResultExporterBase
 	{
 	public:
-		virtual void writeResult(int markerID, int frameX, int frameY, bool isCenterValid, bool isMarkerCodeValid) = 0;
+		virtual void writeResult(MarkerBase *marker) = 0;
 	};
 }
 
