@@ -29,11 +29,8 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename);
 
 const char* wndInput = "Video input";
 const char* wndOutput = "Processing result";
-const char* wndRed = "Red";
-const char* wndBlu = "Blu";
 const char* wndOverlap = "Overlap";
-const char* wndCode = "Sat";
-const char* wndTmp = "Tmp";
+const char* wndColorCode = "ColorCode";
 
 FastColorFilter *twoColorFilter;	// Used by mouse handler
 Mat *bgrImage;
@@ -121,8 +118,8 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	cvSetMouseCallback(wndOutput, mouse_callback);
 	if (ConfigManager::Current()->verboseColorCodedFrame)
 	{
-		namedWindow(wndCode, CV_WINDOW_AUTOSIZE);
-		cvSetMouseCallback(wndCode, mouse_callback);
+		namedWindow(wndColorCode, CV_WINDOW_AUTOSIZE);
+		cvSetMouseCallback(wndColorCode, mouse_callback);
 	}
 
 	Mat inputFrame, resizedFrame, resultFrame;
@@ -134,16 +131,12 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 
 	TimeMeasurement::instance.init();
 	TimeMeasurementCodeDefs::setnames();
-	//initHue2CodeLut();
 
 	// --- Setup color filtering
 	FastColorFilter fastColorFilter;
-	//fastColorFilter.init();
 
 	// Create images and masks
 	Mat colorCodeFrame(dsize.height, dsize.width,CV_8UC1);
-//	Mat redMask(dsize.height, dsize.width,CV_8UC1);
-//	Mat blueMask(dsize.height, dsize.width,CV_8UC1);
 	Mat overlapMask(dsize.height, dsize.width,CV_8UC1);
 	Mat visColorCodeFrame(dsize.height, dsize.width,CV_8UC3);
 
@@ -152,9 +145,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	colorCodeImage = &colorCodeFrame;
 
 	// Setup mask creation (define target Mat and observed color code)
-//	fastColorFilter.masks[0]=&redMask;
 	fastColorFilter.maskColorCode[0]=COLORCODE_RED;
-//	fastColorFilter.masks[1]=&blueMask;
 	fastColorFilter.maskColorCode[1]=COLORCODE_BLU;
 	fastColorFilter.overlapMask=&overlapMask;
 	fastColorFilter.backgroundColorCode=COLORCODE_WHT;
@@ -199,16 +190,12 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		else
 		{
 			// TODO: warning, this makes it unnecessary slow...
-			//inputFrame.copyTo(resizedFrame);
 			resizedFrame = inputFrame;
 		}
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::Resize);
 
 		// Apply color filtering. Create masks and color coded image
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
-		//fastColorFilter.DecomposeImageCreateMasksWithOverlap(resizedFrame,colorCodeFrame);
-		//fastColorFilter.DecomposeImageCreateOverlap_NoBranch(resizedFrame,colorCodeFrame);
-		//fastColorFilter.DecomposeImageCreateOverlap(resizedFrame,colorCodeFrame);
 		fastColorFilter.FindMarkerCandidates(resizedFrame,colorCodeFrame);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
 
@@ -219,15 +206,9 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		}
 
 		// --- Processing inputFrame -> resultFrame
-		// TwoColorLocator: findInitialRects, consolidateRects
-
 		//twoColorLocator.verboseImage = &visColorCodeFrame;
 		twoColorLocator.verboseImage = &resizedFrame;
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
-//		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ApplyOnCC);
-		//twoColorLocator.findInitialRects(redMask, blueMask);
-//		twoColorLocator.findInitialRectsFromOverlapMask(overlapMask);
-//		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ApplyOnCC);
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateRectangles);
 		twoColorLocator.consolidateFastColorFilterRects(fastColorFilter.candidateRects,fastColorFilter.nextFreeCandidateRectIdx,colorCodeFrame);
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateRectangles);
@@ -260,12 +241,11 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		}
 		if (ConfigManager::Current()->verboseColorCodedFrame)
 		{
-			imshow(wndCode, visColorCodeFrame);
+			imshow(wndColorCode, visColorCodeFrame);
 		}
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ShowImages);
 
 		int totalFrameTime = TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FrameAll);
-		//cout << totalFrameTime << " ";
 
 		// Time measurement summary and delay, + pause control
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::InterFrameDelay);
@@ -294,4 +274,3 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	cout << "Number of processed frames: " << frameID << endl;
 	return;
 }
-
