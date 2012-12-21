@@ -104,7 +104,7 @@ int main()
 
 #ifdef WAITKEYPRESSATEND
 	cout << "Press any key..." << endl;
-	c = cvWaitKey(0);
+	char c = cvWaitKey(0);
 #endif
 }
 
