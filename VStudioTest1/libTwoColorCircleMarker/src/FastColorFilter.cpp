@@ -184,22 +184,6 @@ void FastColorFilter::FindMarkerCandidates(cv::Mat &src, cv::Mat &dst)
 	assert(src.cols == dst.cols);
 	assert(src.rows == dst.rows);
 
-	// Assert masks array (check 0th element)
-	assert(masks[0]!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(masks[0]->type() == CV_8UC1);
-	// Assert mask size
-	assert(masks[0]->cols == dst.cols);
-	assert(masks[0]->rows == dst.rows);
-
-	// Assert masks array (check 1st element)
-	assert(masks[1]!=NULL);
-	// Assert mask image type is CV_8UC1
-	assert(masks[1]->type() == CV_8UC1);
-	// Assert mask size
-	assert(masks[1]->cols == dst.cols);
-	assert(masks[1]->rows == dst.rows);
-
 	// Assert masks array (check 1st element)
 	assert(overlapMask!=NULL);
 	// Assert mask image type is CV_8UC1
