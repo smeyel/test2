@@ -34,7 +34,6 @@ const char* wndOutput = "Processing result";
 const char* wndOverlap = "Overlap";
 const char* wndColorCode = "ColorCode";
 
-FastColorFilter *twoColorFilter;	// Used by mouse handler
 Mat *bgrImage;
 Mat *colorCodeImage;
 
@@ -134,33 +133,19 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	TimeMeasurement::instance.init();
 	TimeMeasurementCodeDefs::setnames();
 
-	// --- Setup color filtering
-	//FastColorFilter fastColorFilter;
-
-	// Create images and masks
-	Mat colorCodeFrame(dsize.height, dsize.width,CV_8UC1);
-	Mat overlapMask(dsize.height, dsize.width,CV_8UC1);
-	Mat visColorCodeFrame(dsize.height, dsize.width,CV_8UC3);
-
-	// Setup mouse click handler
-	bgrImage = &resizedFrame;
-	colorCodeImage = &colorCodeFrame;
-
 	// Init result exporter
 	ResultExporter resultExporter;
 	resultExporter.open("output.txt");
 	resultExporter.currentCamID = 0;
 
-	// --- Setup marker locator
+	// --- Setup marker tracker
 	TwoColorCircleMarker::MarkerCC2Tracker tracker;
-	// Internal frames
-	tracker.colorCodeFrame = &colorCodeFrame;
-	tracker.overlapMask = &overlapMask;
-	tracker.visColorCodeFrame = &visColorCodeFrame;
-	// Output
 	tracker.setResultExporter(&resultExporter);
-	// Init
-	tracker.init();
+	tracker.init(true,dsize.width,dsize.height);
+
+	// Setup mouse click handler
+	bgrImage = &resizedFrame;
+	colorCodeImage = tracker.colorCodeFrame;
 
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FullExecution);
 	bool pauseDueToSettings = false;	// true means some setting wants to pause the processing
@@ -195,32 +180,6 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		}
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::Resize);
 
-		//// Apply color filtering. Create masks and color coded image
-		//TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
-		//fastColorFilter.FindMarkerCandidates(resizedFrame,colorCodeFrame);
-		//TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
-
-		//// Not included into FastColorFilter execution time
-		//if (ConfigManager::Current()->verboseColorCodedFrame)
-		//{
-		//	fastColorFilter.VisualizeDecomposedImage(colorCodeFrame,visColorCodeFrame);
-		//}
-
-		//// --- Processing inputFrame -> resultFrame
-		////twoColorLocator.verboseImage = &visColorCodeFrame;
-		//twoColorLocator.verboseImage = &resizedFrame;
-		//TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
-		//TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateRectangles);
-		//twoColorLocator.consolidateFastColorFilterRects(fastColorFilter.candidateRects,fastColorFilter.nextFreeCandidateRectIdx,colorCodeFrame);
-		//TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateRectangles);
-		//TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
-
-		//// MarkerCC2Locator: locateMarkers
-		////markerCC2Locator.verboseImage =  &visColorCodeFrame;
-		//markerCC2Locator.verboseImage =  &resizedFrame;
-		//TimeMeasurement::instance.start(TimeMeasurementCodeDefs::LocateMarkers);
-		//markerCC2Locator.LocateMarkers( colorCodeFrame, &(twoColorLocator.resultRectangles) );
-		//TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::LocateMarkers);
 		float timestamp = (float)frameID;
 		tracker.processFrame(resizedFrame,0,timestamp);
 
@@ -235,7 +194,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ShowImages);
 		if (ConfigManager::Current()->verboseOverlapMask)
 		{
-			imshow(wndOverlap, overlapMask);
+			imshow(wndOverlap, *tracker.overlapMask);
 		}
 
 		if (ConfigManager::Current()->showInputImage)
@@ -244,7 +203,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		}
 		if (ConfigManager::Current()->verboseColorCodedFrame)
 		{
-			imshow(wndColorCode, visColorCodeFrame);
+			imshow(wndColorCode, *tracker.visColorCodeFrame);
 		}
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ShowImages);
 

@@ -26,6 +26,11 @@ namespace TwoColorCircleMarker
 	private:
 		bool initialized;
 
+		// Default internal frames
+		Mat *defaultColorCodeFrame;
+		Mat *defaultOverlapMask;
+		Mat *defaultVisColorCodeFrame;
+
 		// Functions called by processFrame()
 
 
@@ -45,6 +50,9 @@ namespace TwoColorCircleMarker
 
 		// Constructor
 		MarkerCC2Tracker();
+		// Destructor
+		MarkerCC2Tracker::~MarkerCC2Tracker();
+		// Setters, getters
 		void setResultExporter(DetectionResultExporterBase *exporter)
 		{
 			markerCC2Locator.ResultExporter = exporter;
@@ -55,7 +63,7 @@ namespace TwoColorCircleMarker
 		}
 
 		// Init
-		void init();
+		void init(bool useDefaultInternalFrames=false, int width=0, int height=0);
 
 		// Interface for processing a new frame
 		// Contains: color filtering, marker localization

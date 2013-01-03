@@ -20,10 +20,56 @@ using namespace TwoColorCircleMarker;
 MarkerCC2Tracker::MarkerCC2Tracker()
 {
 	initialized = false;
+	defaultColorCodeFrame = NULL;
+	defaultOverlapMask = NULL;
+	defaultVisColorCodeFrame = NULL;
 }
 
-void MarkerCC2Tracker::init()
+MarkerCC2Tracker::~MarkerCC2Tracker()
 {
+	if (defaultColorCodeFrame != NULL)
+	{
+		if (defaultColorCodeFrame == colorCodeFrame)
+		{
+			colorCodeFrame = NULL;
+		}
+		delete defaultColorCodeFrame;
+		defaultColorCodeFrame = NULL;
+	}
+	if (defaultOverlapMask != NULL)
+	{
+		if (defaultOverlapMask == overlapMask)
+		{
+			overlapMask = NULL;
+		}
+		delete defaultOverlapMask;
+		defaultOverlapMask = NULL;
+	}
+	if (defaultVisColorCodeFrame != NULL)
+	{
+		if (defaultVisColorCodeFrame == visColorCodeFrame)
+		{
+			visColorCodeFrame = NULL;
+		}
+		delete defaultVisColorCodeFrame;
+		defaultVisColorCodeFrame = NULL;
+	}
+}
+
+
+void MarkerCC2Tracker::init(bool useDefaultInternalFrames, int width, int height)
+{
+	if (useDefaultInternalFrames)
+	{
+		defaultColorCodeFrame = new Mat(height, width,CV_8UC1);
+		defaultOverlapMask = new Mat(height, width,CV_8UC1);
+		defaultVisColorCodeFrame = new Mat(height, width,CV_8UC3);
+
+		colorCodeFrame = defaultColorCodeFrame;
+		overlapMask = defaultOverlapMask;
+		visColorCodeFrame = defaultVisColorCodeFrame;
+	}
+
 	// Assert: make sure overlap mask is set!
 	CV_Assert(overlapMask != NULL);
 
@@ -43,8 +89,6 @@ void MarkerCC2Tracker::processFrame(Mat &src, int cameraID, float timestamp)
 	// Asserts: are all verbose frames set?
 	CV_Assert(initialized == true);
 	CV_Assert(colorCodeFrame != NULL);
-	CV_Assert(overlapMask != NULL);
-	CV_Assert(visColorCodeFrame != NULL);
 
 	// Apply color filtering. Create masks and color coded image
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
@@ -54,6 +98,7 @@ void MarkerCC2Tracker::processFrame(Mat &src, int cameraID, float timestamp)
 	// Not included into FastColorFilter execution time
 	if (ConfigManager::Current()->verboseColorCodedFrame)
 	{
+		CV_Assert(visColorCodeFrame != NULL);
 		fastColorFilter.VisualizeDecomposedImage(*colorCodeFrame,*visColorCodeFrame);
 	}
 
