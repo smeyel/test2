@@ -33,6 +33,7 @@ void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<Rect> *candidateRectL
 		 rectIt != candidateRectList->end();
 		 rectIt++)
 	{
+		// TODO: warning, this does not re-create the marker instance for every detection!
 		MarkerCC2 newMarker;
 		newMarker.verboseImage = this->verboseImage;	// For debug/verbose purposes
 		newMarker.markerLocator = this;	// Used to validate the read code
