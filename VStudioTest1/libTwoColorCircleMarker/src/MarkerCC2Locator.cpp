@@ -10,11 +10,19 @@
 using namespace cv;
 using namespace TwoColorCircleMarker;
 
-
 MarkerCC2Locator::MarkerCC2Locator()
 {
 	verboseImage = NULL;
 	ResultExporter = NULL;
+}
+
+MarkerCC2Locator::~MarkerCC2Locator()
+{
+}
+
+void MarkerCC2Locator::init(char *configFileName)
+{
+	MarkerCC2::init(configFileName);
 }
 
 void MarkerCC2Locator::LocateMarkers(Mat &srcCC, std::list<Rect> *candidateRectList)

@@ -7,6 +7,7 @@
 #include <opencv2/core/mat.hpp>
 
 #include "DetectionResultExporterBase.h"
+#include "TimeMeasurement.h"
 
 using namespace cv;
 
@@ -21,6 +22,10 @@ namespace TwoColorCircleMarker
 	public:
 		// Constructor
 		MarkerCC2Locator();
+		// Descructor
+		~MarkerCC2Locator();
+
+		void init(char *configFileName);
 
 		// Target image for optional verbose functions
 		Mat *verboseImage;

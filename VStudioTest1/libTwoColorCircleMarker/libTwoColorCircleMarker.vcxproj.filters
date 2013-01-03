@@ -21,12 +21,6 @@
     <ClInclude Include="include\FastColorFilter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\MarkerCC1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MarkerCC1Locator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\MarkerCC2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -37,9 +31,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\TimeMeasurementCodeDefines.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\ConfigManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\DetectionResultExporterBase.h">
@@ -56,12 +47,6 @@
     <ClCompile Include="src\FastColorFilter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\MarkerCC1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MarkerCC1Locator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\MarkerCC2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,9 +54,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\TwoColorLocator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\ConfigManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\MarkerCC2Tracker.cpp">

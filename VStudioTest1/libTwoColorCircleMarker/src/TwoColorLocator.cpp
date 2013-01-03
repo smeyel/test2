@@ -2,12 +2,10 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include "TwoColorLocator.h"
-#include "MarkerCC1.h"
 
 #include <assert.h>
 
 #include "TimeMeasurementCodeDefines.h"
-#include "ConfigManager.h"
 
 // Maximal distance we look for the border of a rectangle
 #define MAXSCANDISTANCE 100
@@ -18,9 +16,24 @@
 using namespace cv;
 using namespace TwoColorCircleMarker;
 
+// Config manager
+bool TwoColorLocator::ConfigManager::readConfiguration(CSimpleIniA *ini)
+{
+	verboseRectConsolidationCandidates = ini->GetBoolValue("TwoColorLocator","verboseRectConsolidationCandidates",false,NULL);
+	verboseRectConsolidationResults = ini->GetBoolValue("TwoColorLocator","verboseRectConsolidationResults",false,NULL);
+	verboseTxt_RectConsolidation = ini->GetBoolValue("TwoColorLocator","verboseTxt_RectConsolidation",false,NULL);
+	verboseTxt_RectConsolidationSummary = ini->GetBoolValue("TwoColorLocator","verboseTxt_RectConsolidationSummary",false,NULL);
+	return true;	// Successful
+}
+
 TwoColorLocator::TwoColorLocator()
 {
 	verboseImage = NULL;
+}
+
+void TwoColorLocator::init(char *configFileName)
+{
+	configManager.init(configFileName);
 }
 
 // Called externally after FastColorFilter has detected its candidate rectangles
@@ -42,7 +55,7 @@ void TwoColorLocator::consolidateFastColorFilterRects(Rect* candidateRects, int 
 		candidateRectList.push_front(candidateRects[i]);
 
 		// Verbose candidate rectangles
-		if (verboseImage!=NULL && ConfigManager::Current()->verboseRectConsolidationCandidates)
+		if (verboseImage!=NULL && configManager.verboseRectConsolidationCandidates)
 		{
 			rectangle(*verboseImage,candidateRects[i],Scalar(200,255,200));
 		}
@@ -84,7 +97,7 @@ void TwoColorLocator::consolidateFastColorFilterRects(Rect* candidateRects, int 
 		if (updateRectToRealSize(srcCC, newRect, verboseImage))
 		{
 			// Verbose: show new rectangle
-			if (verboseImage!=NULL && ConfigManager::Current()->verboseRectConsolidationResults)
+			if (verboseImage!=NULL && configManager.verboseRectConsolidationResults)
 			{
 				rectangle(*verboseImage,newRect,Scalar(0,255,0));
 			}
@@ -95,7 +108,7 @@ void TwoColorLocator::consolidateFastColorFilterRects(Rect* candidateRects, int 
 		}
 	}
 
-	if (ConfigManager::Current()->verboseTxt_RectConsolidationSummary)
+	if (configManager.verboseTxt_RectConsolidationSummary)
 	{
 		cout << "Rect consolidation effect: " << initialRectNum << " rect -> " << resultRectNum << endl;
 	}
@@ -118,7 +131,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 	}
 	else
 	{
-		if (ConfigManager::Current()->verboseTxt_RectConsolidation)
+		if (configManager.verboseTxt_RectConsolidation)
 		{
 			cout << "TwoColorLocator::updateRectToRealSize(): horizontal -> REJECT" << endl;
 		}
@@ -128,7 +141,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 	int topLength = findColorAlongLine(srcCC, center, Point(center.x, center.y-MAXSCANDISTANCE), COLORCODE_BLU, COLORCODE_RED, verboseImage);
 	int bottomLength = findColorAlongLine(srcCC, center, Point(center.x, center.y+MAXSCANDISTANCE), COLORCODE_BLU, COLORCODE_RED, verboseImage);
 
-	if (ConfigManager::Current()->verboseTxt_RectConsolidation)
+	if (configManager.verboseTxt_RectConsolidation)
 	{
 		cout << "Rect consolidation: x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height;
 	}
@@ -139,7 +152,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 		newRect.y = center.y-topLength;
 		newRect.width = leftLength + rightLength;
 		newRect.height = topLength + bottomLength;
-		if (ConfigManager::Current()->verboseTxt_RectConsolidation)
+		if (configManager.verboseTxt_RectConsolidation)
 		{
 			cout << " -> x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height << endl;
 		}
@@ -147,7 +160,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 	}
 	else
 	{
-		if (ConfigManager::Current()->verboseTxt_RectConsolidation)
+		if (configManager.verboseTxt_RectConsolidation)
 		{
 			cout << " -> REJECT" << endl;
 		}

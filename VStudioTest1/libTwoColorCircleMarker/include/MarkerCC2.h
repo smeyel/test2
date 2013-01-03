@@ -7,6 +7,9 @@
 #include "MarkerBase.h"
 #include "MarkerCC2Locator.h"
 
+#include "TimeMeasurement.h"
+#include "ConfigManagerBase.h"
+
 using namespace cv;
 
 namespace TwoColorCircleMarker
@@ -15,7 +18,32 @@ namespace TwoColorCircleMarker
 
 	class MarkerCC2 : public MarkerBase
 	{
+		// Internal configuration class
+		class ConfigManager : public MiscTimeAndConfig::ConfigManagerBase
+		{
+			// This method is called by init of the base class to read the configuration values.
+			virtual bool readConfiguration(CSimpleIniA *ini);
+
+		public:
+			bool showMarkerCodeOnImageDec;
+			bool showMarkerCodeOnImageHex;
+
+			bool verboseEllipseFitting;
+			bool verboseEllipseScanning;
+
+			bool verboseLineScanning;
+			bool verboseTxt_LineRejectionReason;
+
+			bool verboseMarkerCodeValidation;
+			bool verboseTxt_MarkerCodeValidation;
+		};
+
+		static ConfigManager configManager;
+
 	public:
+		// static init
+		static void init(char *configFileName);
+
 		// ID and its validity (result of readCode())
 		int MarkerID;
 		bool isValid;
