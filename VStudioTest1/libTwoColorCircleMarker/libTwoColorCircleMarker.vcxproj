@@ -73,27 +73,24 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="doc\BasicStructure1.cd" />
     <None Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ConfigManager.h" />
     <ClInclude Include="include\DetectionResultExporterBase.h" />
     <ClInclude Include="include\FastColorFilter.h" />
     <ClInclude Include="include\MarkerBase.h" />
-    <ClInclude Include="include\MarkerCC1.h" />
-    <ClInclude Include="include\MarkerCC1Locator.h" />
     <ClInclude Include="include\MarkerCC2.h" />
     <ClInclude Include="include\MarkerCC2Locator.h" />
+    <ClInclude Include="include\MarkerCC2Tracker.h" />
     <ClInclude Include="include\TimeMeasurementCodeDefines.h" />
     <ClInclude Include="include\TwoColorLocator.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\ConfigManager.cpp" />
     <ClCompile Include="src\FastColorFilter.cpp" />
-    <ClCompile Include="src\MarkerCC1.cpp" />
-    <ClCompile Include="src\MarkerCC1Locator.cpp" />
     <ClCompile Include="src\MarkerCC2.cpp" />
     <ClCompile Include="src\MarkerCC2Locator.cpp" />
+    <ClCompile Include="src\MarkerCC2Tracker.cpp" />
     <ClCompile Include="src\TwoColorLocator.cpp" />
   </ItemGroup>
   <ItemGroup>

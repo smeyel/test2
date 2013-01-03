@@ -16,15 +16,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
+    <None Include="doc\BasicStructure1.cd" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\FastColorFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MarkerCC1.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\MarkerCC1Locator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\MarkerCC2.h">
@@ -39,24 +34,18 @@
     <ClInclude Include="include\TimeMeasurementCodeDefines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\ConfigManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\DetectionResultExporterBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\MarkerBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\MarkerCC2Tracker.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\FastColorFilter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MarkerCC1.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\MarkerCC1Locator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\MarkerCC2.cpp">
@@ -68,7 +57,7 @@
     <ClCompile Include="src\TwoColorLocator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ConfigManager.cpp">
+    <ClCompile Include="src\MarkerCC2Tracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,8 +6,6 @@
 
 using namespace MiscTimeAndConfig;
 
-TimeMeasurement TimeMeasurement::instance;
-
 void TimeMeasurement::init()
 {
 	for(int i=0; i<MAX_TIMING_CODE; i++)
@@ -21,8 +19,14 @@ void TimeMeasurement::init()
 
 void TimeMeasurement::setname(int measurementid, string name)
 {
+	assert(measurementid>=0);
 	assert(measurementid<MAX_TIMING_CODE);
 	names[measurementid]=name;
+}
+
+void TimeMeasurement::setMeasurementName(string name)
+{
+	measurementName = name;
 }
 
 void TimeMeasurement::start(int measurementid)
@@ -77,13 +81,19 @@ double TimeMeasurement::getmaxfps(int measurementid)
 
 void TimeMeasurement::showresults()
 {
-	cout << "Average execution times (using tick frequency " << tickFrequency << " Hz):" << endl;
+	showresults(&cout);
+}
+
+void TimeMeasurement::showresults(std::ostream *stream)
+{
+	*stream << "Time measurements for " << measurementName << ":" << endl;
+	*stream << "(Average execution times (using tick frequency " << tickFrequency << " Hz)" << endl;
 	for (int i=0; i<MAX_TIMING_CODE; i++)
 	{
 		float avg = getavgms(i);
 		if (avg != 0.0)	// not the default value (in this case, can be checked with ==)
 		{
-			cout << "Avg time for " << names[i] << " is " << avg << " ms" << endl;
+			*stream << names[i] << ": " << avg << " ms" << endl;
 		}
 	}
 
