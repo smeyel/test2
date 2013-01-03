@@ -84,6 +84,7 @@
     <ClInclude Include="include\MarkerCC1Locator.h" />
     <ClInclude Include="include\MarkerCC2.h" />
     <ClInclude Include="include\MarkerCC2Locator.h" />
+    <ClInclude Include="include\MarkerCC2Tracker.h" />
     <ClInclude Include="include\TimeMeasurementCodeDefines.h" />
     <ClInclude Include="include\TwoColorLocator.h" />
   </ItemGroup>

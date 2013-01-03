@@ -5,9 +5,11 @@
 #include <iostream>
 #include <fstream>
 
-#include "TwoColorLocator.h"
-#include "MarkerCC2Locator.h"
-#include "MarkerCC2.h"
+//#include "TwoColorLocator.h"
+//#include "MarkerCC2Locator.h"
+//#include "MarkerCC2.h"
+
+#include "MarkerCC2Tracker.h"
 
 #include "TimeMeasurementCodeDefines.h"
 #include "ConfigManager.h"
@@ -133,7 +135,7 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	TimeMeasurementCodeDefs::setnames();
 
 	// --- Setup color filtering
-	FastColorFilter fastColorFilter;
+	//FastColorFilter fastColorFilter;
 
 	// Create images and masks
 	Mat colorCodeFrame(dsize.height, dsize.width,CV_8UC1);
@@ -144,22 +146,21 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 	bgrImage = &resizedFrame;
 	colorCodeImage = &colorCodeFrame;
 
-	// Setup mask creation (define target Mat and observed color code)
-	fastColorFilter.maskColorCode[0]=COLORCODE_RED;
-	fastColorFilter.maskColorCode[1]=COLORCODE_BLU;
-	fastColorFilter.overlapMask=&overlapMask;
-	fastColorFilter.backgroundColorCode=COLORCODE_WHT;
-
 	// Init result exporter
 	ResultExporter resultExporter;
 	resultExporter.open("output.txt");
 	resultExporter.currentCamID = 0;
 
 	// --- Setup marker locator
-	TwoColorLocator twoColorLocator;
-
-	MarkerCC2Locator markerCC2Locator;
-	markerCC2Locator.ResultExporter = &resultExporter;
+	TwoColorCircleMarker::MarkerCC2Tracker tracker;
+	// Internal frames
+	tracker.colorCodeFrame = &colorCodeFrame;
+	tracker.overlapMask = &overlapMask;
+	tracker.visColorCodeFrame = &visColorCodeFrame;
+	// Output
+	tracker.setResultExporter(&resultExporter);
+	// Init
+	tracker.init();
 
 	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FullExecution);
 	bool pauseDueToSettings = false;	// true means some setting wants to pause the processing
@@ -194,34 +195,36 @@ void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldog
 		}
 		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::Resize);
 
-		// Apply color filtering. Create masks and color coded image
-		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
-		fastColorFilter.FindMarkerCandidates(resizedFrame,colorCodeFrame);
-		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
+		//// Apply color filtering. Create masks and color coded image
+		//TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
+		//fastColorFilter.FindMarkerCandidates(resizedFrame,colorCodeFrame);
+		//TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
 
-		// Not included into FastColorFilter execution time
-		if (ConfigManager::Current()->verboseColorCodedFrame)
-		{
-			fastColorFilter.VisualizeDecomposedImage(colorCodeFrame,visColorCodeFrame);
-		}
+		//// Not included into FastColorFilter execution time
+		//if (ConfigManager::Current()->verboseColorCodedFrame)
+		//{
+		//	fastColorFilter.VisualizeDecomposedImage(colorCodeFrame,visColorCodeFrame);
+		//}
 
-		// --- Processing inputFrame -> resultFrame
-		//twoColorLocator.verboseImage = &visColorCodeFrame;
-		twoColorLocator.verboseImage = &resizedFrame;
-		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
-		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateRectangles);
-		twoColorLocator.consolidateFastColorFilterRects(fastColorFilter.candidateRects,fastColorFilter.nextFreeCandidateRectIdx,colorCodeFrame);
-		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateRectangles);
-		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
+		//// --- Processing inputFrame -> resultFrame
+		////twoColorLocator.verboseImage = &visColorCodeFrame;
+		//twoColorLocator.verboseImage = &resizedFrame;
+		//TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
+		//TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateRectangles);
+		//twoColorLocator.consolidateFastColorFilterRects(fastColorFilter.candidateRects,fastColorFilter.nextFreeCandidateRectIdx,colorCodeFrame);
+		//TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateRectangles);
+		//TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
 
-		// MarkerCC2Locator: locateMarkers
-		//markerCC2Locator.verboseImage =  &visColorCodeFrame;
-		markerCC2Locator.verboseImage =  &resizedFrame;
-		TimeMeasurement::instance.start(TimeMeasurementCodeDefs::LocateMarkers);
-		markerCC2Locator.LocateMarkers( colorCodeFrame, &(twoColorLocator.resultRectangles) );
-		TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::LocateMarkers);
+		//// MarkerCC2Locator: locateMarkers
+		////markerCC2Locator.verboseImage =  &visColorCodeFrame;
+		//markerCC2Locator.verboseImage =  &resizedFrame;
+		//TimeMeasurement::instance.start(TimeMeasurementCodeDefs::LocateMarkers);
+		//markerCC2Locator.LocateMarkers( colorCodeFrame, &(twoColorLocator.resultRectangles) );
+		//TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::LocateMarkers);
+		float timestamp = (float)frameID;
+		tracker.processFrame(resizedFrame,0,timestamp);
 
-		if (!markerCC2Locator.foundValidMarker && ConfigManager::Current()->pauseIfNoValidMarkers)
+		if (!tracker.getFoundValidMarker() && ConfigManager::Current()->pauseIfNoValidMarkers)
 		{
 			// No valid markers found, settings request processing pause (for inspection).
 			cout << "PAUSE: no valid markers found on this frame!" << endl;
