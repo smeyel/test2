@@ -5,8 +5,6 @@
 
 using namespace MiscTimeAndConfig;
 
-ConfigManagerBase *ConfigManagerBase::instance;
-
 bool ConfigManagerBase::init(char *filename)
 {
     // load from a data file

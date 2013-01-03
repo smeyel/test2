@@ -8,10 +8,14 @@
 #include "TwoColorLocator.h"
 #include "MarkerCC2Locator.h"
 
+#include "TimeMeasurement.h"
+
 #include "DetectionResultExporterBase.h"
 
+#include "ConfigManagerBase.h"
 
 using namespace cv;
+using namespace MiscTimeAndConfig;
 
 namespace TwoColorCircleMarker
 {
@@ -23,6 +27,17 @@ namespace TwoColorCircleMarker
 	// - handling multiple video sources
 	class MarkerCC2Tracker
 	{
+		// Internal configuration class
+		class ConfigManager : public MiscTimeAndConfig::ConfigManagerBase
+		{
+			// This method is called by init of the base class to read the configuration values.
+			virtual bool readConfiguration(CSimpleIniA *ini);
+		public:
+			// Show verbose frames
+			bool visualizeColorCodedFrame;
+		};
+		ConfigManager configManager;
+
 	private:
 		bool initialized;
 
@@ -30,12 +45,9 @@ namespace TwoColorCircleMarker
 		Mat *defaultColorCodeFrame;
 		Mat *defaultOverlapMask;
 		Mat *defaultVisColorCodeFrame;
-
-		// Functions called by processFrame()
-
-
-
 	public:
+		TimeMeasurement *timeMeasurement;
+
 		// Pointers to frames for verbose functions
 		Mat *colorCodeFrame;
 		Mat *overlapMask;
@@ -45,8 +57,6 @@ namespace TwoColorCircleMarker
 		FastColorFilter fastColorFilter;
 		TwoColorLocator twoColorLocator;
 		MarkerCC2Locator markerCC2Locator;
-
-
 
 		// Constructor
 		MarkerCC2Tracker();
@@ -63,7 +73,7 @@ namespace TwoColorCircleMarker
 		}
 
 		// Init
-		void init(bool useDefaultInternalFrames=false, int width=0, int height=0);
+		void init(char *configfilename, bool useDefaultInternalFrames=false, int width=0, int height=0);
 
 		// Interface for processing a new frame
 		// Contains: color filtering, marker localization

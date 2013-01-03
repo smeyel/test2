@@ -8,7 +8,6 @@
 //#include "MarkerCC2Tracker.h"
 //
 #include "TimeMeasurementCodeDefines.h"
-#include "ConfigManager.h"
 #include "FastColorFilter.h"
 //
 //#include "DetectionResultExporterBase.h"
@@ -17,12 +16,23 @@
 using namespace cv;
 using namespace TwoColorCircleMarker;
 
+// Config manager
+bool MarkerCC2Tracker::ConfigManager::readConfiguration(CSimpleIniA *ini)
+{
+	visualizeColorCodedFrame = ini->GetBoolValue("MarkerCC2Tracker","visualizeColorCodedFrame",false,NULL);
+	return true;	// Successful
+}
+
 MarkerCC2Tracker::MarkerCC2Tracker()
 {
 	initialized = false;
 	defaultColorCodeFrame = NULL;
 	defaultOverlapMask = NULL;
 	defaultVisColorCodeFrame = NULL;
+	// Init time measurement
+	timeMeasurement = new TimeMeasurement();
+	TimeMeasurementCodeDefs::setnames(this->timeMeasurement);
+	timeMeasurement->init();
 }
 
 MarkerCC2Tracker::~MarkerCC2Tracker()
@@ -54,10 +64,11 @@ MarkerCC2Tracker::~MarkerCC2Tracker()
 		delete defaultVisColorCodeFrame;
 		defaultVisColorCodeFrame = NULL;
 	}
+	delete timeMeasurement;
 }
 
 
-void MarkerCC2Tracker::init(bool useDefaultInternalFrames, int width, int height)
+void MarkerCC2Tracker::init(char *configfilename, bool useDefaultInternalFrames, int width, int height)
 {
 	if (useDefaultInternalFrames)
 	{
@@ -80,6 +91,11 @@ void MarkerCC2Tracker::init(bool useDefaultInternalFrames, int width, int height
 	fastColorFilter.overlapMask=overlapMask;
 	fastColorFilter.backgroundColorCode=COLORCODE_WHT;
 
+	// Init config manager
+	configManager.init(configfilename);
+	twoColorLocator.init(configfilename);
+	markerCC2Locator.init(configfilename);
+
 	initialized = true;
 }
 
@@ -90,31 +106,35 @@ void MarkerCC2Tracker::processFrame(Mat &src, int cameraID, float timestamp)
 	CV_Assert(initialized == true);
 	CV_Assert(colorCodeFrame != NULL);
 
+	timeMeasurement->start(TimeMeasurementCodeDefs::ProcessAll);
+
 	// Apply color filtering. Create masks and color coded image
-	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::FastColorFilter);
+	timeMeasurement->start(TimeMeasurementCodeDefs::FastColorFilter);
 	fastColorFilter.FindMarkerCandidates(src,*colorCodeFrame);
-	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::FastColorFilter);
+	timeMeasurement->finish(TimeMeasurementCodeDefs::FastColorFilter);
 
 	// Not included into FastColorFilter execution time
-	if (ConfigManager::Current()->verboseColorCodedFrame)
+	if (configManager.visualizeColorCodedFrame)
 	{
 		CV_Assert(visColorCodeFrame != NULL);
+		timeMeasurement->start(TimeMeasurementCodeDefs::VisualizeDecomposedImage);
 		fastColorFilter.VisualizeDecomposedImage(*colorCodeFrame,*visColorCodeFrame);
+		timeMeasurement->finish(TimeMeasurementCodeDefs::VisualizeDecomposedImage);
 	}
 
 	// --- Processing inputFrame -> resultFrame
 	//twoColorLocator.verboseImage = &visColorCodeFrame;
 	twoColorLocator.verboseImage = &src;
-	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::TwoColorLocator);
-	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::ConsolidateRectangles);
+	timeMeasurement->start(TimeMeasurementCodeDefs::TwoColorLocator);
 	twoColorLocator.consolidateFastColorFilterRects(fastColorFilter.candidateRects,fastColorFilter.nextFreeCandidateRectIdx,*colorCodeFrame);
-	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::ConsolidateRectangles);
-	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::TwoColorLocator);
+	timeMeasurement->finish(TimeMeasurementCodeDefs::TwoColorLocator);
 
 	// MarkerCC2Locator: locateMarkers
 	//markerCC2Locator.verboseImage =  &visColorCodeFrame;
 	markerCC2Locator.verboseImage =  &src;
-	TimeMeasurement::instance.start(TimeMeasurementCodeDefs::LocateMarkers);
+	timeMeasurement->start(TimeMeasurementCodeDefs::LocateMarkers);
 	markerCC2Locator.LocateMarkers( *colorCodeFrame, &(twoColorLocator.resultRectangles) );
-	TimeMeasurement::instance.finish(TimeMeasurementCodeDefs::LocateMarkers);
+	timeMeasurement->finish(TimeMeasurementCodeDefs::LocateMarkers);
+
+	timeMeasurement->finish(TimeMeasurementCodeDefs::ProcessAll);
 }

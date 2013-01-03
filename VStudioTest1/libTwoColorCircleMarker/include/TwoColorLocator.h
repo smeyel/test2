@@ -5,6 +5,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/mat.hpp>
 #include "FastColorFilter.h"
+#include "ConfigManagerBase.h"
 
 using namespace cv;
 
@@ -16,9 +17,28 @@ namespace TwoColorCircleMarker
 	// the candidate is omitted. Otherwise, the rectangle size is updated based on the scans in the 4 directions.
 	class TwoColorLocator
 	{
+		// Internal configuration class
+		class ConfigManager : public MiscTimeAndConfig::ConfigManagerBase
+		{
+			// This method is called by init of the base class to read the configuration values.
+			virtual bool readConfiguration(CSimpleIniA *ini);
+
+		public:
+			// Verbose marker localization
+			bool verboseRectConsolidationCandidates;
+			bool verboseRectConsolidationResults;
+			bool verboseTxt_RectConsolidation;
+			bool verboseTxt_RectConsolidationSummary;
+		};
+
+		ConfigManager configManager;
+
 	public:
 		// Constructors
 		TwoColorLocator();
+
+		// Init
+		void init(char *configFileName);
 
 		// Entry point
 		void consolidateFastColorFilterRects(Rect* candidateRects, int candidateRectNum, Mat &srcCC);
