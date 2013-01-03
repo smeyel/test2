@@ -18,8 +18,9 @@ using namespace cv;
 
 namespace TwoColorCircleMarker
 {
-	// Represents a detection of marker candidate. Used to keep track of the blobs to
-	//	finally get the location and size of the blob.
+	/** Represents a detection of marker candidate. Used to keep track of the blobs to
+		finally get the location and size of the blob.
+	*/
 	struct DetectionRect
 	{
 		int rowMin;	// First row of detection, set at first encounter
@@ -29,7 +30,15 @@ namespace TwoColorCircleMarker
 		bool isDetectedInCurrentRow;	// Was there a detection in the current row?
 	};
 
-	// Warning: do not re-create for every frame! Try to re-use!
+	/** Searches for locations in an image, where there are two given colors beside each other,
+			and around them, there is the background color. Input is a BGR image, the output is
+			a 0-255 binary mask and a list of marker candidate location rectangles.
+
+		To use,
+		- set maskColorCode[], backgroundColorCode and overlapMask
+		- call FindMarkerCandidates()
+		- access results in candidateRects[] using nextFreeCandidateRectIdx.
+	*/
 	class FastColorFilter
 	{
 		uchar LutR[256];
@@ -75,25 +84,54 @@ namespace TwoColorCircleMarker
 			init();
 		}
 
-		// --- Mask colors, needs to be set according to marker colors.
-		uchar maskColorCode[2];	// Colorcode for the 2 masks they indicate.
-		uchar backgroundColorCode;	// Colorcode for the color outside the marker circles
+		/**	The two color codes searched for beside each other by the color filter. The second has to appear
+				right after the first one to generate a marker location candidate.
+			Set these before using the filter.
+		*/
+		uchar maskColorCode[2];
 
-		// --- Results
-		// Overlap mask
+		/**	The color code of the background. Before the color defined by maskColorCode[0], this color has to
+				be present in the image, as that color is supposed to be found around the circles of the marker.
+			Set this before using the filter.
+		*/
+		uchar backgroundColorCode;
+
+		/** Overlap mask: the image containing the locations of color co-occurrance (value 255).
+			This is the result of the color search, and it is used by 
+			Set this to point to a CV_8UC1 image with the same size as the input images before using the filter.
+		*/
 		Mat *overlapMask;
-		// List of marker candidate rectangles
+
+		/** The result of the filter. It contains the marker location candidate rectangles.
+			nextFreeCandidateRectIdx is the index of the first unused array element.
+		*/
 		Rect candidateRects[MAXCANDIDATERECTNUM];
+		/** The index of the first unused array element of candidateRects.
+		*/
 		int nextFreeCandidateRectIdx;
 
 		// --- Image decomposition functions ("entry points")
-		// Color recognition and marker candidate localization
+		/** This method starts the filtering of a frame. It identifies the colors and
+				locates the marker candidate areas.
+			Call this to use the filter. The result is placed into candidateRects.
+			@param src	Input BGR image.
+			@param dst	Output image with color codes.
+		*/
 		void FindMarkerCandidates(cv::Mat &src, cv::Mat &dst);
-		// Color recognition only (unlikely to be used)
+
+		/** This method only recognizes the colors in the image, but does not locate marker candidates.
+			Only for special applications.
+			@param src	Input BGR image.
+			@param dst	Output image with color codes.
+		*/
 		void DecomposeImage(Mat &src, Mat &dst);
 
 		// --- Helpers
-		// Code image visualization: amplification of colors in BGR space
+		/** This method may be used to visualize the decomposed image. It assigns user interpretable colors
+				to the recognized color codes.
+			@param src	Input image containing the color codes.
+			@param dst	Output BGR image.
+		*/
 		void VisualizeDecomposedImage(Mat &src, Mat &dst);
 	};
 }

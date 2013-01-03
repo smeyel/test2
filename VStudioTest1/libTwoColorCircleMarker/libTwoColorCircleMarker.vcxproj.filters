@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
+    <None Include="doc\BasicStructure1.cd" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\FastColorFilter.h">
