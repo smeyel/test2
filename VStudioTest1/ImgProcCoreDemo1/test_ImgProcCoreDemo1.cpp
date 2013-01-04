@@ -104,8 +104,8 @@ public:
 };
 
 MyConfigManager configManager;
-char *configfilename = "../testini.ini";
-//char configfilename[] = "../speedtest.ini";
+//char *configfilename = "../testini.ini";
+char configfilename[] = "../speedtest.ini";
 
 int main()
 {
