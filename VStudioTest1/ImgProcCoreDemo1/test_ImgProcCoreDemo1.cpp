@@ -104,8 +104,8 @@ public:
 };
 
 MyConfigManager configManager;
-//char *configfilename = "../testini.ini";
-char configfilename[] = "../speedtest.ini";
+char *configfilename = "../testini.ini";
+//char configfilename[] = "../speedtest.ini";
 
 int main()
 {
@@ -132,6 +132,7 @@ int main()
 void do_test6_MarkerCC_FastTwoColorFilter(const string filename) // video feldogozas - marker kereses szinekkel
 {
 	VideoCapture capture(filename);
+	//VideoCapture capture(0);
 	if (!capture.isOpened())
 	{
 		cout << "Cannot open input file: " << filename << endl;
