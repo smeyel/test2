@@ -46,7 +46,7 @@ public:
 
 	void show(char *msg)
 	{
-		cout << msg << ": Ray2d(A="<<A.x<<"/"<<A.y<<"B="<<B.x<<"/"<<B.y<<")"<<endl;
+		cout << msg << ": Ray2d(A="<<A.x<<" "<<A.y<<", B="<<B.x<<" "<<B.y<<")"<<endl;
 	}
 };
 
@@ -119,9 +119,9 @@ public:
 
 	void setDistortionCoeffs(Mat distortCoeffMtx)
 	{
-		CV_Assert(distortCoeffMtx.rows==8);
-		CV_Assert(distortCoeffMtx.cols==1);
-		CV_Assert(distortCoeffMtx.type() == CV_64F);
+		OPENCV_ASSERT(distortCoeffMtx.rows==8,"Camera.setDistortionCoeffs","Camera distortion coefficient matrix does not have 8 rows.");
+		OPENCV_ASSERT(distortCoeffMtx.cols==1,"Camera.setDistortionCoeffs","Camera distortion coefficient matrix does not have 1 column.");
+		OPENCV_ASSERT(distortCoeffMtx.type() == CV_64F,"Camera.setDistortionCoeffs","Camera distortion coefficient matrix does not have type CV_64F.");
 	
 		distortionCoeffs = distortCoeffMtx;
 	}
@@ -153,6 +153,8 @@ public:
 		double y = pCam.val[1] / pCam.val[3];
 		double z = pCam.val[2] / pCam.val[3];
 
+		OPENCV_ASSERT(z != 0,"Camera.pointCam2Img","z==0, unable to perform perspectivic projection");
+
 		// Camera transformation
 		Point2f pImg;
 		pImg.x = fx * ( x / z ) + cx;
@@ -178,7 +180,7 @@ public:
 	/** Ray: cam -> image */
 	Ray2D rayCam2Img(Ray rCam)
 	{
-		CV_Assert(rCam.cameraID == cameraID);
+		OPENCV_ASSERT(rCam.originalCameraID != cameraID,"Camera.rayCam2Img","Reprojection of ray into original camera is not supported. Use rayOrigCam2Img() instead!");
 
 		Ray2D rImg;
 		rImg.cameraID = cameraID;
@@ -192,7 +194,7 @@ public:
 		Warning: works only for rays created by the same, stationary camera! */
 	Point2f rayOrigCam2Img(Ray rOrigCam)
 	{
-		CV_Assert(rOrigCam.originalCameraID == cameraID);
+		OPENCV_ASSERT(rOrigCam.originalCameraID == cameraID,"Camera.rayOrigCam2Img","This is not the original camera. Use rayCam2Img() instead!");
 		// TODO: should be able to throw error in release mode as well!
 		Point2f pImg;
 		pImg = rOrigCam.originalImageLocation;
@@ -202,7 +204,7 @@ public:
 	/** Ray: cam -> world */
 	Ray rayCam2World(Ray rCam)
 	{
-		CV_Assert(rCam.cameraID == cameraID);
+		OPENCV_ASSERT(rCam.cameraID == cameraID,"Camera.rayCam2World","Ray is given in some other camera's coordinate system. Cannot transform...");
 
 		// Create ray
 		Ray rWorld = rCam;
@@ -255,14 +257,14 @@ void main()
 {
 	// Mat M = (Mat_<double>(3,3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
 
-/*	loadCalibrationData("test1.xml");
+	loadCalibrationData("test1.xml");
 	for (int r=0; r<distCoeffs.rows; r++)
 	{
 		for (int c=0; c<distCoeffs.cols; c++)
 		{
 			cout << "r"<<r<<"c"<<c<<":"<<distCoeffs.at<double>(r,c)<<endl;
 		}
-	} */
+	}
 
 	// Create a camera in the center of the world coordinate system,
 	//	looking in the direction of the Z axis
@@ -321,14 +323,20 @@ void main()
 	Matx41f p1W = Matx41f(20,-10,200,1);	// CamW sees it 200 pixel forward, 10 pixel left and 20 pixels up
 	show("pZW (should be 20 -10 200 1)",p1W);
 	Point2f p1I = camW.pointCam2Img(p1W);
-	cout << "p1I: " << p1I.x << " " << p1I.y << endl;	// Should be left and twice more up...
+	cout << "p1I (*): " << p1I.x << " " << p1I.y << endl;	// Should be left and twice more up...
 
 	// Testing Point Img -> Ray
 	r1W = camW.pointImg2Cam(p1I);
 	r1W.show("r1W (should be from origo towards 20 -10 200");
 
-
-
+	// Testing Ray Cam -> Img
+	Point2f r1I_orig = camW.rayOrigCam2Img(r1W);
+	cout << "r1I_orig (should be the same as the one marked with *) :" << r1I_orig.x << " " << r1I_orig.y << endl;
+	r1T = camT.rayWorld2Cam(r1W);
+	r1T.show("r1T");
+	Ray2D r1I = camT.rayCam2Img(r1T);
+	r1I = camT.rayCam2Img(r1T);
+	r1I.show("r1W: ");
 
 	cout << endl;
 }
