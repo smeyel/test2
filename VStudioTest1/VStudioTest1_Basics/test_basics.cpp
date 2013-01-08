@@ -21,8 +21,8 @@ int main()
 
 void do_test1()
 {
-	Mat alapkep = imread("d:\\SMEyeL\\inputmedia\\alapkep.jpg");
-	Mat minta = imread("d:\\SMEyeL\\inputmedia\\minta.png");
+	Mat alapkep = imread("../../../inputmedia/alapkep.jpg");
+	Mat minta = imread("../../../inputmedia/minta.png");
 
 	if ((alapkep.data == NULL) || (minta.data == NULL))
 	{

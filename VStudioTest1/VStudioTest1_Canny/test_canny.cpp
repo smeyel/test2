@@ -12,7 +12,7 @@ void do_test2(const string filename);
 
 int main()
 {
-	do_test2("d:\\SMEyeL\\inputmedia\\gyengeMarkerVideo.MP4");
+	do_test2("../../../inputmedia/gyengeMarkerVideo.MP4");
 }
 
 void do_test2(const string filename) // video feldogozas

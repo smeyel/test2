@@ -119,7 +119,7 @@ int main()
 	for(int i=0; i<n; i++)
 	{
 		cout << "Iteration: " << i << endl;
-		do_test6_MarkerCC_FastTwoColorFilter("d:\\SMEyeL\\inputmedia\\MarkerCC2\\MarkerCC2_test2.mp4");
+		do_test6_MarkerCC_FastTwoColorFilter("../../../inputmedia/MarkerCC2/MarkerCC2_test2.mp4");
 	}
 
 	if (configManager.waitKeyPressAtEnd)

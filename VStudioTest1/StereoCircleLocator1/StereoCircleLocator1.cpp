@@ -18,7 +18,7 @@ int main()
 {
 	// The HoughCircles param2 parameter (accumulator threshold) is set for these videos, as
 	// the small circles need value 20 to be detected.
-	doit("d:\\SMEyeL\\inputmedia\\MultiViewVideo1\\syncCapture2_CAM1.avi", "d:\\SMEyeL\\inputmedia\\MultiViewVideo1\\syncCapture2_CAM2.avi");
+	doit("../../../inputmedia/MultiViewVideo1/syncCapture2_CAM1.avi", "../../../inputmedia/MultiViewVideo1/syncCapture2_CAM2.avi");
 }
 
 void findAndShowCircleOnFrame(Mat &frame)
