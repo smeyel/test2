@@ -17,6 +17,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test2D3D", "Test2D3D\Test2D3D.vcxproj", "{2754DFC6-BC92-432F-A8BD-6337FCD34AF1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libVideoInput", "libVideoInput\libVideoInput.vcxproj", "{E6C7A817-28FF-428F-ABFA-2C94AFAAFB7C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestLibVideoInput", "TestLibVideoInput\TestLibVideoInput.vcxproj", "{6F56DB59-FF05-4D01-AFCF-BD3F255ED39A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -51,6 +55,14 @@ Global
 		{2754DFC6-BC92-432F-A8BD-6337FCD34AF1}.Debug|Win32.Build.0 = Debug|Win32
 		{2754DFC6-BC92-432F-A8BD-6337FCD34AF1}.Release|Win32.ActiveCfg = Release|Win32
 		{2754DFC6-BC92-432F-A8BD-6337FCD34AF1}.Release|Win32.Build.0 = Release|Win32
+		{E6C7A817-28FF-428F-ABFA-2C94AFAAFB7C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{E6C7A817-28FF-428F-ABFA-2C94AFAAFB7C}.Debug|Win32.Build.0 = Debug|Win32
+		{E6C7A817-28FF-428F-ABFA-2C94AFAAFB7C}.Release|Win32.ActiveCfg = Release|Win32
+		{E6C7A817-28FF-428F-ABFA-2C94AFAAFB7C}.Release|Win32.Build.0 = Release|Win32
+		{6F56DB59-FF05-4D01-AFCF-BD3F255ED39A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6F56DB59-FF05-4D01-AFCF-BD3F255ED39A}.Debug|Win32.Build.0 = Debug|Win32
+		{6F56DB59-FF05-4D01-AFCF-BD3F255ED39A}.Release|Win32.ActiveCfg = Release|Win32
+		{6F56DB59-FF05-4D01-AFCF-BD3F255ED39A}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
