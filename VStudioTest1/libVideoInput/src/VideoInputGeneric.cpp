@@ -1,0 +1,44 @@
+#include "VideoInputGeneric.h"
+
+#include <opencv2/highgui/highgui.hpp>
+#include <iostream>
+
+using namespace cv;
+using namespace std;
+
+void VideoInputGeneric::init(int camID)
+{
+	capture = new VideoCapture(camID);
+	if (!capture->isOpened())
+	{
+		cout << "Cannot open input camera, ID= " << camID << endl;
+	}
+}
+
+void VideoInputGeneric::init(char *filename)
+{
+	VideoCapture capture(filename);
+	if (!capture.isOpened())
+	{
+		cout << "Cannot open input file: " << filename << endl;
+	}
+}
+
+bool VideoInputGeneric::captureFrame(Mat &frame)
+{
+	*capture >> frame;
+	if (frame.empty())
+	{
+		return false;
+	}
+	return true;
+}
+
+void VideoInputGeneric::release()
+{
+	if (capture != NULL)
+	{
+		delete capture;
+		capture = NULL;
+	}
+}
