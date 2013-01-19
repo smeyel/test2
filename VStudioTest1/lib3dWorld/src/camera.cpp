@@ -164,10 +164,10 @@ bool Camera::loadCalibrationData(char *filename)
 
 bool Camera::calculateExtrinsicParams(vector<Point3f> objectPoints, vector<Point2f> imagePoints)
 {
-	Matx31f rvec, tvec;
-	Matx33f rotMtx;
+	Mat rvec, tvec;
+	Mat rotMtx;
 	bool solverResult = solvePnP(
-		objectPoints, imagePoints,	// Input correspondences
+		Mat(objectPoints), Mat(imagePoints),	// Input correspondences
 		cameraMatrix, distortionCoeffs,	// Intrinsic camera parameters (have to be already available)
 		rvec, tvec);
 
@@ -176,10 +176,10 @@ bool Camera::calculateExtrinsicParams(vector<Point3f> objectPoints, vector<Point
 		// Create this->T from rvec and tvec
 		Rodrigues(rvec, rotMtx);
 		T = Matx44f(
-			rotMtx.val[0], rotMtx.val[1], rotMtx.val[2], tvec.val[0], 
-			rotMtx.val[3], rotMtx.val[4], rotMtx.val[5], tvec.val[1],
-			rotMtx.val[6], rotMtx.val[7], rotMtx.val[8], tvec.val[2],
-			0, 0, 0, 1
+			rotMtx.at<double>(0,0), rotMtx.at<double>(0,1), rotMtx.at<double>(0,2), tvec.at<double>(0,0),
+			rotMtx.at<double>(1,0), rotMtx.at<double>(1,1), rotMtx.at<double>(1,2), tvec.at<double>(1,0),
+			rotMtx.at<double>(2,0), rotMtx.at<double>(2,1), rotMtx.at<double>(2,2), tvec.at<double>(2,0),
+			0.0, 0.0, 0.0, 1.0
 			);
 	}
 
