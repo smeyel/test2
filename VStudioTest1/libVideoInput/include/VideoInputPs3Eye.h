@@ -21,6 +21,8 @@ public:
 	void virtual init(int camID);
 	bool virtual captureFrame(cv::Mat &frame);
 	void virtual release();
+
+	~VideoInputPs3Eye();
 };
 
 #endif

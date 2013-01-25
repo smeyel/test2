@@ -53,3 +53,8 @@ void VideoInputPs3Eye::release()
 	CLEyeDestroyCamera(_cam);
 	_cam = NULL;
 }
+
+VideoInputPs3Eye::~VideoInputPs3Eye()
+{
+	release();
+}
