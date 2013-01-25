@@ -3,13 +3,12 @@
 //#include <stdlib.h>
 #include <time.h>
 
-/*#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/calib3d/calib3d.hpp> */
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "VideoInputGeneric.h"
-//#include "VideoInputPs3Eye.h"
+//#include "VideoInputGeneric.h"
+#include "VideoInputPs3Eye.h"
 
 #include "camera.h"
 #include "ray.h"
@@ -259,7 +258,7 @@ void showRaysOnImage(Camera& cam, Mat& frame)
 	}
 }
 
-void findChessboardAndAddRays(Mat& frame, Camera& cam, ChessboardDetector& detector, Chessboard& chessboard)
+void findChessboardAndAddRays(Mat& frame, Camera& cam, ChessboardDetector& detector, Chessboard& chessboard, bool addRays=false)
 {
 	// Find chessboard and calculate extr. params
 	if (detector.findChessboardInFrame(frame))
@@ -277,8 +276,11 @@ void findChessboardAndAddRays(Mat& frame, Camera& cam, ChessboardDetector& detec
 			putText( frame, string(txt), cvPoint( 25+(i%4)*75, 20+(i/4)*20 ), FONT_HERSHEY_DUPLEX, 0.5, CV_RGB(255,255,0) );
 		}
 
-
-		addRayFromCameraToOrigin(cam);
+		
+		if (addRays)
+		{
+			addRayFromCameraToOrigin(cam);
+		}
 
 		showRaysOnImage(cam,frame);
 
@@ -291,24 +293,37 @@ void findChessboardAndAddRays(Mat& frame, Camera& cam, ChessboardDetector& detec
 */
 void test_rayshow()
 {
-	VideoInputGeneric cam1;
-	cam1.init(0);
+	VideoInputPs3Eye videoInput0;
+	videoInput0.init(0);
+	VideoInputPs3Eye videoInput1;
+	videoInput1.init(1);
 
 	// The <ESC> key will exit the program
-	Mat frame(480,640,CV_8UC4);
+	Mat frame0(480,640,CV_8UC4);
+	Mat frame1(480,640,CV_8UC4);
 	char key;
 	bool running = true;
 	Chessboard chessboard(Size(9,6),50);
 	ChessboardDetector detector(Size(9,6),50);
-	Camera cam;
-	cam.cameraID=0;
-	cam.loadCalibrationData("test1.xml");
+	Camera cam0;
+	Camera cam1;
+	cam0.cameraID=0;
+	cam1.cameraID=1;
+	cam0.isStationary = false;
+	cam1.isStationary = true;
+	cout << "Warning, CAM1 has to be stationary!" << endl;
+	cam0.loadCalibrationData("test1.xml");
+	cam1.loadCalibrationData("test1.xml");
 	while(running)
 	{
-		cam1.captureFrame(frame);
+		videoInput0.captureFrame(frame0);
+		videoInput1.captureFrame(frame1);
 
-		findChessboardAndAddRays(frame, cam, detector, chessboard);
-		imshow("Default video input",frame);	// To display results...
+		findChessboardAndAddRays(frame0, cam0, detector, chessboard,true);
+		findChessboardAndAddRays(frame1, cam1, detector, chessboard);
+
+		imshow("Cam 0 (ray source)",frame0);	// To display results...
+		imshow("Cam 1 (view only)",frame1);	// To display results...
 
 		key = waitKey(25);
 		if (key==27)
@@ -316,7 +331,8 @@ void test_rayshow()
 			running=false;
 		}
 	}
-	cam1.release();
+	videoInput0.release();
+	videoInput1.release();
 }
 
 

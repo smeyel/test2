@@ -87,7 +87,6 @@ public:
 	bool loadCalibrationData(char *filename);
 
 	/** Find extrinsic camera parameters using 2D-3D correspondences.
-		TODO: not tested yet
 		TODO: later, potential previous extrinsic parameters can be used as an initial guess...
 	*/
 	bool calculateExtrinsicParams(vector<Point3f> objectPoints, vector<Point2f> imagePoints);

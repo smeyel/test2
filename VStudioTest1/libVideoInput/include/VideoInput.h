@@ -14,7 +14,8 @@ class VideoInput
 
 		~VideoInput()
 		{
-			release();
+			// TODO: this does not seem to invoke the correct release() function, only the one of this base class...
+			this->release();
 		}
 };
 		

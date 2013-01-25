@@ -21,6 +21,7 @@ void VideoInputPs3Eye::init(int camID)
 	//PBYTE pCapBuffer = NULL;
 	// Create camera instance
 	_cam = CLEyeCreateCamera(_cameraGUID, _mode, _resolution, _fps);
+	CV_Assert(_cam != NULL);
 	if(_cam == NULL)		return;
 	// Get camera frame dimensions
 	CLEyeCameraGetFrameDimensions(_cam, w, h);
@@ -37,8 +38,8 @@ void VideoInputPs3Eye::init(int camID)
 
 bool VideoInputPs3Eye::captureFrame(Mat &frame)
 {
-	//CV_Assert(frame.rows == h);
-	//CV_Assert(frame.cols == w);
+	CV_Assert(frame.rows == h);
+	CV_Assert(frame.cols == w);
 	//CV_Assert(frame.type() == (_mode == CLEYE_COLOR_PROCESSED ? CV_8UC4 : CV_8UC1 ));
 
 	CLEyeCameraGetFrame(_cam, frame.data);
@@ -47,14 +48,12 @@ bool VideoInputPs3Eye::captureFrame(Mat &frame)
 
 void VideoInputPs3Eye::release()
 {
-	// Stop camera capture
-	CLEyeCameraStop(_cam);
-	// Destroy camera object
-	CLEyeDestroyCamera(_cam);
-	_cam = NULL;
-}
-
-VideoInputPs3Eye::~VideoInputPs3Eye()
-{
-	release();
+	if (_cam != NULL)
+	{
+		// Stop camera capture
+		CLEyeCameraStop(_cam);
+		// Destroy camera object
+		CLEyeDestroyCamera(_cam);
+		_cam = NULL;
+	}
 }
