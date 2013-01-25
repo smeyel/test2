@@ -227,7 +227,7 @@ void findChessboardAndShowExtrParams(Mat& frame, Camera cam, ChessboardDetector 
 		for(int i=0; i<16; i++)
 		{
 			sprintf(txt, "%4.2lf",cam.T.val[i] );
-			putText( frame, string(txt), cvPoint( 25+(i%4-1)*75, 50+(i/4-1)*20 ), FONT_HERSHEY_DUPLEX, 0.5, CV_RGB(255,255,0) );
+			putText( frame, string(txt), cvPoint( 25+(i%4)*75, 20+(i/4)*20 ), FONT_HERSHEY_DUPLEX, 0.5, CV_RGB(255,255,0) );
 		}
 
 
@@ -265,6 +265,7 @@ void test_extrinsics()
 			running=false;
 		}
 	}
+	cam1.release();
 }
 
 void main()
