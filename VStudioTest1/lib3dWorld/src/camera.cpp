@@ -175,12 +175,13 @@ bool Camera::calculateExtrinsicParams(vector<Point3f> objectPoints, vector<Point
 	{
 		// Create this->T from rvec and tvec
 		Rodrigues(rvec, rotMtx);
-		T = Matx44f(
+		Matx44f T_inv = Matx44f(
 			rotMtx.at<double>(0,0), rotMtx.at<double>(0,1), rotMtx.at<double>(0,2), tvec.at<double>(0,0),
 			rotMtx.at<double>(1,0), rotMtx.at<double>(1,1), rotMtx.at<double>(1,2), tvec.at<double>(1,0),
 			rotMtx.at<double>(2,0), rotMtx.at<double>(2,1), rotMtx.at<double>(2,2), tvec.at<double>(2,0),
 			0.0, 0.0, 0.0, 1.0
 			);
+		T = T_inv.inv();
 	}
 
 	return solverResult;
