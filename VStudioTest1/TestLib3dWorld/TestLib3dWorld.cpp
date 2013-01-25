@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+//#include <stdlib.h>
 #include <time.h>
 
 /*#include <opencv2/core/core.hpp>
@@ -209,18 +210,64 @@ void test1()
 	cout << endl;
 }
 
-void findChessboardAndShowExtrParams(Mat& frame, Camera cam, ChessboardDetector detector, Chessboard chessboard)
+vector<Ray> rays;
+
+void addRayFromCameraToOrigin(Camera &cam)
+{
+	// Get translation from origin to camera location
+
+	// Create Ray (3D)
+	Ray *newRay = new Ray();	// TODO: should be deleted at exit
+
+	newRay->cameraID = CAMID_WORLD;	// Now in world coordinates
+	newRay->originalCameraID = CAMID_WORLD;	// Created in world coordinates
+	newRay->originalImageLocation = Point2f(0.0,0.0);	// dummy data
+
+	float x = cam.T.val[3] / cam.T.val[15] / 2.0;	// Half way from origin to camera
+	float y = cam.T.val[7] / cam.T.val[15] / 2.0;
+	float z = cam.T.val[11] / cam.T.val[15] / 2.0;
+
+	newRay->A = Matx41f(x,y,z,1);	// Starts from half way to the the camera location (from origin)
+	newRay->B = Matx41f(0,0,0,1);	// Towards the origin
+
+//	newRay->show("Adding new ray");
+
+	// Add to ray list
+	rays.push_back(*newRay);
+}
+
+void showRaysOnImage(Camera& cam, Mat& frame)
+{
+	for(int i=0; i<rays.size(); i++)
+	{
+//		cout << "Showing ray ID " << i << endl;
+		Ray& rayWorld = rays[i];
+//		rayWorld.show("   @World");
+
+		Ray rayCam = cam.rayWorld2Cam(rayWorld);
+//		rayCam.show("   @Cam");
+		// If ray end is in the camera location (Z==0), projective transform cannot be applied...
+		//	So we move it 2mm away...
+		if(rayCam.A.val[2]<2)
+		{
+			rayCam.A.val[2] = 2;
+		}
+		Ray2D ray2D = cam.rayCam2Img(rayCam);
+//		ray2D.show("   @Cam");
+
+		line(frame,ray2D.A,ray2D.B,Scalar(255,0,0));
+	}
+}
+
+void findChessboardAndAddRays(Mat& frame, Camera& cam, ChessboardDetector& detector, Chessboard& chessboard)
 {
 	// Find chessboard and calculate extr. params
 	if (detector.findChessboardInFrame(frame))
 	{
-//		cout << "Now drawing chessboard corners..." << endl;
+//		cout << "-----------------------" << endl;
 		drawChessboardCorners(frame,Size(9,6),detector.pointBuf,true);
 
-//		cout << "Now calculating extrinsic params..." << endl;
-		cam.loadCalibrationData("test1.xml");
 		cam.calculateExtrinsicParams(chessboard.corners,detector.pointBuf);
-//		show("Extr.params T=",cam.T);
 
 		// Show extr. params on frame
 		char txt[50];
@@ -231,16 +278,18 @@ void findChessboardAndShowExtrParams(Mat& frame, Camera cam, ChessboardDetector 
 		}
 
 
+		addRayFromCameraToOrigin(cam);
+
+		showRaysOnImage(cam,frame);
 
 	}
 }
 
 
-
 /** Creates a camera, starts an image capture and calculates the extrinsic parameters if a chessboard becomes visible.
-	May also be used to calibrate the intrinsic parameters (or they can be loaded form a file.)
+	After every 2s, creates a ray pointing towards the chessboard. By moving the camera, previous rays remain visible.
 */
-void test_extrinsics()
+void test_rayshow()
 {
 	VideoInputGeneric cam1;
 	cam1.init(0);
@@ -252,14 +301,16 @@ void test_extrinsics()
 	Chessboard chessboard(Size(9,6),50);
 	ChessboardDetector detector(Size(9,6),50);
 	Camera cam;
+	cam.cameraID=0;
+	cam.loadCalibrationData("test1.xml");
 	while(running)
 	{
 		cam1.captureFrame(frame);
 
-		findChessboardAndShowExtrParams(frame, cam, detector, chessboard);
+		findChessboardAndAddRays(frame, cam, detector, chessboard);
 		imshow("Default video input",frame);	// To display results...
 
-		key = waitKey(2000);
+		key = waitKey(25);
 		if (key==27)
 		{
 			running=false;
@@ -268,8 +319,8 @@ void test_extrinsics()
 	cam1.release();
 }
 
+
 void main()
 {
-	//test1();
-	test_extrinsics();
+	test_rayshow();
 }
