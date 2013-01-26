@@ -46,8 +46,8 @@ bool ChessboardDetector::findChessboardInFrame(Mat& frame)
 		// improve the found corners' coordinate accuracy for chessboard
 		Mat viewGray;
 		cvtColor(frame, viewGray, CV_BGR2GRAY);
-/*			cornerSubPix( viewGray, pointBuf, Size(11,11),
-			Size(-1,-1), TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 )); */
+		cornerSubPix( viewGray, pointBuf, Size(11,11),
+		Size(-1,-1), TermCriteria( CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 30, 0.1 ));
 
 		// Draw the corners.
 		drawChessboardCorners( frame, chessboard.boardSize, Mat(pointBuf), found );

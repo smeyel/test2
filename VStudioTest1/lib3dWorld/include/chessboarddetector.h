@@ -38,8 +38,6 @@ public:
 
 		@param	frame	Color input image frame 
 		@return			Returns true if detection was successful.
-
-		TODO: cornerSubPix is not used yet...
 	*/
 	bool findChessboardInFrame(cv::Mat& frame);
 };
