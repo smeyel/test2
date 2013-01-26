@@ -1,6 +1,7 @@
 #ifndef __MARKERBASE_H_
 #define __MARKERBASE_H_
 #include <ostream>
+#include <opencv2/core/core.hpp>
 
 namespace TwoColorCircleMarker
 {
@@ -11,7 +12,7 @@ namespace TwoColorCircleMarker
 	public:
 		/** Location of the marker center.
 		*/
-		Point2d center;
+		cv::Point2d center;
 
 		/** Is the center location valid?
 		*/
