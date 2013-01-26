@@ -178,10 +178,18 @@ void test_rayshow()
 		// During tracking, search for marker and calculate location info
 		if (mode == tracking)
 		{
-			detectionCollector.currentCamID=0;
+			// Remove rays of previous frames
+			//detectionCollector.startNewFrame();
+
+			// Track marker on both frames
+			detectionCollector.cam = &cam0;
 			doTrackingOnFrame(cam0,frame0,tracker0,frameIdx);
-			detectionCollector.currentCamID=1;
+			detectionCollector.cam = &cam1;
 			doTrackingOnFrame(cam1,frame1,tracker1,frameIdx);
+			
+			// Display rays in both cameras
+			detectionCollector.ShowRaysInFrame(frame0,cam0);
+			detectionCollector.ShowRaysInFrame(frame1,cam1);
 		}
 
 		imshow("CAM 0",frame0);
@@ -258,7 +266,6 @@ void test_rayshow()
 	videoInput0.release();
 	videoInput1.release();
 }
-
 
 void main()
 {

@@ -118,7 +118,8 @@ namespace TwoColorCircleMarker
 		// Fits an ellipse on the inner and outer borders of the red circle
 		//	based on the results of findBordersAlongLine calls.
 		void fitBorderEllipses();
-		// Temp variables
+		// Variables used during markercode reading.
+		// May be used for color recognition adjustments.
 		Point RedInnerBorders[8];
 		Point RedOuterBorders[8];
 		RotatedRect innerEllipse;
@@ -133,7 +134,6 @@ namespace TwoColorCircleMarker
 
 		// --- Marker code processing
 		void validateAndConsolidateMarkerCode();
-
 	};
 }
 
