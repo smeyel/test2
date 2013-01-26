@@ -204,8 +204,9 @@ bool Camera::calculateExtrinsicParamsIfNeeded(vector<Point3f> objectPoints, vect
 {
 	if (!isStationary || !isTSet)
 	{
-		calculateExtrinsicParamsIfNeeded(objectPoints, imagePoints);
+		return calculateExtrinsicParamsIfNeeded(objectPoints, imagePoints);
 	}
+	return false;
 }
 
 void Camera::undistortImage(Mat& src, Mat& dst)

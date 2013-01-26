@@ -119,6 +119,8 @@ public:
 	*/
 	bool calculateExtrinsicParamsIfNeeded(vector<Point3f> objectPoints, vector<Point2f> imagePoints);
 
+	// TODO: add polymorph conversion functions!
+
 	// TODO: Should have a function to project 3D points to image using this function:
 	// void projectPoints(InputArray objectPoints, InputArray rvec, InputArray tvec, InputArray cameraMatrix, InputArray distCoeffs, OutputArray imagePoints, OutputArray jacobian=noArray(), double aspectRatio=0 )¶
 
