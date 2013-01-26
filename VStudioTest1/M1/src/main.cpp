@@ -31,8 +31,37 @@ using namespace MiscTimeAndConfig;
 MyConfigManager configManager;
 char *configfilename = "m1test.ini";
 
+const char* wndCam0 = "CAM 0";
+const char* wndCam1 = "CAM 1";
 
-// -----------------------------------------------------------
+uchar lastR, lastG, lastB;	// Color at last click...
+
+void mouse_callback(int eventtype, int x, int y, int flags, void *param)
+{
+	// param points to the corresponding matrix
+	Mat *matPtr = (Mat*)param;
+
+	if (eventtype == CV_EVENT_LBUTTONDOWN)
+	{
+		if (matPtr != NULL)
+		{
+			Vec3b result = matPtr->at<Vec3b>(y,x);
+			int r = (int)(result[2] >> 5 << 5);
+			int g = (int)(result[1] >> 5 << 5);
+			int b = (int)(result[0] >> 5 << 5);
+			cout << "Click at " << x << "-" << y << " R=" << r << " G=" << g << " B=" << b << endl;
+			lastR = r;
+			lastG = g;
+			lastB = b;
+		}
+		else
+		{
+			cout << "Click. Error: pointer to image not set..." << endl;
+		}
+	}
+}
+
+
 
 void doCalibration(Camera& cam, ChessboardDetector& detector, Mat& frame)
 {
@@ -96,7 +125,7 @@ string getCamParamName(CamParamEnum enumValue)
 	Cameras are not stationary initally to allow user to move them so they can
 	recognize the chessboard. After that, user can set cameras to be stationary.
 */
-void test_rayshow()
+void main()
 {
 	typedef enum { calibration, tracking, exiting } ModeEnum;
 
@@ -149,6 +178,12 @@ void test_rayshow()
 	cout << "(m) Cameras are moving" << endl << "(t) Tracking mode" << endl << "(c) back to calibration mode" << endl;
 	cout << "(0) and (1) adjust camera parameters for camera 0 and 1." << endl;
 	cout << "Adjust (g) gain or (e) exposure with (+) and (-)" << endl;
+
+	// Setup windows and mouse callback
+	namedWindow(wndCam0, CV_WINDOW_AUTOSIZE);
+	cvSetMouseCallback(wndCam0, mouse_callback, (void*)&frame0);
+	namedWindow(wndCam1, CV_WINDOW_AUTOSIZE);
+	cvSetMouseCallback(wndCam1, mouse_callback, (void*)&frame1);
 
 	// Start main loop
 	int adjustCam = 0;
@@ -259,15 +294,33 @@ void test_rayshow()
 			}
 			cout << "Decreased " << getCamParamName(camParam) << " or camera " << adjustCam << " to " << tmpI << endl;
 			break;
+		case 'r':	// Last clicked color should be red
+			if (adjustCam==0)
+			{
+				tracker0.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_RED);
+			}
+			else
+			{
+				tracker1.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_RED);
+			}
+			cout << "Color LUT updated for RED in tracker for cam " << adjustCam << "for color R"<<lastR<<"G"<<lastG<<"B"<<lastB << endl;
+			break;
+		case 'b':	// Last clicked color should be blue
+			if (adjustCam==0)
+			{
+				tracker0.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_BLU);
+			}
+			else
+			{
+				tracker1.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_BLU);
+			}
+			cout << "Color LUT updated for BLU in tracker for cam " << adjustCam << "for color R"<<lastR<<"G"<<lastG<<"B"<<lastB << endl;
+			break;
+
 		}
 
 		frameIdx++;
 	}
 	videoInput0.release();
 	videoInput1.release();
-}
-
-void main()
-{
-	test_rayshow();
 }

@@ -41,9 +41,9 @@ namespace TwoColorCircleMarker
 	*/
 	class FastColorFilter
 	{
-		uchar LutR[256];
+/*		uchar LutR[256];
 		uchar LutG[256];
-		uchar LutB[256];
+		uchar LutB[256]; */
 
 		// Used only by init() internally
 		static const uchar rUnit = 9;
@@ -82,6 +82,18 @@ namespace TwoColorCircleMarker
 		FastColorFilter()
 		{
 			init();
+		}
+
+		/** Sets LUT to given colorcode for given RGB color.
+			Used for runtime color LUT adjustments.
+		*/
+		void setLutItem(uchar r, uchar g, uchar b, uchar colorCode)
+		{
+			unsigned int idxR = r >> 5;
+			unsigned int idxG = g >> 5;
+			unsigned int idxB = b >> 5;
+			unsigned int idx = (idxR << 6) | (idxG << 3) | idxB;
+			RgbLut[idx] = colorCode;
 		}
 
 		/**	The two color codes searched for beside each other by the color filter. The second has to appear
