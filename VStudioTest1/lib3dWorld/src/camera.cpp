@@ -5,6 +5,12 @@
 #include <opencv2/imgproc/imgproc.hpp>	// for undistort
 #include "camera.h"
 
+Camera::Camera()
+{
+	isTSet=false;
+	isCalibrated=false;
+}
+
 // Setters
 void Camera::setCameraMatrix(Mat camMtx)
 {
@@ -69,6 +75,7 @@ Point2f Camera::pointCam2Img(Matx41f pCam)
 /** Point: cam -> world */
 Matx41f Camera::pointCam2World(Matx41f pCam)
 {
+	OPENCV_ASSERT(isTSet,"Camera.pointCam2World","Using unknown camera transformation!");
 	Matx41f pWorld = T * pCam;
 	return pWorld;
 }
@@ -76,6 +83,7 @@ Matx41f Camera::pointCam2World(Matx41f pCam)
 /** Point: world -> cam */
 Matx41f Camera::pointWorld2Cam(Matx41f pWorld)
 {
+	OPENCV_ASSERT(isTSet,"Camera.pointWorld2Cam","Using unknown camera transformation!");
 	Matx41f pCam = T.inv() * pWorld;
 	return pCam;
 }
@@ -108,6 +116,7 @@ Point2f Camera::rayOrigCam2Img(Ray rOrigCam)
 Ray Camera::rayCam2World(Ray rCam)
 {
 	OPENCV_ASSERT(rCam.cameraID == cameraID,"Camera.rayCam2World","Ray is given in some other camera's coordinate system. Cannot transform...");
+	OPENCV_ASSERT(isTSet,"Camera.rayCam2World","Using unknown camera transformation!");
 
 	// Create ray
 	Ray rWorld = rCam;
@@ -120,6 +129,7 @@ Ray Camera::rayCam2World(Ray rCam)
 /** Ray: world -> cam */
 Ray Camera::rayWorld2Cam(Ray rWorld)
 {
+	OPENCV_ASSERT(isTSet,"Camera.rayWorld2Cam","Using unknown camera transformation!");
 	// Create ray
 	Ray rCam = rWorld;
 	rCam.A = T.inv() * rWorld.A;
@@ -149,7 +159,7 @@ bool Camera::loadCalibrationData(char *filename)
 	FileStorage fs(filename, FileStorage::READ);
     if (!fs.isOpened())
     {
-//        std::cout << "Could not open the camera calibration file..." << endl;
+		OPENCV_ASSERT(false,"Camera.loadCalibrationData","Cannot load calibration data!");
         return false;
     }
     Mat camMat = Mat::eye(3, 3, CV_64F);
@@ -158,13 +168,14 @@ bool Camera::loadCalibrationData(char *filename)
 	fs["Distortion_Coefficients"] >> dCoeffs;
 	setCameraMatrix(camMat);
 	setDistortionCoeffs(dCoeffs);
-
 	fs.release(); 
+	isCalibrated=true;
 	return true;
 }
 
 bool Camera::calculateExtrinsicParams(vector<Point3f> objectPoints, vector<Point2f> imagePoints)
 {
+	OPENCV_ASSERT(isCalibrated,"Camera.calculateExtrinsicParams","Cannot calculate extrinsic parameters before camera calibration!");
 	Mat rvec, tvec;
 	Mat rotMtx;
 	bool solverResult = solvePnP(
@@ -183,15 +194,22 @@ bool Camera::calculateExtrinsicParams(vector<Point3f> objectPoints, vector<Point
 			0.0, 0.0, 0.0, 1.0
 			);
 		T = T_inv.inv();
+		isTSet=true;
 	}
 
 	return solverResult;
 }
 
-void Camera::undistortImage(Mat& src, Mat& dst)
+bool Camera::calculateExtrinsicParamsIfNeeded(vector<Point3f> objectPoints, vector<Point2f> imagePoints)
 {
-	undistort(src, dst, cameraMatrix, distortionCoeffs);
+	if (!isStationary || !isTSet)
+	{
+		calculateExtrinsicParamsIfNeeded(objectPoints, imagePoints);
+	}
 }
 
-
-
+void Camera::undistortImage(Mat& src, Mat& dst)
+{
+	OPENCV_ASSERT(isCalibrated,"Camera.undistortImage","Cannot undistort before camera calibration!");
+	undistort(src, dst, cameraMatrix, distortionCoeffs);
+}

@@ -23,19 +23,19 @@ using namespace std;
 
 Mat cameraMatrix, distCoeffs;
 
-void test1()
+/*void test1()
 {
 		// Mat M = (Mat_<double>(3,3) << 1, 0, 0, 0, 1, 0, 0, 0, 1);
 	Camera camW;
 
 	camW.loadCalibrationData("test1.xml");
-/*	for (int r=0; r<distCoeffs.rows; r++)
+	for (int r=0; r<distCoeffs.rows; r++)
 	{
 		for (int c=0; c<distCoeffs.cols; c++)
 		{
 			cout << "r"<<r<<"c"<<c<<":"<<distCoeffs.at<double>(r,c)<<endl;
 		}
-	} */
+	}
 
 	// Create a camera in the center of the world coordinate system,
 	//	looking in the direction of the Z axis
@@ -109,7 +109,7 @@ void test1()
 	r1I.show("r1W: ");
 
 	cout << endl;
-}
+}*/
 
 vector<Ray> rays;
 
@@ -120,9 +120,10 @@ void addRayFromCameraToOrigin(Camera &cam)
 	newRay->cameraID = CAMID_WORLD;	// Now in world coordinates
 	newRay->originalCameraID = CAMID_WORLD;	// Created in world coordinates
 	newRay->originalImageLocation = Point2f(0.0,0.0);	// dummy data
-	float x = cam.T.val[3] / cam.T.val[15] / 2.0;	// Half way from origin to camera
-	float y = cam.T.val[7] / cam.T.val[15] / 2.0;
-	float z = cam.T.val[11] / cam.T.val[15] / 2.0;
+	Matx44f T = cam.GetT();
+	float x = T.val[3] / T.val[15] / 2.0;	// Half way from origin to camera
+	float y = T.val[7] / T.val[15] / 2.0;
+	float z = T.val[11] / T.val[15] / 2.0;
 	newRay->A = Matx41f(x,y,z,1);	// Starts from half way to the the camera location (from origin)
 	newRay->B = Matx41f(0,0,0,1);	// Towards the origin
 	// Add to ray list
@@ -146,6 +147,7 @@ void showRaysOnImage(Camera& cam, Mat& frame)
 
 void findChessboardAndAddRays(Mat& frame, Camera& cam, ChessboardDetector& detector, bool addRays=false)
 {
+	Matx44f T;
 	if (detector.findChessboardInFrame(frame))
 	{
 		drawChessboardCorners(frame,Size(9,6),detector.pointBuf,true);
@@ -153,7 +155,8 @@ void findChessboardAndAddRays(Mat& frame, Camera& cam, ChessboardDetector& detec
 		char txt[50];
 		for(int i=0; i<16; i++)
 		{
-			sprintf(txt, "%4.2lf",cam.T.val[i] );
+			T = cam.GetT();
+			sprintf(txt, "%4.2lf",T.val[i] );
 			putText( frame, string(txt), cvPoint( 25+(i%4)*75, 20+(i/4)*20 ), FONT_HERSHEY_DUPLEX, 0.5, CV_RGB(255,255,0) );
 		}
 		if (addRays)
