@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lib3dWorld", "lib3dWorld\li
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestLib3dWorld", "TestLib3dWorld\TestLib3dWorld.vcxproj", "{2754DFC6-BC92-432F-A8BD-6337FCD34AF1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "M1", "M1\M1.vcxproj", "{B166300B-490D-4649-A438-9350F72C990E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -69,6 +71,10 @@ Global
 		{2754DFC6-BC92-432F-A8BD-6337FCD34AF1}.Debug|Win32.Build.0 = Debug|Win32
 		{2754DFC6-BC92-432F-A8BD-6337FCD34AF1}.Release|Win32.ActiveCfg = Release|Win32
 		{2754DFC6-BC92-432F-A8BD-6337FCD34AF1}.Release|Win32.Build.0 = Release|Win32
+		{B166300B-490D-4649-A438-9350F72C990E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B166300B-490D-4649-A438-9350F72C990E}.Debug|Win32.Build.0 = Debug|Win32
+		{B166300B-490D-4649-A438-9350F72C990E}.Release|Win32.ActiveCfg = Release|Win32
+		{B166300B-490D-4649-A438-9350F72C990E}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
