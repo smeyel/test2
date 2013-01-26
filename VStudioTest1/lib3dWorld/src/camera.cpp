@@ -2,6 +2,7 @@
 #include <opencv2\core\mat.hpp>
 #include <opencv2/highgui/highgui.hpp>	// for OPENCV_ASSERT
 #include <opencv2/calib3d/calib3d.hpp>	// for solvePnP
+#include <opencv2/imgproc/imgproc.hpp>	// for undistort
 #include "camera.h"
 
 // Setters
@@ -186,3 +187,11 @@ bool Camera::calculateExtrinsicParams(vector<Point3f> objectPoints, vector<Point
 
 	return solverResult;
 }
+
+void Camera::undistortImage(Mat& src, Mat& dst)
+{
+	undistort(src, dst, cameraMatrix, distortionCoeffs);
+}
+
+
+

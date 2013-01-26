@@ -93,6 +93,11 @@ public:
 
 	// TODO: Should have a function to project 3D points to image using this function:
 	// void projectPoints(InputArray objectPoints, InputArray rvec, InputArray tvec, InputArray cameraMatrix, InputArray distCoeffs, OutputArray imagePoints, OutputArray jacobian=noArray(), double aspectRatio=0 )¶
+
+	/** Uses the camera calibration data (distortion coefficients) to undistort an image.
+		(NOT TESTED)
+	*/
+	void undistortImage(Mat& src, Mat& dst);
 };
 
 #endif
