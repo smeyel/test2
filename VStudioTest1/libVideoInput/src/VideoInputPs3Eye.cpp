@@ -57,3 +57,23 @@ void VideoInputPs3Eye::release()
 		_cam = NULL;
 	}
 }
+
+int VideoInputPs3Eye::IncrementCameraParameter(int param)
+{
+	if (!_cam)
+	{
+		return 0;
+	}
+	CLEyeSetCameraParameter(_cam, (CLEyeCameraParameter)param, CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param)+10);
+	return CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param);
+}
+
+int VideoInputPs3Eye::DecrementCameraParameter(int param)
+{
+	if (!_cam)
+	{
+		return 0;
+	}
+	CLEyeSetCameraParameter(_cam, (CLEyeCameraParameter)param, CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param)-10);
+	return CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param);
+}

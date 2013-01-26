@@ -52,6 +52,10 @@ public:
 	{
 		return T;
 	}
+	bool getIsTSet()
+	{
+		return isTSet;
+	}
 
 	/** Point: image -> cam (results ray!) */
 	Ray pointImg2Cam(Point2f pImg);

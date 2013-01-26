@@ -29,13 +29,18 @@ using namespace TwoColorCircleMarker;
 using namespace MiscTimeAndConfig;
 
 MyConfigManager configManager;
-char *configfilename = "../testini.ini";
+char *configfilename = "m1test.ini";
 
 
 // -----------------------------------------------------------
 
 void doCalibration(Camera& cam, ChessboardDetector& detector, Mat& frame)
 {
+	if (cam.isStationary && cam.getIsTSet())
+	{
+		return;
+	}
+
 	if (detector.findChessboardInFrame(frame))
 	{
 		drawChessboardCorners(frame,Size(9,6),detector.pointBuf,true);
@@ -70,6 +75,16 @@ void doTrackingOnFrame(Camera& cam, Mat& frame, MarkerCC2Tracker& tracker, int f
 
 }
 
+typedef enum { gain, exposure } CamParamEnum;
+int getCamParamID(CamParamEnum enumValue)
+{
+	return (enumValue == gain ? CLEYE_GAIN : CLEYE_EXPOSURE);
+}
+
+string getCamParamName(CamParamEnum enumValue)
+{
+	return (enumValue == gain ? string("GAIN") : string("EXPOSURE"));
+}
 
 
 /** Implementation of M1 scenario
@@ -93,12 +108,15 @@ void test_rayshow()
 	VideoInputPs3Eye videoInput1;
 	videoInput1.init(1);
 
-	Mat frame0(480,640,CV_8UC4);
-	Mat frame1(480,640,CV_8UC4);
-	Mat frameUndistort0(480,640,CV_8UC4);
-	Mat frameUndistort1(480,640,CV_8UC4);
+	Mat frame0Captured(480,640,CV_8UC4);
+	Mat frame1Captured(480,640,CV_8UC4);
+	Mat frame0Undistorted(480,640,CV_8UC4);
+	Mat frame1Undistorted(480,640,CV_8UC4);
+	Mat frame0(480,640,CV_8UC3);
+	Mat frame1(480,640,CV_8UC3);
 	char key;
-
+	int tmpI;
+	
 	// Chessboard detection and camera init
 	ChessboardDetector detector(Size(9,6),50);
 	Camera cam0;
@@ -126,35 +144,50 @@ void test_rayshow()
 	timeMeasurement.init();
 	TimeMeasurementCodeDefs::setnames(&timeMeasurement);
 
+	// Show hints for user
+	cout << "Keys:" << endl << "(ESC) exit" << endl << "(s) Cameras are stationary" << endl;
+	cout << "(m) Cameras are moving" << endl << "(t) Tracking mode" << endl << "(c) back to calibration mode" << endl;
+	cout << "(0) and (1) adjust camera parameters for camera 0 and 1." << endl;
+	cout << "Adjust (g) gain or (e) exposure with (+) and (-)" << endl;
+
 	// Start main loop
+	int adjustCam = 0;
+	CamParamEnum camParam = exposure;
 	int frameIdx = 0;
 	ModeEnum mode = calibration;
 	while(mode != exiting)
 	{
-		videoInput0.captureFrame(frame0);
-		videoInput1.captureFrame(frame1);
+		detectionCollector.currentFrameIdx = frameIdx;
+		videoInput0.captureFrame(frame0Captured);
+		videoInput1.captureFrame(frame1Captured);
 
-		cam0.undistortImage(frame0,frameUndistort0);
-		cam1.undistortImage(frame1,frameUndistort1);
+		cam0.undistortImage(frame0Captured,frame0Undistorted);
+		cam1.undistortImage(frame1Captured,frame1Undistorted);
 
+		// Convert frames from CV_8UC4 to CV_8UC3
+		cvtColor(frame0Undistorted,frame0,CV_BGRA2BGR);
+		cvtColor(frame1Undistorted,frame1,CV_BGRA2BGR);
+		
 		// During calibration, search for chessboard and run calibration if it was found.
 		if (mode == calibration)
 		{
-			doCalibration(cam0,detector,frameUndistort0);
-			doCalibration(cam1,detector,frameUndistort1);
+			doCalibration(cam0,detector,frame0);
+			doCalibration(cam1,detector,frame1);
 		}
 
 		// During tracking, search for marker and calculate location info
 		if (mode == tracking)
 		{
-			doTrackingOnFrame(cam0,frameUndistort0,tracker0,frameIdx);
-			doTrackingOnFrame(cam1,frameUndistort1,tracker1,frameIdx);
+			detectionCollector.currentCamID=0;
+			doTrackingOnFrame(cam0,frame0,tracker0,frameIdx);
+			detectionCollector.currentCamID=1;
+			doTrackingOnFrame(cam1,frame1,tracker1,frameIdx);
 		}
 
-		imshow("CAM 0",frameUndistort0);
-		imshow("CAM 1",frameUndistort1);
-		imshow("CAM 0 CC",*(tracker0.colorCodeFrame));
-		imshow("CAM 1 CC",*(tracker1.colorCodeFrame));
+		imshow("CAM 0",frame0);
+		imshow("CAM 1",frame1);
+		imshow("CAM 0 CC",*(tracker0.visColorCodeFrame));
+		imshow("CAM 1 CC",*(tracker1.visColorCodeFrame));
 
 		key = waitKey(25);
 		switch(key)
@@ -179,6 +212,44 @@ void test_rayshow()
 		case 't':	// Tracking mode
 			mode = tracking;
 			cout << "Now in TRACKING mode." << endl;
+			break;
+		case '0':	// Adjust cam 0
+			adjustCam = 0;
+			cout << "Now adjusting " << getCamParamName(camParam) << " of cam " << adjustCam << endl;
+			break;
+		case '1':	// Adjust cam 1
+			adjustCam = 1;
+			cout << "Now adjusting " << getCamParamName(camParam) << " of cam " << adjustCam << endl;
+			break;
+		case 'e':	// Adjust exposure
+			camParam = exposure;
+			cout << "Now adjusting " << getCamParamName(camParam) << " of cam " << adjustCam << endl;
+			break;
+		case 'g':	// Adjust gain
+			camParam = gain;
+			cout << "Now adjusting " << getCamParamName(camParam) << " of cam " << adjustCam << endl;
+			break;
+		case '+':	// Increase adjusted parameter
+			if (adjustCam==0)
+			{
+				tmpI = videoInput0.IncrementCameraParameter(getCamParamID(camParam));
+			}
+			else
+			{
+				tmpI = videoInput1.IncrementCameraParameter(getCamParamID(camParam));
+			}
+			cout << "Increased " << getCamParamName(camParam) << " or camera " << adjustCam << " to " << tmpI << endl;
+			break;
+		case '-':	// Decreases adjusted parameter
+			if (adjustCam==0)
+			{
+				tmpI = videoInput0.DecrementCameraParameter(getCamParamID(camParam));
+			}
+			else
+			{
+				tmpI = videoInput1.DecrementCameraParameter(getCamParamID(camParam));
+			}
+			cout << "Decreased " << getCamParamName(camParam) << " or camera " << adjustCam << " to " << tmpI << endl;
 			break;
 		}
 
