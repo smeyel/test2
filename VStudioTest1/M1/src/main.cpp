@@ -10,8 +10,8 @@
 #include "myconfigmanager.h"
 #include "detectioncollector.h"
 
-//#include "VideoInputGeneric.h"
-#include "VideoInputPs3Eye.h"
+#include "VideoInputFactory.h"
+#include "VideoInputPs3EyeParameters.h"
 
 #include "chessboarddetector.h"
 #include "showhelper.h"
@@ -107,7 +107,7 @@ void doTrackingOnFrame(Camera& cam, Mat& frame, MarkerCC2Tracker& tracker, int f
 typedef enum { gain, exposure } CamParamEnum;
 int getCamParamID(CamParamEnum enumValue)
 {
-	return (enumValue == gain ? CLEYE_GAIN : CLEYE_EXPOSURE);
+	return (enumValue == gain ? VIDEOINPUTPS3EYEPARAMETERS_GAIN : VIDEOINPUTPS3EYEPARAMETERS_EXPOSURE);
 }
 
 string getCamParamName(CamParamEnum enumValue)
@@ -132,10 +132,10 @@ void main()
 	// Setup config management
 	configManager.init(configfilename);
 
-	VideoInputPs3Eye videoInput0;
-	videoInput0.init(0);
-	VideoInputPs3Eye videoInput1;
-	videoInput1.init(1);
+	VideoInput *videoInput0 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
+	videoInput0->init(0);
+	VideoInput *videoInput1 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
+	videoInput1->init(1);
 
 	Mat frame0Captured(480,640,CV_8UC4);
 	Mat frame1Captured(480,640,CV_8UC4);
@@ -193,8 +193,8 @@ void main()
 	while(mode != exiting)
 	{
 		detectionCollector.currentFrameIdx = frameIdx;
-		videoInput0.captureFrame(frame0Captured);
-		videoInput1.captureFrame(frame1Captured);
+		videoInput0->captureFrame(frame0Captured);
+		videoInput1->captureFrame(frame1Captured);
 
 		cam0.undistortImage(frame0Captured,frame0Undistorted);
 		cam1.undistortImage(frame1Captured,frame1Undistorted);
@@ -275,22 +275,22 @@ void main()
 		case '+':	// Increase adjusted parameter
 			if (adjustCam==0)
 			{
-				tmpI = videoInput0.IncrementCameraParameter(getCamParamID(camParam));
+				tmpI = videoInput0->IncrementCameraParameter(getCamParamID(camParam));
 			}
 			else
 			{
-				tmpI = videoInput1.IncrementCameraParameter(getCamParamID(camParam));
+				tmpI = videoInput1->IncrementCameraParameter(getCamParamID(camParam));
 			}
 			cout << "Increased " << getCamParamName(camParam) << " or camera " << adjustCam << " to " << tmpI << endl;
 			break;
 		case '-':	// Decreases adjusted parameter
 			if (adjustCam==0)
 			{
-				tmpI = videoInput0.DecrementCameraParameter(getCamParamID(camParam));
+				tmpI = videoInput0->DecrementCameraParameter(getCamParamID(camParam));
 			}
 			else
 			{
-				tmpI = videoInput1.DecrementCameraParameter(getCamParamID(camParam));
+				tmpI = videoInput1->DecrementCameraParameter(getCamParamID(camParam));
 			}
 			cout << "Decreased " << getCamParamName(camParam) << " or camera " << adjustCam << " to " << tmpI << endl;
 			break;
@@ -321,6 +321,6 @@ void main()
 
 		frameIdx++;
 	}
-	videoInput0.release();
-	videoInput1.release();
+	videoInput0->release();
+	videoInput1->release();
 }

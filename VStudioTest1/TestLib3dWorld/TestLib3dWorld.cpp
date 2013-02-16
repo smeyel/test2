@@ -7,8 +7,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-//#include "VideoInputGeneric.h"
-#include "VideoInputPs3Eye.h"
+#include "VideoInput.h"
+#include "VideoInputFactory.h"
 
 //#include "chessboard.h"
 #include "chessboarddetector.h"
@@ -172,10 +172,10 @@ void findChessboardAndAddRays(Mat& frame, Camera& cam, ChessboardDetector& detec
 */
 void test_rayshow()
 {
-	VideoInputPs3Eye videoInput0;
-	videoInput0.init(0);
-	VideoInputPs3Eye videoInput1;
-	videoInput1.init(1);
+	VideoInput *videoInput0 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
+	videoInput0->init(0);
+	VideoInput *videoInput1 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
+	videoInput1->init(1);
 
 	// The <ESC> key will exit the program
 	Mat frame0(480,640,CV_8UC4);
@@ -197,8 +197,8 @@ void test_rayshow()
 	cam1.loadCalibrationData("test1.xml");
 	while(running)
 	{
-		videoInput0.captureFrame(frame0);
-		videoInput1.captureFrame(frame1);
+		videoInput0->captureFrame(frame0);
+		videoInput1->captureFrame(frame1);
 
 		cam0.undistortImage(frame0,frameUndistort0);
 		cam1.undistortImage(frame1,frameUndistort1);
@@ -215,8 +215,8 @@ void test_rayshow()
 			running=false;
 		}
 	}
-	videoInput0.release();
-	videoInput1.release();
+	videoInput0->release();
+	videoInput1->release();
 }
 
 

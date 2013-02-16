@@ -1,4 +1,6 @@
 #include "VideoInputPs3Eye.h"
+#include "VideoInputPs3EyeParameters.h"
+
 #include "CLEyeMulticam.h"
 
 using namespace cv;
@@ -58,12 +60,29 @@ void VideoInputPs3Eye::release()
 	}
 }
 
+int VideoInputPs3Eye::GetCameraParameterCode(int param)
+{
+	int ClEyeSpecificParamCode = -1;
+	switch (param)
+	{
+	case VIDEOINPUTPS3EYEPARAMETERS_GAIN:
+		ClEyeSpecificParamCode = CLEYE_GAIN;
+		break;
+	case VIDEOINPUTPS3EYEPARAMETERS_EXPOSURE:
+		ClEyeSpecificParamCode = CLEYE_EXPOSURE;
+		break;
+	}
+	return ClEyeSpecificParamCode;
+}
+
+
 int VideoInputPs3Eye::IncrementCameraParameter(int param)
 {
 	if (!_cam)
 	{
 		return 0;
 	}
+	param = GetCameraParameterCode(param);
 	CLEyeSetCameraParameter(_cam, (CLEyeCameraParameter)param, CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param)+10);
 	return CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param);
 }
@@ -74,6 +93,7 @@ int VideoInputPs3Eye::DecrementCameraParameter(int param)
 	{
 		return 0;
 	}
+	param = GetCameraParameterCode(param);
 	CLEyeSetCameraParameter(_cam, (CLEyeCameraParameter)param, CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param)-10);
 	return CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param);
 }

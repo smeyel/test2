@@ -17,6 +17,8 @@ class VideoInputPs3Eye : public VideoInput
 	// Just for asserts
 	int w, h;
 
+	int GetCameraParameterCode(int param);
+
 public:
 	void virtual init(int camID);
 	bool virtual captureFrame(cv::Mat &frame);

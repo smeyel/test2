@@ -85,11 +85,14 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\VideoInputPs3Eye.h" />
+    <ClInclude Include="include\VideoInputFactory.h" />
     <ClInclude Include="include\VideoInput.h" />
-    <ClInclude Include="include\VideoInputGeneric.h" />
+    <ClInclude Include="include\VideoInputPs3EyeParameters.h" />
+    <ClInclude Include="src\VideoInputGeneric.h" />
+    <ClInclude Include="src\VideoInputPs3Eye.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\VideoInputFactory.cpp" />
     <ClCompile Include="src\VideoInputPs3Eye.cpp" />
     <ClCompile Include="src\VideoInputGeneric.cpp" />
   </ItemGroup>

@@ -18,10 +18,16 @@
     <ClInclude Include="include\VideoInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\VideoInputGeneric.h">
+    <ClInclude Include="include\VideoInputFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\VideoInputPs3Eye.h">
+    <ClInclude Include="src\VideoInputGeneric.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VideoInputPs3Eye.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\VideoInputPs3EyeParameters.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -30,6 +36,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\VideoInputPs3Eye.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VideoInputFactory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
