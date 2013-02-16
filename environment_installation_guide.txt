@@ -1,0 +1,12 @@
+=== OpenCV installation ===
+
+
+
+=== Playstation Eye SDK installation ===
+(This is the guide for installation under Windows using the CodeLaboratories CL-Eye Platform SDK))
+- Download the CL-Eye Platform SDK (not only the driver) available at
+http://codelaboratories.com/downloads/
+- Install the SDK including code samples (API is installed only in this case).
+- Locate the header and lib files installed (may be in your standard documents directory in C:\Users\...)
+- Define the environment variable CLEYESDKDIR to point to this directory (the one from which Include and Lib, without a "/" at the end of the variable value.)
+- Now you should be able to compile the SMEyeL projects related to PS3Eye.
