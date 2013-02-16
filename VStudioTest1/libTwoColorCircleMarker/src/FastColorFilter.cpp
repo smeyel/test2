@@ -159,7 +159,7 @@ void FastColorFilter::FinishRow(int rowIdx)
 			nextFreeCandidateRectIdx++;
 			if (nextFreeCandidateRectIdx >= MAXCANDIDATERECTNUM)
 			{
-				nextFreeCandidateRectIdx = MAXCANDIDATERECTNUM;
+				nextFreeCandidateRectIdx = MAXCANDIDATERECTNUM-1;
 				std::cout << "WARNING: FastColorFilter: no enough candidate marker rectangle space!" << std::endl;
 			}
 
