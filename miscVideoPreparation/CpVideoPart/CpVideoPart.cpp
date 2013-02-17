@@ -63,7 +63,7 @@ int main(int argc, char *argv[], char *window_name)
 
 	if (!outputVideo.isOpened())
 	{
-		cout  << "Could not open the output video for write: " << source << endl;
+		cout  << "Could not open the output video for write: " << target << endl;
 		return -1;
 	}
 
