@@ -47,7 +47,7 @@ public:
 
 		// Write results to output file (newRay.cameraID is CAMERAID_WORLD)
 		stream << newRay.originalCameraID << ";" << currentFrameIdx << ";" <<
-			newRay.A.val[0] << ";" << newRay.A.val[1] << ";" << newRay.A.val[2] << ";" << newRay.A.val[3] <<
+			newRay.A.val[0] << ";" << newRay.A.val[1] << ";" << newRay.A.val[2] << ";" << newRay.A.val[3] << ";" <<
 			newRay.B.val[0] << ";" << newRay.B.val[1] << ";" << newRay.B.val[2] << ";" << newRay.B.val[3] << std::endl;
 	}
 
