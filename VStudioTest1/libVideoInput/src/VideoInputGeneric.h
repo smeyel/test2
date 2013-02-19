@@ -16,5 +16,4 @@ public:
 	void virtual release();
 };
 
-
 #endif

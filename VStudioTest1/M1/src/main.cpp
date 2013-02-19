@@ -132,10 +132,15 @@ void main()
 	// Setup config management
 	configManager.init(configfilename);
 
-	VideoInput *videoInput0 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
-	videoInput0->init(0);
-	VideoInput *videoInput1 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
-	videoInput1->init(1);
+	//VideoInput *videoInput0 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
+	//videoInput0->init(0);
+	//VideoInput *videoInput1 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
+	//videoInput1->init(1);
+	VideoInput *videoInput0 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_GENERIC);
+	videoInput0->init("../../../inputmedia/M1/ramdiskproba1.avi");
+	VideoInput *videoInput1 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_GENERIC);
+	videoInput1->init("../../../inputmedia/M1/ramdiskproba2.avi");
+	//videoInput1->init("../../../inputmedia/M1/ramdiskproba3.avi");
 
 	Mat frame0Captured(480,640,CV_8UC4);
 	Mat frame1Captured(480,640,CV_8UC4);
@@ -160,6 +165,7 @@ void main()
 	// Setup marker processing
 	const Size dsize(640,480);	// TODO: should always correspond to the real frame size!
 	DetectionCollector detectionCollector;
+	detectionCollector.open("m1_rays_output.csv");
 
 	TwoColorCircleMarker::MarkerCC2Tracker tracker0;
 	tracker0.setResultExporter(&detectionCollector);
@@ -181,27 +187,39 @@ void main()
 
 	// Setup windows and mouse callback
 	namedWindow(wndCam0, CV_WINDOW_AUTOSIZE);
-	cvSetMouseCallback(wndCam0, mouse_callback, (void*)&frame0);
+	cvSetMouseCallback(wndCam0, mouse_callback, (void*)&frame0Captured);
 	namedWindow(wndCam1, CV_WINDOW_AUTOSIZE);
-	cvSetMouseCallback(wndCam1, mouse_callback, (void*)&frame1);
+	cvSetMouseCallback(wndCam1, mouse_callback, (void*)&frame1Captured);
 
 	// Start main loop
 	int adjustCam = 0;
 	CamParamEnum camParam = exposure;
-	int frameIdx = 0;
+	int frameIdx = -1;
 	ModeEnum mode = calibration;
+	bool videoInputRunning = true;	// If false, main loop runs without capturing new frames (useful with AVI files)
 	while(mode != exiting)
 	{
-		detectionCollector.currentFrameIdx = frameIdx;
-		videoInput0->captureFrame(frame0Captured);
-		videoInput1->captureFrame(frame1Captured);
+		if (videoInputRunning)
+		{
+			frameIdx++;
 
-		cam0.undistortImage(frame0Captured,frame0Undistorted);
-		cam1.undistortImage(frame1Captured,frame1Undistorted);
+			detectionCollector.currentFrameIdx = frameIdx;
+			videoInput0->captureFrame(frame0Captured);
+			videoInput1->captureFrame(frame1Captured);
+			if (frame0Captured.empty() || frame1Captured.empty())
+			{
+				cout << "End of video" << endl;
+				mode=exiting;
+				break;
+			}
 
-		// Convert frames from CV_8UC4 to CV_8UC3
-		cvtColor(frame0Undistorted,frame0,CV_BGRA2BGR);
-		cvtColor(frame1Undistorted,frame1,CV_BGRA2BGR);
+			cam0.undistortImage(frame0Captured,frame0Undistorted);
+			cam1.undistortImage(frame1Captured,frame1Undistorted);
+
+			// Convert frames from CV_8UC4 to CV_8UC3
+			cvtColor(frame0Undistorted,frame0,CV_BGRA2BGR);
+			cvtColor(frame1Undistorted,frame1,CV_BGRA2BGR);
+		}
 		
 		// During calibration, search for chessboard and run calibration if it was found.
 		if (mode == calibration)
@@ -237,6 +255,18 @@ void main()
 		{
 		case 27:	// ESC: exit
 			mode = exiting;
+			break;
+		case 'p':	// Pause video capture
+			if (videoInputRunning)
+			{
+				videoInputRunning = false;
+				cout << "Video capture suspended. Press 'p' to resume." << endl;
+			}
+			else
+			{
+				videoInputRunning = true;
+				cout << "Video capture resumed." << endl;
+			}
 			break;
 		case 's':	// Set cameras stationary
 			cam0.isStationary = true;
@@ -318,9 +348,8 @@ void main()
 			break;
 
 		}
-
-		frameIdx++;
 	}
+	detectionCollector.close();
 	videoInput0->release();
 	videoInput1->release();
 }

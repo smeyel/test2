@@ -12,6 +12,7 @@ class DetectionCollector : public TwoColorCircleMarker::DetectionResultExporterB
 {
 public:
 	vector<Ray> rays;
+	ofstream stream;
 
 	int currentFrameIdx;
 	Camera *cam;
@@ -20,6 +21,18 @@ public:
 	{
 		cam = NULL;
 		rays.clear();
+	}
+
+	// Output file operations
+	void open(char *filename)	// Should be called before starting export...
+	{
+		stream.open(filename);
+	}
+
+	void close()
+	{
+		stream.flush();
+		stream.close();
 	}
 
 	virtual void writeResult(MarkerBase *marker)
@@ -31,11 +44,11 @@ public:
 		// Create Ray (3D)
 		Ray newRay = cam->pointImg2World(marker->center);
 		rays.push_back(newRay);
-	}
 
-	void startNewFrame()
-	{
-		rays.clear();
+		// Write results to output file (newRay.cameraID is CAMERAID_WORLD)
+		stream << newRay.originalCameraID << ";" << currentFrameIdx << ";" <<
+			newRay.A.val[0] << ";" << newRay.A.val[1] << ";" << newRay.A.val[2] << ";" << newRay.A.val[3] <<
+			newRay.B.val[0] << ";" << newRay.B.val[1] << ";" << newRay.B.val[2] << ";" << newRay.B.val[3] << std::endl;
 	}
 
 	void ShowRaysInFrame(Mat& frame, Camera& cam)
