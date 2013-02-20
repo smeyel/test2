@@ -346,6 +346,17 @@ void main()
 			}
 			cout << "Color LUT updated for BLU in tracker for cam " << adjustCam << "for color R"<<lastR<<"G"<<lastG<<"B"<<lastB << endl;
 			break;
+		case 'n':	// Last clicked color should be NONE
+			if (adjustCam==0)
+			{
+				tracker0.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_NONE);
+			}
+			else
+			{
+				tracker1.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_NONE);
+			}
+			cout << "Color LUT updated for NONE in tracker for cam " << adjustCam << "for color R"<<lastR<<"G"<<lastG<<"B"<<lastB << endl;
+			break;
 
 		}
 	}
