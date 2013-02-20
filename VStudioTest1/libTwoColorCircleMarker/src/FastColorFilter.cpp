@@ -37,25 +37,33 @@ void FastColorFilter::init()
 		g = ((i >> 3) & 0x07) << 5;
 		b = (i & 0x07) << 5;
 
-		if (r >= 115 && g >= 115 && b >= 115 && abs(r-g)<=35 && abs(r-b)<=35 && abs(g-b)<=35 )
-		{
-			RgbLut[i]=COLORCODE_WHT;
-		}
-		if (r <= 64 &&  g <= 64 && b <= 64 && abs(r-g)<=32 && abs(r-b)<=32 && abs(g-b)<=32)
+		if (r == g &&  g == b && r <= 64)
 		{
 			RgbLut[i]=COLORCODE_BLK;
 		}
-		if (r >= 128 &&  r >= g+64 && r >= b+32 || (r < 128 && r >= g+64 && r >= b+64))
+		else if (r == g &&  g == b && r > 64)
+		{
+			RgbLut[i]=COLORCODE_WHT;
+		}
+		else if (r >= 160 &&  r >= g+64 && r >= b+32 || (r < 160 && r >= g+32 && r >= b+32))
 		{
 			RgbLut[i]=COLORCODE_RED;
 		}
-		if ((r <= 64 &&  g >= 96 && b <= 150) || (r <= 96 &&  g >= 128 && b <= 128) || (g < 96 && g >= 64 && g >= r+64 && g >= r+64))
+		else if ((r <= 64 &&  g <= 64 && b >= 64) || (r <= 96 &&  g <= 96 && b >= 128) || (r == 0 &&  g == 0 && b >= 32) || (r == 0 &&  g == 64 && b == 64))	// 3rd condition overrides some blacks...
+		{
+			RgbLut[i]=COLORCODE_BLU;
+		}
+		else if ((r <= 64 &&  g >= 96 && b <= 150) || (r <= 96 &&  g >= 128 && b <= 128) || (g < 96 && g >= 64 && g >= r+64 && g >= r+64))
 		{
 			RgbLut[i]=COLORCODE_GRN;
 		}
-		if ((r <= 64 &&  g <= 64 && b >= 64) || (r == 0 &&  g == 0 && b >= 32) || (r == 0 &&  g == 64 && b == 64))	// 2nd condition overrides some blacks...
+		else if (r >= 115 && g >= 115 && b >= 115 && abs(r-g)<=35 && abs(r-b)<=35 && abs(g-b)<=35 )
 		{
-			RgbLut[i]=COLORCODE_BLU;
+			RgbLut[i]=COLORCODE_WHT;
+		}
+		else if (r <= 64 &&  g <= 64 && b <= 64 && abs(r-g)<=32 && abs(r-b)<=32 && abs(g-b)<=32)
+		{
+			RgbLut[i]=COLORCODE_BLK;
 		}
 	}
 }
