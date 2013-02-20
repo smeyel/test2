@@ -33,6 +33,7 @@ char *configfilename = "m1test.ini";
 
 const char* wndCam0 = "CAM 0";
 const char* wndCam1 = "CAM 1";
+const char* wndCam2 = "CAM 2";
 
 uchar lastR, lastG, lastB;	// Color at last click...
 
@@ -125,6 +126,7 @@ string getCamParamName(CamParamEnum enumValue)
 	Cameras are not stationary initally to allow user to move them so they can
 	recognize the chessboard. After that, user can set cameras to be stationary.
 */
+#define CAMNUM	3
 void main()
 {
 	typedef enum { calibration, tracking, exiting } ModeEnum;
@@ -132,47 +134,55 @@ void main()
 	// Setup config management
 	configManager.init(configfilename);
 
-	//VideoInput *videoInput0 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
-	//videoInput0->init(0);
-	//VideoInput *videoInput1 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
-	//videoInput1->init(1);
-	VideoInput *videoInput0 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_GENERIC);
-	videoInput0->init("../../../inputmedia/M1/ramdiskproba1.avi");
-	VideoInput *videoInput1 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_GENERIC);
-	videoInput1->init("../../../inputmedia/M1/ramdiskproba2.avi");
-	//videoInput1->init("../../../inputmedia/M1/ramdiskproba3.avi");
+	VideoInput *videoInputs[CAMNUM];
 
-	Mat frame0Captured(480,640,CV_8UC4);
-	Mat frame1Captured(480,640,CV_8UC4);
-	Mat frame0Undistorted(480,640,CV_8UC4);
-	Mat frame1Undistorted(480,640,CV_8UC4);
-	Mat frame0(480,640,CV_8UC3);
-	Mat frame1(480,640,CV_8UC3);
+	for (int i=0; i<CAMNUM; i++)
+	{
+		videoInputs[i] = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_GENERIC);
+	}
+	//videoInputs[0]->init("../../../inputmedia/M1/ramdiskproba1.avi");
+	//videoInputs[1]->init("../../../inputmedia/M1/ramdiskproba2.avi");
+	//videoInputs[2]->init("../../../inputmedia/M1/ramdiskproba3.avi");
+	videoInputs[0]->init("../../../inputmedia/M1/M1-record1-1.avi");
+	videoInputs[1]->init("../../../inputmedia/M1/M1-record1-2.avi");
+	videoInputs[2]->init("../../../inputmedia/M1/M1-record1-3.avi");
+
+	Mat *frameCaptured[CAMNUM];
+	Mat *frameUndistorted[CAMNUM];
+	Mat *frame[CAMNUM];
+	for(int i=0; i<CAMNUM; i++)
+	{
+		frameCaptured[i] = new Mat(480,640,CV_8UC4);
+		frameUndistorted[i] = new Mat(480,640,CV_8UC4);
+		frame[i] = new Mat(480,640,CV_8UC3);
+	}
+
 	char key;
 	int tmpI;
 	
 	// Chessboard detection and camera init
 	ChessboardDetector detector(Size(9,6),50);
-	Camera cam0;
-	Camera cam1;
-	cam0.cameraID=0;
-	cam1.cameraID=1;
-	cam0.isStationary = false;
-	cam1.isStationary = false;
-	cam0.loadCalibrationData("test1.xml");
-	cam1.loadCalibrationData("test1.xml");
+	Camera *cams[CAMNUM];
+	for(int i=0; i<CAMNUM; i++)
+	{
+		cams[i] = new Camera();
+		cams[i]->cameraID=i;
+		cams[i]->isStationary=false;
+		cams[i]->loadCalibrationData("test1.xml");
+	}
 
 	// Setup marker processing
 	const Size dsize(640,480);	// TODO: should always correspond to the real frame size!
 	DetectionCollector detectionCollector;
 	detectionCollector.open("m1_rays_output.csv");
 
-	TwoColorCircleMarker::MarkerCC2Tracker tracker0;
-	tracker0.setResultExporter(&detectionCollector);
-	tracker0.init(configfilename,true,dsize.width,dsize.height);
-	TwoColorCircleMarker::MarkerCC2Tracker tracker1;
-	tracker1.setResultExporter(&detectionCollector);
-	tracker1.init(configfilename,true,dsize.width,dsize.height);
+	TwoColorCircleMarker::MarkerCC2Tracker *trackers[CAMNUM];
+	for(int i=0; i<CAMNUM; i++)
+	{
+		trackers[i] = new TwoColorCircleMarker::MarkerCC2Tracker();
+		trackers[i]->setResultExporter(&detectionCollector);
+		trackers[i]->init(configfilename,true,dsize.width,dsize.height);
+	}
 
 	// Setup time management
 	MiscTimeAndConfig::TimeMeasurement timeMeasurement;
@@ -182,14 +192,16 @@ void main()
 	// Show hints for user
 	cout << "Keys:" << endl << "(ESC) exit" << endl << "(s) Cameras are stationary" << endl;
 	cout << "(m) Cameras are moving" << endl << "(t) Tracking mode" << endl << "(c) back to calibration mode" << endl;
-	cout << "(0) and (1) adjust camera parameters for camera 0 and 1." << endl;
+	cout << "(0),(1) and (2) adjust camera parameters for camera 0, 1 and 2." << endl;
 	cout << "Adjust (g) gain or (e) exposure with (+) and (-)" << endl;
 
 	// Setup windows and mouse callback
 	namedWindow(wndCam0, CV_WINDOW_AUTOSIZE);
-	cvSetMouseCallback(wndCam0, mouse_callback, (void*)&frame0Captured);
+	cvSetMouseCallback(wndCam0, mouse_callback, (void*)frameCaptured[0]);
 	namedWindow(wndCam1, CV_WINDOW_AUTOSIZE);
-	cvSetMouseCallback(wndCam1, mouse_callback, (void*)&frame1Captured);
+	cvSetMouseCallback(wndCam1, mouse_callback, (void*)frameCaptured[1]);
+	namedWindow(wndCam2, CV_WINDOW_AUTOSIZE);
+	cvSetMouseCallback(wndCam2, mouse_callback, (void*)frameCaptured[2]);
 
 	// Start main loop
 	int adjustCam = 0;
@@ -204,28 +216,31 @@ void main()
 			frameIdx++;
 
 			detectionCollector.currentFrameIdx = frameIdx;
-			videoInput0->captureFrame(frame0Captured);
-			videoInput1->captureFrame(frame1Captured);
-			if (frame0Captured.empty() || frame1Captured.empty())
+			for(int i=0; i<CAMNUM; i++)
 			{
-				cout << "End of video" << endl;
-				mode=exiting;
-				break;
+				videoInputs[i]->captureFrame(*frameCaptured[i]);
+				if (frameCaptured[i]->empty())
+				{
+					cout << "End of video" << endl;
+					mode=exiting;
+					break;
+				}
+	
+				//frameCaptured[i]->copyTo(*frameUndistorted[i]);
+				cams[i]->undistortImage(*frameCaptured[i],*frameUndistorted[i]);
+
+				// Convert frames from CV_8UC4 to CV_8UC3
+				cvtColor(*frameUndistorted[i],*frame[i],CV_BGRA2BGR);
 			}
-
-			cam0.undistortImage(frame0Captured,frame0Undistorted);
-			cam1.undistortImage(frame1Captured,frame1Undistorted);
-
-			// Convert frames from CV_8UC4 to CV_8UC3
-			cvtColor(frame0Undistorted,frame0,CV_BGRA2BGR);
-			cvtColor(frame1Undistorted,frame1,CV_BGRA2BGR);
 		}
 		
 		// During calibration, search for chessboard and run calibration if it was found.
 		if (mode == calibration)
 		{
-			doCalibration(cam0,detector,frame0);
-			doCalibration(cam1,detector,frame1);
+			for(int i=0; i<CAMNUM; i++)
+			{
+				doCalibration(*cams[i],detector,*frame[i]);
+			}
 		}
 
 		// During tracking, search for marker and calculate location info
@@ -235,20 +250,22 @@ void main()
 			//detectionCollector.startNewFrame();
 
 			// Track marker on both frames
-			detectionCollector.cam = &cam0;
-			doTrackingOnFrame(cam0,frame0,tracker0,frameIdx);
-			detectionCollector.cam = &cam1;
-			doTrackingOnFrame(cam1,frame1,tracker1,frameIdx);
-			
-			// Display rays in both cameras
-			detectionCollector.ShowRaysInFrame(frame0,cam0);
-			detectionCollector.ShowRaysInFrame(frame1,cam1);
+			for(int i=0; i<CAMNUM; i++)
+			{
+				detectionCollector.cam = cams[i];
+				doTrackingOnFrame(*cams[i],*frame[i],*trackers[i],frameIdx);
+	
+				// Display rays in both cameras
+				detectionCollector.ShowRaysInFrame(*frame[i],*cams[i]);
+			}
 		}
 
-		imshow("CAM 0",frame0);
-		imshow("CAM 1",frame1);
-		imshow("CAM 0 CC",*(tracker0.visColorCodeFrame));
-		imshow("CAM 1 CC",*(tracker1.visColorCodeFrame));
+		imshow(wndCam0,*frame[0]);
+		imshow(wndCam1,*frame[1]);
+		imshow(wndCam2,*frame[2]);
+		imshow("CAM 0 CC",*(trackers[0]->visColorCodeFrame));
+		imshow("CAM 1 CC",*(trackers[1]->visColorCodeFrame));
+		imshow("CAM 2 CC",*(trackers[2]->visColorCodeFrame));
 
 		key = waitKey(25);
 		switch(key)
@@ -269,13 +286,17 @@ void main()
 			}
 			break;
 		case 's':	// Set cameras stationary
-			cam0.isStationary = true;
-			cam1.isStationary = true;
+			for(int i=0; i<CAMNUM; i++)
+			{
+				cams[i]->isStationary = true;
+			}
 			cout << "Cameras are now STATIONARY." << endl;
 			break;
 		case 'm':	// Set cameras moving (not stationary)
-			cam0.isStationary = false;
-			cam1.isStationary = false;
+			for(int i=0; i<CAMNUM; i++)
+			{
+				cams[i]->isStationary = false;
+			}
 			cout << "Cameras are now MOVING (not stationary)." << endl;
 			break;
 		case 'c':	// Calibration mode
@@ -294,6 +315,10 @@ void main()
 			adjustCam = 1;
 			cout << "Now adjusting " << getCamParamName(camParam) << " of cam " << adjustCam << endl;
 			break;
+		case '2':	// Adjust cam 2
+			adjustCam = 2;
+			cout << "Now adjusting " << getCamParamName(camParam) << " of cam " << adjustCam << endl;
+			break;
 		case 'e':	// Adjust exposure
 			camParam = exposure;
 			cout << "Now adjusting " << getCamParamName(camParam) << " of cam " << adjustCam << endl;
@@ -303,64 +328,30 @@ void main()
 			cout << "Now adjusting " << getCamParamName(camParam) << " of cam " << adjustCam << endl;
 			break;
 		case '+':	// Increase adjusted parameter
-			if (adjustCam==0)
-			{
-				tmpI = videoInput0->IncrementCameraParameter(getCamParamID(camParam));
-			}
-			else
-			{
-				tmpI = videoInput1->IncrementCameraParameter(getCamParamID(camParam));
-			}
+			tmpI = videoInputs[adjustCam]->IncrementCameraParameter(getCamParamID(camParam));
 			cout << "Increased " << getCamParamName(camParam) << " or camera " << adjustCam << " to " << tmpI << endl;
 			break;
 		case '-':	// Decreases adjusted parameter
-			if (adjustCam==0)
-			{
-				tmpI = videoInput0->DecrementCameraParameter(getCamParamID(camParam));
-			}
-			else
-			{
-				tmpI = videoInput1->DecrementCameraParameter(getCamParamID(camParam));
-			}
+			tmpI = videoInputs[adjustCam]->DecrementCameraParameter(getCamParamID(camParam));
 			cout << "Decreased " << getCamParamName(camParam) << " or camera " << adjustCam << " to " << tmpI << endl;
 			break;
 		case 'r':	// Last clicked color should be red
-			if (adjustCam==0)
-			{
-				tracker0.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_RED);
-			}
-			else
-			{
-				tracker1.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_RED);
-			}
+			trackers[adjustCam]->fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_RED);
 			cout << "Color LUT updated for RED in tracker for cam " << adjustCam << "for color R"<<lastR<<"G"<<lastG<<"B"<<lastB << endl;
 			break;
 		case 'b':	// Last clicked color should be blue
-			if (adjustCam==0)
-			{
-				tracker0.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_BLU);
-			}
-			else
-			{
-				tracker1.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_BLU);
-			}
+			trackers[adjustCam]->fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_BLU);
 			cout << "Color LUT updated for BLU in tracker for cam " << adjustCam << "for color R"<<lastR<<"G"<<lastG<<"B"<<lastB << endl;
 			break;
 		case 'n':	// Last clicked color should be NONE
-			if (adjustCam==0)
-			{
-				tracker0.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_NONE);
-			}
-			else
-			{
-				tracker1.fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_NONE);
-			}
+			trackers[adjustCam]->fastColorFilter.setLutItem(lastR,lastG,lastB,COLORCODE_NONE);
 			cout << "Color LUT updated for NONE in tracker for cam " << adjustCam << "for color R"<<lastR<<"G"<<lastG<<"B"<<lastB << endl;
 			break;
-
 		}
 	}
 	detectionCollector.close();
-	videoInput0->release();
-	videoInput1->release();
+	for(int i=0; i<CAMNUM; i++)
+	{
+		videoInputs[i]->release();
+	}
 }
