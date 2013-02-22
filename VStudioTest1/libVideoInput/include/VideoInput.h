@@ -10,7 +10,7 @@ class VideoInput
 {
 	public:
 		void virtual init(int camID=0) { OPENCV_ASSERT(false,"VideoInput.init(int)","This function should be overridden..."); }
-		void virtual init(char *filename) { OPENCV_ASSERT(false,"VideoInput.init(char*)","This function should be overridden..."); }
+		void virtual init(const char *filename) { OPENCV_ASSERT(false,"VideoInput.init(char*)","This function should be overridden..."); }
 		bool virtual captureFrame(cv::Mat &frame)  { return false; }
 		void virtual release() { }
 
