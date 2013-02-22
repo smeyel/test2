@@ -29,7 +29,11 @@ using namespace TwoColorCircleMarker;
 using namespace MiscTimeAndConfig;
 
 MyConfigManager configManager;
-char *configfilename = "m1test.ini";
+//char *configfilename = "m1_interactive_record1.ini";
+char *configfilename = "m1_interactive_record2wide.ini";
+//char *configfilename = "m1_timing_record1.ini";
+//char *configfilename = "m1_timing_record2wide.ini";
+
 
 const char* wndCam0 = "CAM 0";
 const char* wndCam1 = "CAM 1";
@@ -188,7 +192,7 @@ void main()
 		cams[i] = new Camera();
 		cams[i]->cameraID=i;
 		cams[i]->isStationary=false;
-		cams[i]->loadCalibrationData("test1.xml");
+		cams[i]->loadCalibrationData(configManager.camIntrinsicParamsFileName.data());
 	}
 
 	// Setup marker processing

@@ -17,6 +17,7 @@ class MyConfigManager : public MiscTimeAndConfig::ConfigManagerBase
 		cam0FileName = std::string(ini->GetValue("Main","cam0FileName","",NULL));
 		cam1FileName = std::string(ini->GetValue("Main","cam1FileName","",NULL));
 		cam2FileName = std::string(ini->GetValue("Main","cam2FileName","",NULL));
+		camIntrinsicParamsFileName = std::string(ini->GetValue("Main","camIntrinsicParamsFileName","",NULL));
 		return true;
 	}
 
@@ -30,6 +31,7 @@ public:
 	std::string cam1FileName;
 	std::string cam2FileName;
 	std::string outputFileName;
+	std::string camIntrinsicParamsFileName;
 };
 
 #endif
