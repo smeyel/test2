@@ -115,7 +115,7 @@ public:
 			-7.8517390502797522e+000</data></Distortion_Coefficients>
 		</opencv_storage>
 	*/
-	bool loadCalibrationData(char *filename);
+	bool loadCalibrationData(const char *filename);
 
 	/** Find extrinsic camera parameters using 2D-3D correspondences.
 		TODO: later, potential previous extrinsic parameters can be used as an initial guess...
