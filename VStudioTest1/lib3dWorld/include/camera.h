@@ -56,6 +56,10 @@ public:
 	{
 		return isTSet;
 	}
+	void resetT()
+	{
+		isTSet = false;
+	}
 
 	/** Point: image -> cam (results ray!) */
 	Ray pointImg2Cam(Point2f pImg);
