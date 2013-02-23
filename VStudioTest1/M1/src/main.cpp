@@ -30,10 +30,9 @@ using namespace MiscTimeAndConfig;
 
 MyConfigManager configManager;
 //char *configfilename = "m1_interactive_record1.ini";
-char *configfilename = "m1_interactive_record2wide.ini";
-//char *configfilename = "m1_timing_record1.ini";
+//char *configfilename = "m1_interactive_record2wide.ini";
+char *configfilename = "m1_timing_record1.ini";
 //char *configfilename = "m1_timing_record2wide.ini";
-
 
 const char* wndCam0 = "CAM 0";
 const char* wndCam1 = "CAM 1";
@@ -185,7 +184,7 @@ void main()
 	int tmpI;
 	
 	// Chessboard detection and camera init
-	ChessboardDetector detector(Size(9,6),50);
+	ChessboardDetector detector(Size(9,6),36.1);	// Chessboard cell size is 36x36mm
 	Camera *cams[CAMNUM];
 	for(int i=0; i<CAMNUM; i++)
 	{
