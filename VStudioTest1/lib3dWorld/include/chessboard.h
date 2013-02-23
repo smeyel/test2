@@ -13,19 +13,19 @@ public:
 	/** Vector of 3D corner points. Calculated by the constructors using calcCorners() */
 	std::vector<cv::Point3f> corners;
 	/** Edge size of a single square, in mm. */
-	int squareSize;
+	float squareSize;
 	/** Size of the board: number of internal corners (not number of squares!) as row and column number. */
 	cv::Size boardSize;
 
 	/** Constructor */
-	Chessboard(cv::Size iBoardSize, int iSquareSize);
+	Chessboard(cv::Size iBoardSize, float iSquareSize);
 	/** Constructor */
 	Chessboard(Chessboard& iChessboard);
 	/** Default constructor. Warning: no initialization is performed! Call calcCorners() after setting boardSize and squareSize! */
 	Chessboard();
 
 	/** Calculates coordinates of corners automatically. Called by the constrcutors automatically. */
-	void calcCorners(cv::Size boardSize, int squareSize);
+	void calcCorners(cv::Size boardSize, float squareSize);
 };
 
 

@@ -2,7 +2,7 @@
 
 using namespace cv;
 
-Chessboard::Chessboard(Size iBoardSize, int iSquareSize)
+Chessboard::Chessboard(Size iBoardSize, float iSquareSize)
 {
 	squareSize = iSquareSize;
 	boardSize = iBoardSize;
@@ -20,7 +20,7 @@ Chessboard::Chessboard()
 {
 }
 
-void Chessboard::calcCorners(Size boardSize, int squareSize)
+void Chessboard::calcCorners(Size boardSize, float squareSize)
 {
 	for( int i = 0; i < boardSize.height; ++i )
 		for( int j = 0; j < boardSize.width; ++j )
