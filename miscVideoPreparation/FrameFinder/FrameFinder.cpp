@@ -1,4 +1,5 @@
 #include <iostream>	// for standard I/O
+#include <fstream>	// for standard I/O
 #include <string>   // for strings
 
 #include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
@@ -16,6 +17,9 @@ void help()
 		<< "SPACE   jump to next frame"  << endl
 		<< "    1   jump 1 second (25 frames)"  << endl
 		<< "    5   jump 5 seconds (5*25=125 frames)"  << endl
+		<< "    r   jump reverse one frame"  << endl
+		<< "    b   BEGIN mark" << endl
+		<< "    e   END mark" << endl
 		<< "    x   exit program"  << endl
 		<< "Usage:"                                                               << endl
 		<< "./FrameFinder inputvideoname " << endl
@@ -43,6 +47,8 @@ int main(int argc, char *argv[], char *window_name)
 
 	int ex = static_cast<int>(inputVideo.get(CV_CAP_PROP_FOURCC));     // Get Codec Type- Int form
 
+	ofstream log("log.txt");
+
 	cout << "Input frame number " << inputVideo.get(CV_CAP_PROP_FRAME_COUNT) << endl;
 
 	namedWindow("Video", CV_WINDOW_AUTOSIZE);
@@ -58,15 +64,13 @@ int main(int argc, char *argv[], char *window_name)
 		{
 			break;         // check if at end
 		}
-		cout << "Frame " << framecounter << "\r";
+		framecounter = ((long)inputVideo.get(CV_CAP_PROP_POS_FRAMES) - 1);
+		//cout << "Frame " << framecounter << "\r";
 
 		// Draw frame number on frame
 		char txt[10];
 		sprintf(txt,"%d",framecounter);
 		putText(src,string(txt),Point(20,20),FONT_HERSHEY_PLAIN,1,Scalar(0,255,0),1);
-
-		// Increase frame counter
-		framecounter++;
 
 		// If running forward, start next iteration
 		jumpFrameNum--;
@@ -85,6 +89,9 @@ int main(int argc, char *argv[], char *window_name)
 		case ' ':
 			jumpFrameNum = 1;	// Jump 1 frame
 			break;
+		case 'r':
+			inputVideo.set(CV_CAP_PROP_POS_FRAMES,framecounter-1);
+			break;
 		case '1':
 			jumpFrameNum = 25;	// Jump 25 frames
 			break;
@@ -94,15 +101,28 @@ int main(int argc, char *argv[], char *window_name)
 		case 'x':
 			finished=true;
 			break;
+		case 'b':
+			cout << "BEGIN: " << framecounter << "-" << endl;
+			log << " " << framecounter << "-";
+			break;
+		case 'e':
+			cout << "END: - " << framecounter << endl;
+			log << framecounter << endl;
+			break;
 		default:
 			cout
 				<< "Control keys:"  << endl
 				<< "SPACE   jump to next frame"  << endl
 				<< "    1   jump 1 second (25 frames)"  << endl
 				<< "    5   jump 5 seconds (5*25=125 frames)"  << endl
+				<< "    r   jump reverse one frame"  << endl
+				<< "    b   BEGIN mark" << endl
+				<< "    e   END mark" << endl
 				<< "    x   exit program"  << endl;
 			break;
 		}
 	}
+	log.flush();
+	log.close();
 	return 0;
 }
