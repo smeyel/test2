@@ -11,7 +11,7 @@ class VideoInputGeneric : public VideoInput
 	
 public:
 	void virtual init(int camID);
-	void virtual init(char *filename);
+	void virtual init(const char *filename);
 	bool virtual captureFrame(cv::Mat &frame);
 	void virtual release();
 };

@@ -15,7 +15,7 @@ void VideoInputGeneric::init(int camID)
 	}
 }
 
-void VideoInputGeneric::init(char *filename)
+void VideoInputGeneric::init(const char *filename)
 {
 	capture = new VideoCapture(filename);
 	if (!capture->isOpened())

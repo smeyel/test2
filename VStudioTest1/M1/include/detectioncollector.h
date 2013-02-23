@@ -24,7 +24,7 @@ public:
 	}
 
 	// Output file operations
-	void open(char *filename)	// Should be called before starting export...
+	void open(const char *filename)	// Should be called before starting export...
 	{
 		stream.open(filename);
 	}
@@ -39,7 +39,7 @@ public:
 	{
 		OPENCV_ASSERT(cam!=NULL,"DetectionCollector.writeResult","Cam pointer is NULL, coordinate system is not known.");
 
-		cout << "Marker in cam " << cam->cameraID << endl;
+		//cout << "Marker in cam " << cam->cameraID << endl;
 
 		// Create Ray (3D)
 		Ray newRay = cam->pointImg2World(marker->center);

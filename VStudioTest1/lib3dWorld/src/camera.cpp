@@ -154,7 +154,7 @@ Point2f Camera::pointWorld2Img(Mat pWorld)
 	return pImg;
 }
 
-bool Camera::loadCalibrationData(char *filename)
+bool Camera::loadCalibrationData(const char *filename)
 {
 	FileStorage fs(filename, FileStorage::READ);
     if (!fs.isOpened())
