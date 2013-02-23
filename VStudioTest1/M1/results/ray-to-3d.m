@@ -1,27 +1,47 @@
+function retval = getFrameId(indata) 
+  retval = indata(2);
+endfunction
+
+function retval = getCamId(indata) 
+  retval = indata(1);
+endfunction
+
 indata = dlmread('input.csv',';');
 camcount=2;
-data=zeros(camcount,columns(indata)-1);
+%data=zeros(camcount,columns(indata)-1);
 
 resultcount=0;
+currentFrame = 0;
+markerCount = 0;
+%results=0;
 
 for i=1:rows(indata)
-  data(indata(i,1)+1,:) = indata(i,2:end);
-  ok=1;
-  for j=1:camcount
-    if (data(1,1) != data(j,1))
-      ok = 0;
+  if (indata(i,2) > currentFrame)
+    if (markerCount >= 2)
+      a=data(:,1:4)';
+      b=data(:,5:8)';
+      d=b-a;
+      if (markerCount == 2)
+	D=[-d(:,1),d(:,2)];
+	A=[a(:,2)-a(:,1)];
+      endif
+      if (markerCount == 3)
+	D=[-d(:,1),d(:,2),zeros(4,1);-d(:,1),zeros(4,1),d(:,2)];
+	A=[a(:,2)-a(:,1);a(:,3)-a(:,1)];
+      endif
+      
+      % FIXME works only for two cameras
+%      D=[b(1,:)'-a(1,:)',b(2,:)'-a(2,:)'];
+%      C=(a(2,:)-a(1,:))';
+      t=(D'*D)^-1*D'*A;
+      resultcount=resultcount+1;
+      results(resultcount,:)=(a(:,1)+d(:,1)*t(1))';
     endif
-  endfor
-  if (ok == 1)
-    a=data(:,2:5);
-    b=data(:,6:9);
-    % FIXME works only for two cameras
-    D=[b(1,:)'-a(1,:)',b(2,:)'-a(2,:)'];
-    C=(a(2,:)-a(1,:))';
-    t=(D'*D)^-1*D'*C;
-    resultcount=resultcount+1;
-    results(resultcount,:)=(a(1,:)+(b(1,:)-a(1,:))*t(1));
+    currentFrame = indata(i,2);
+    markerCount = 0;
   endif
+  markerCount = markerCount + 1;
+  data(markerCount,:) = indata(i,3:end);
 endfor
 
 dlmwrite('3d-points.csv',results(:,1:3),' ');
