@@ -103,7 +103,7 @@ int main(int argc, char *argv[], char *window_name)
 			break;
 		case 'b':
 			cout << "BEGIN: " << framecounter << "-" << endl;
-			log << " " << framecounter << "-";
+			log << " " << framecounter << ";";
 			break;
 		case 'e':
 			cout << "END: - " << framecounter << endl;
