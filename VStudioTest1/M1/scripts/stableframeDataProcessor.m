@@ -17,6 +17,9 @@ idx = find(usedRayNumber == 3);
 plot3(points(idx,1),points(idx,2),points(idx,3),'ro','MarkerSize',5,'MarkerFaceColor','r');
 legend('2 rays','3 rays');
 grid on;
+xlabel('X');
+ylabel('Y');
+zlabel('Z');
 %saveas(h,'m1_results.png','png');
 %saveas(h,'m1_results.eps','eps');
 
