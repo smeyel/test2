@@ -76,10 +76,12 @@ groundTruth=[ ...
 
 h = figure;
 bar(distance);
+xlabel('Location index');
 ylabel('relative distance');
 
 h = figure;
 bar(distance-groundTruth);
+xlabel('Location index');
 ylabel('relative distance error');
 
 
