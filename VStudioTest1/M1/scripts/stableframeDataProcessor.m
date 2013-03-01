@@ -1,10 +1,10 @@
 clear;
 indata = dlmread('rayto3d_result.csv',' ');
-points = indata(:,1:3);
+points = [indata(:,1) -indata(:,3) indata(:,2)];
 usedFrameIndex = indata(:,4);
 usedRayNumber = indata(:,5);
 % Load list of stable frame intervals
-stableframes = dlmread('stableframes_m1_recording1.csv',';');
+stableframes = dlmread('stableframes_m1_recording2.csv',';');
 
 % visualization - show result point
 h = figure;
@@ -17,9 +17,9 @@ idx = find(usedRayNumber == 3);
 plot3(points(idx,1),points(idx,2),points(idx,3),'ro','MarkerSize',5,'MarkerFaceColor','r');
 legend('2 rays','3 rays');
 grid on;
-xlabel('X');
-ylabel('Y');
-zlabel('Z');
+xlabel('X');    % Chessboard coordinate system
+ylabel('Z');
+zlabel('Y');
 %saveas(h,'m1_results.png','png');
 %saveas(h,'m1_results.eps','eps');
 

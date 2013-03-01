@@ -28,15 +28,15 @@ idx = find(res(:,5) == 3);
 plot3(res(idx,2),res(idx,3),res(idx,4),'ro','MarkerSize',5,'MarkerFaceColor','r');
 legend('2 rays','3 rays');
 grid on;
-xlabel('X');
-ylabel('Y');
-zlabel('Z');
+xlabel('X');    % Chessboard coordinate system
+ylabel('Z');
+zlabel('Y');
 %saveas(h,'m1_results_stableOnly.png','png');
 %saveas(h,'m1_results_stableOnly.eps','eps');
 
 % Visualize statistics
 h = figure;
-bar(LocationStdAll);
+bar(LocationStdAll(:,[1 3 2]));
 axis([1 size(LocationStdAll,1) 0 2]);
 legend('X','Y','Z');
 xlabel('Location index');

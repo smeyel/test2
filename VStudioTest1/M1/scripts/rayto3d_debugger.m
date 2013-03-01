@@ -4,6 +4,7 @@ indata = dlmread('m1_timing_record2_output.csv',';');
 
 doVerboseRays=0;
 maxFrameNum=0;  % if 0, all frames are processed
+skipCAM0=1;
 
 %camcount=2;
 %data=zeros(camcount,columns(indata)-1);
@@ -76,7 +77,7 @@ for i=1:size(indata,1)
     currentFrame = indata(i,2);
     markerCount = 0;
   end
-  if (indata(i,1)~=0)   % skip CAM0
+  if (indata(i,1)~=0 && skipCAM0==1)   % skip CAM0
       markerCount = markerCount + 1;
       data(markerCount,:) = indata(i,3:end);
   end
