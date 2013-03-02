@@ -13,4 +13,5 @@ Debug/
 ipch/
 Release/
 *.txt
-
+*.csv
+*~

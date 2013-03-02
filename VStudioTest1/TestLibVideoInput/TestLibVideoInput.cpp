@@ -19,8 +19,8 @@
 #include <opencv2/core/core.hpp>        // Basic OpenCV structures (cv::Mat)
 #include <opencv2/highgui/highgui.hpp>  // Video write
 
-#include "VideoInputGeneric.h"
-#include "VideoInputPs3Eye.h"
+#include "VideoInput.h"
+#include "VideoInputFactory.h"
 
 using namespace std;
 using namespace cv;
@@ -29,9 +29,10 @@ using namespace cv;
 int main()
 {
 	//VideoInputGeneric cam1,cam2;
-	VideoInputPs3Eye cam1,cam2;
-	cam1.init(0);
-	cam2.init(1);
+	VideoInput *cam1 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
+	VideoInput *cam2 = VideoInputFactory::CreateVideoInput(VIDEOINPUTTYPE_PS3EYE);
+	cam1->init(0);
+	cam2->init(1);
 
 	printf("Use the following keys to change camera parameters:\n"
 		"\t'1' - select camera 1\n"
@@ -48,8 +49,8 @@ int main()
 	char key;
 	while((key = cvWaitKey(25)) != 27)
 	{
-		cam1.captureFrame(image1);
-		cam2.captureFrame(image2);
+		cam1->captureFrame(image1);
+		cam2->captureFrame(image2);
 
 		imshow("Default video input 1",image1);
 		imshow("Default video input 2",image2);

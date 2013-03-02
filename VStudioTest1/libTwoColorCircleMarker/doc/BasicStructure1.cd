@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="TwoColorCircleMarker::FastColorFilter">
+    <Position X="2.5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>CRAAAAAIAAAAJACAAACFoAAAIAEkAAIgAAAAAAQBBSg=</HashCode>
+      <FileName>include\FastColorFilter.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TwoColorCircleMarker::TwoColorLocator">
+    <Position X="4.25" Y="0.75" Width="1.5" />
+    <NestedTypes>
+      <Class Name="TwoColorCircleMarker::TwoColorLocator::ConfigManager" Collapsed="true">
+        <TypeIdentifier>
+          <NewMemberFileName>include\TwoColorLocator.h</NewMemberFileName>
+        </TypeIdentifier>
+      </Class>
+    </NestedTypes>
+    <TypeIdentifier>
+      <HashCode>AAAAAABAIABEAIAEAAAAAAAAAAAAAAIAEAAAAAAAAAA=</HashCode>
+      <FileName>include\TwoColorLocator.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TwoColorCircleMarker::MarkerCC2Locator">
+    <Position X="6" Y="0.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAEAAADAAAAAAAACABAAAIAAAAIAAAAAEAAAAAA=</HashCode>
+      <FileName>include\MarkerCC2Locator.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TwoColorCircleMarker::MarkerCC2" Collapsed="true">
+    <Position X="11" Y="4" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>xEAAAAAgAEBECIAAAICIQQAAQAAIAAYABAgQIAAAADA=</HashCode>
+      <FileName>include\MarkerCC2.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TwoColorCircleMarker::MarkerBase">
+    <Position X="8" Y="4.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAgAAAAAAAAAAAAAAACAAgAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>include\MarkerBase.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TwoColorCircleMarker::DetectionResultExporterBase">
+    <Position X="9.75" Y="1" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>include\DetectionResultExporterBase.h</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

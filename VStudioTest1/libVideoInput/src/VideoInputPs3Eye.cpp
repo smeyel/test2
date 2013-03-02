@@ -1,4 +1,6 @@
 #include "VideoInputPs3Eye.h"
+#include "VideoInputPs3EyeParameters.h"
+
 #include "CLEyeMulticam.h"
 
 using namespace cv;
@@ -21,6 +23,7 @@ void VideoInputPs3Eye::init(int camID)
 	//PBYTE pCapBuffer = NULL;
 	// Create camera instance
 	_cam = CLEyeCreateCamera(_cameraGUID, _mode, _resolution, _fps);
+	CV_Assert(_cam != NULL);
 	if(_cam == NULL)		return;
 	// Get camera frame dimensions
 	CLEyeCameraGetFrameDimensions(_cam, w, h);
@@ -37,8 +40,8 @@ void VideoInputPs3Eye::init(int camID)
 
 bool VideoInputPs3Eye::captureFrame(Mat &frame)
 {
-	//CV_Assert(frame.rows == h);
-	//CV_Assert(frame.cols == w);
+	CV_Assert(frame.rows == h);
+	CV_Assert(frame.cols == w);
 	//CV_Assert(frame.type() == (_mode == CLEYE_COLOR_PROCESSED ? CV_8UC4 : CV_8UC1 ));
 
 	CLEyeCameraGetFrame(_cam, frame.data);
@@ -47,9 +50,50 @@ bool VideoInputPs3Eye::captureFrame(Mat &frame)
 
 void VideoInputPs3Eye::release()
 {
-	// Stop camera capture
-	CLEyeCameraStop(_cam);
-	// Destroy camera object
-	CLEyeDestroyCamera(_cam);
-	_cam = NULL;
+	if (_cam != NULL)
+	{
+		// Stop camera capture
+		CLEyeCameraStop(_cam);
+		// Destroy camera object
+		CLEyeDestroyCamera(_cam);
+		_cam = NULL;
+	}
+}
+
+int VideoInputPs3Eye::GetCameraParameterCode(int param)
+{
+	int ClEyeSpecificParamCode = -1;
+	switch (param)
+	{
+	case VIDEOINPUTPS3EYEPARAMETERS_GAIN:
+		ClEyeSpecificParamCode = CLEYE_GAIN;
+		break;
+	case VIDEOINPUTPS3EYEPARAMETERS_EXPOSURE:
+		ClEyeSpecificParamCode = CLEYE_EXPOSURE;
+		break;
+	}
+	return ClEyeSpecificParamCode;
+}
+
+
+int VideoInputPs3Eye::IncrementCameraParameter(int param)
+{
+	if (!_cam)
+	{
+		return 0;
+	}
+	param = GetCameraParameterCode(param);
+	CLEyeSetCameraParameter(_cam, (CLEyeCameraParameter)param, CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param)+10);
+	return CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param);
+}
+
+int VideoInputPs3Eye::DecrementCameraParameter(int param)
+{
+	if (!_cam)
+	{
+		return 0;
+	}
+	param = GetCameraParameterCode(param);
+	CLEyeSetCameraParameter(_cam, (CLEyeCameraParameter)param, CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param)-10);
+	return CLEyeGetCameraParameter(_cam, (CLEyeCameraParameter)param);
 }

@@ -15,10 +15,10 @@ void VideoInputGeneric::init(int camID)
 	}
 }
 
-void VideoInputGeneric::init(char *filename)
+void VideoInputGeneric::init(const char *filename)
 {
-	VideoCapture capture(filename);
-	if (!capture.isOpened())
+	capture = new VideoCapture(filename);
+	if (!capture->isOpened())
 	{
 		cout << "Cannot open input file: " << filename << endl;
 	}
