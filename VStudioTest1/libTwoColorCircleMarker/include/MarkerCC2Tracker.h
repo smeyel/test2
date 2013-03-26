@@ -122,7 +122,7 @@ namespace TwoColorCircleMarker
 
 		/** Destructor
 		*/
-		MarkerCC2Tracker::~MarkerCC2Tracker();
+		~MarkerCC2Tracker();
 		
 		/** Wrapper method to set the DetectionResultExporterBase property of the MarkerCC2Locator.
 			Use it to define the data export target.
