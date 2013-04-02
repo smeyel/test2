@@ -204,7 +204,7 @@ bool Camera::calculateExtrinsicParamsIfNeeded(vector<Point3f> objectPoints, vect
 {
 	if (!isStationary || !isTSet)
 	{
-		return calculateExtrinsicParamsIfNeeded(objectPoints, imagePoints);
+		return calculateExtrinsicParams(objectPoints, imagePoints);
 	}
 	return false;
 }
