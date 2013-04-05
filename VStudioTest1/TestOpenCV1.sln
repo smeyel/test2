@@ -25,6 +25,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TestLib3dWorld", "TestLib3d
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "M1", "M1\M1.vcxproj", "{B166300B-490D-4649-A438-9350F72C990E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "M2", "M2\M2.vcxproj", "{4E7783CA-3C3D-419F-BB23-5E4C232233BD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DummySmartphone", "DummySmartphone\DummySmartphone.vcxproj", "{2C7AF266-7907-4419-9573-124D1430CD18}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -75,6 +79,14 @@ Global
 		{B166300B-490D-4649-A438-9350F72C990E}.Debug|Win32.Build.0 = Debug|Win32
 		{B166300B-490D-4649-A438-9350F72C990E}.Release|Win32.ActiveCfg = Release|Win32
 		{B166300B-490D-4649-A438-9350F72C990E}.Release|Win32.Build.0 = Release|Win32
+		{4E7783CA-3C3D-419F-BB23-5E4C232233BD}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4E7783CA-3C3D-419F-BB23-5E4C232233BD}.Debug|Win32.Build.0 = Debug|Win32
+		{4E7783CA-3C3D-419F-BB23-5E4C232233BD}.Release|Win32.ActiveCfg = Release|Win32
+		{4E7783CA-3C3D-419F-BB23-5E4C232233BD}.Release|Win32.Build.0 = Release|Win32
+		{2C7AF266-7907-4419-9573-124D1430CD18}.Debug|Win32.ActiveCfg = Debug|Win32
+		{2C7AF266-7907-4419-9573-124D1430CD18}.Debug|Win32.Build.0 = Debug|Win32
+		{2C7AF266-7907-4419-9573-124D1430CD18}.Release|Win32.ActiveCfg = Release|Win32
+		{2C7AF266-7907-4419-9573-124D1430CD18}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
