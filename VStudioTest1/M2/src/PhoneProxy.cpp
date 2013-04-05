@@ -14,6 +14,7 @@ using namespace std;
 #include <winsock.h>
 #include <io.h>
 
+#include "../include/PhoneProxy.h"
 
 #define RCVBUFSIZE 8192
 
@@ -23,28 +24,6 @@ static void error_exit(char *errorMessage) {
     exit(EXIT_FAILURE);
 }
 
-
-
-
-// ----------------------------------------------------------------------------
-
-class PhoneProxy
-{
-private:
-	SOCKET sock;
-
-public:
-	void Connect(char *ip, int port);
-	void Disconnect();
-
-	void RequestPhoto(int desiredTimeStamp);
-	void RequestPing();
-	void Receive(char *filename);	// For PONG, filename has no effect.
-	void ReceiveDebug();
-
-private:
-	void ProcessIncomingJSON(int sock,char *buffer, char *filename);
-};
 
 void PhoneProxy::RequestPhoto(int desiredTimeStamp)
 {
@@ -112,8 +91,9 @@ void PhoneProxy::ReceiveDebug()
 {
 	// Receive response
 	char buffer[RCVBUFSIZE] = "";
+	cout << "DEBUG RECEIVING:" << endl;
 	int received = recv(sock, buffer, RCVBUFSIZE, 0);
-	cout << "DEBUG RECEIVE:" << endl << buffer << endl << "END RECEIVE" << endl;
+	cout << "DEBUG RECEIVED:" << endl << buffer << endl << "END RECEIVE" << endl;
 	return;
 }
 
@@ -237,35 +217,3 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 	}
 }
 
-
-int old_main( int argc, char *argv[])
-{
-	char *ip = "152.66.173.64";
-	int port = 6000;
-	PhoneProxy proxy;
-
-	char tmpBuff[100];
-/*	cout << "Press enter to start connecting..." << endl;
-	cin >> tmpBuff;*/
-
-/*	proxy.Connect(ip,port);
-	proxy.RequestPing();
-	proxy.Receive("d:\\temp\\nothing.txt");
-	proxy.Disconnect();*/
-
-	proxy.Connect(ip,port);
-	proxy.RequestPhoto(0);
-	proxy.Receive("d:\\temp\\image1.jpg");
-	//proxy.ReceiveDebug();
-	//proxy.Disconnect();
-	proxy.Connect(ip,port);
-	proxy.RequestPhoto(0);
-	proxy.Receive("d:\\temp\\image2.jpg");
-
-	proxy.Disconnect();
-	cout << "Press enter to finish..." << endl;
-	cin >> tmpBuff;
-
-
-	return EXIT_SUCCESS;
-}
