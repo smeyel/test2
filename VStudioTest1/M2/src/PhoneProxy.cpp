@@ -25,11 +25,14 @@ static void error_exit(char *errorMessage) {
 }
 
 
-void PhoneProxy::RequestPhoto(int desiredTimeStamp)
+void PhoneProxy::RequestPhoto(_int64 desiredTimeStamp)
 {
     char buffer[100];
     int len;
-	sprintf(buffer,"{ \"type\": \"takepicture\", \"desiredtimestamp\": \"%d\" }",desiredTimeStamp);
+
+	char buf[50];
+	_i64toa(desiredTimeStamp,buf,10);
+	sprintf(buffer,"{ \"type\": \"takepicture\", \"desiredtimestamp\": \"%s\" }",buf);
     len = strlen(buffer);
 
     if (send(sock, buffer, len, 0) != len)
@@ -168,7 +171,11 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 		int len = posTimeStampValueEnd-posTimeStampValue;
 		strncpy(tmpS, posTimeStampValue, len );
 		*(tmpS+len) = 0;
-		int timestamp = atoi(tmpS);
+		_int64 timestamp = _atoi64(tmpS);
+		if (errno == ERANGE)
+		{
+			*log << "ERROR: Timestamp out of \"32 bit long\" range: " << tmpS << endl;
+		}
 
 		char *posSize = strstr(buffer,"size");
 		char *posSizeValue = posSize + 7;
@@ -179,6 +186,7 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 		int jpegSize = atoi(tmpS);
 
 		cout << "Receiving JPEG. Timestamp=" << timestamp << ", size=" << jpegSize << endl;
+		lastReceivedTimeStamp = timestamp;
 		*log << "JPEG size: " << jpegSize << endl;
 	
 		char receiveBuffer[RCVBUFSIZE];

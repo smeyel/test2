@@ -70,7 +70,7 @@ void main()
 
 		char *ip = "152.66.173.130";
 		int port = 6000;
-		PhoneProxy proxy;
+		PhoneProxy proxy(&log);
 
 		char tmpBuff[100];
 		/*cout << "Press enter to start connecting..." << endl;
@@ -82,27 +82,50 @@ void main()
 		//proxy.Receive("d:\\temp\\nothing.txt");
 		proxy.Disconnect();*/
 
-		proxy.log = &log;
+		_int64 desiredTimeStamp = 0;
+		_int64 last1PictureTimeStamp = 0;	// Last timestamp
+		_int64 last2PictureTimeStamp = 0;	// Timestamp before the last one
+		_int64 interPictureTime = 0;
 
-		for(int i=0; i<10; i++)
+		for(int i=0; i<100; i++)
 		{
+			// Calculate desiredTimeStamp
+			if (interPictureTime==0 && last2PictureTimeStamp>0)
+			{
+				// Calculate time between the first two images
+				interPictureTime = last1PictureTimeStamp - last2PictureTimeStamp;
+			}
+
+			if (interPictureTime==0)
+			{
+				// Unknown inter-picture time (we do not know the frequency of the timestamp!!!)
+				desiredTimeStamp = 0;
+			}
+			else
+			{
+				desiredTimeStamp = last1PictureTimeStamp + interPictureTime * 2;
+			}
+
+			// Asking for a picture
 			timeMeasurement.start(M2::TimeMeasurementCodeDefs::FrameAll);
 			cout << "Capture No " << i << "..." << endl;
 			cout << "Connecting..." << endl;
 			proxy.Connect(ip,port);
 			cout << "Requesing photo..." << endl;
 			timeMeasurement.start(M2::TimeMeasurementCodeDefs::Send);
-			proxy.RequestPhoto(0);
+			proxy.RequestPhoto(desiredTimeStamp);
 			timeMeasurement.finish(M2::TimeMeasurementCodeDefs::Send);
 			cout << "Receiving photo..." << endl;
 			timeMeasurement.start(M2::TimeMeasurementCodeDefs::WaitAndReceive);
 			proxy.Receive("d:\\temp\\image1.jpg");
 			//proxy.ReceiveDebug();
 			timeMeasurement.finish(M2::TimeMeasurementCodeDefs::WaitAndReceive);
+			last2PictureTimeStamp = last1PictureTimeStamp;
+			last1PictureTimeStamp = proxy.lastReceivedTimeStamp;
 			cout << "Disconnecting..." << endl;
 			proxy.Disconnect();
 			timeMeasurement.finish(M2::TimeMeasurementCodeDefs::FrameAll);
-			Sleep(3000);
+			Sleep(500);
 		}
 
 		/*cout << "Connecting..." << endl;

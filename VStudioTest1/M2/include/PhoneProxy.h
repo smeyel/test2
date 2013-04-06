@@ -10,11 +10,18 @@ private:
 
 public:
 	std::ofstream *log;
+	_int64 lastReceivedTimeStamp;
+
+	PhoneProxy(std::ofstream *aLog)
+	{
+		lastReceivedTimeStamp = 0;
+		log = aLog;
+	}
 
 	void Connect(char *ip, int port);
 	void Disconnect();
 
-	void RequestPhoto(int desiredTimeStamp);
+	void RequestPhoto(_int64 desiredTimeStamp);
 	void RequestPing();
 	void Receive(char *filename);	// For PONG, filename has no effect.
 	void ReceiveDebug();
