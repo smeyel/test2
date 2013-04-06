@@ -82,6 +82,8 @@ void main()
 		//proxy.Receive("d:\\temp\\nothing.txt");
 		proxy.Disconnect();*/
 
+		proxy.log = &log;
+
 		for(int i=0; i<10; i++)
 		{
 			timeMeasurement.start(M2::TimeMeasurementCodeDefs::FrameAll);

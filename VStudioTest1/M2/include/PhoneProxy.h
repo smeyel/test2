@@ -1,5 +1,6 @@
 #ifndef __PHONEPROXY_H
 #define __PHONEPROXY_H
+#include <fstream>
 #include <winsock.h>
 
 class PhoneProxy
@@ -8,6 +9,8 @@ private:
 	SOCKET sock;
 
 public:
+	std::ofstream *log;
+
 	void Connect(char *ip, int port);
 	void Disconnect();
 
