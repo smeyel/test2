@@ -87,7 +87,7 @@ void main()
 		_int64 last2PictureTimeStamp = 0;	// Timestamp before the last one
 		_int64 interPictureTime = 0;
 
-		for(int i=0; i<100; i++)
+		for(int i=0; i<55; i++)	// First 2 photos do not have desired timestamp...
 		{
 			// Calculate desiredTimeStamp
 			if (interPictureTime==0 && last2PictureTimeStamp>0)
