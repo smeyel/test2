@@ -65,11 +65,10 @@ void main()
 	int frameIdx = 0;
 	while(running)
 	{
-		timeMeasurement.start(M2::TimeMeasurementCodeDefs::FrameAll);
 
 		// Request image from the phone
 
-		char *ip = "152.66.173.64";
+		char *ip = "152.66.173.130";
 		int port = 6000;
 		PhoneProxy proxy;
 
@@ -85,6 +84,7 @@ void main()
 
 		for(int i=0; i<10; i++)
 		{
+			timeMeasurement.start(M2::TimeMeasurementCodeDefs::FrameAll);
 			cout << "Capture No " << i << "..." << endl;
 			cout << "Connecting..." << endl;
 			proxy.Connect(ip,port);
@@ -99,6 +99,7 @@ void main()
 			timeMeasurement.finish(M2::TimeMeasurementCodeDefs::WaitAndReceive);
 			cout << "Disconnecting..." << endl;
 			proxy.Disconnect();
+			timeMeasurement.finish(M2::TimeMeasurementCodeDefs::FrameAll);
 			Sleep(3000);
 		}
 
@@ -119,7 +120,6 @@ void main()
 
 		running = false;
 
-		timeMeasurement.finish(M2::TimeMeasurementCodeDefs::FrameAll);
 		frameIdx++;
 	}
 	timeMeasurement.finish(M2::TimeMeasurementCodeDefs::FullExecution);

@@ -202,7 +202,7 @@ void PhoneProxy::ProcessIncomingJSON(int sock,char *buffer, char *filename)
 			if (outFile.is_open()) 
 			{
 				outFile.write(receiveBuffer, received); 
-				cout << " (Total: " << jpegBytes << " B)" << endl;
+				//cout << " (Total: " << jpegBytes << " B)" << endl;
 			}
 			else
 			{
