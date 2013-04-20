@@ -7,6 +7,8 @@
 
 #include "TimeMeasurementCodeDefines.h"
 
+#include "Logger.h"
+
 // Maximal distance we look for the border of a rectangle
 #define MAXSCANDISTANCE 100
 #define MAXINVALIDCOLORNUM 20	// Number of non-blue pixels we pass while searching for red...
@@ -16,6 +18,9 @@
 using namespace cv;
 using namespace std;
 using namespace TwoColorCircleMarker;
+using namespace Logging;
+
+#define LOG_TAG "SMEyeL::TwoColorLocator"
 
 // Config manager
 bool TwoColorLocator::ConfigManager::readConfiguration(CSimpleIniA *ini)
@@ -111,7 +116,7 @@ void TwoColorLocator::consolidateFastColorFilterRects(Rect* candidateRects, int 
 
 	if (configManager.verboseTxt_RectConsolidationSummary)
 	{
-		cout << "Rect consolidation effect: " << initialRectNum << " rect -> " << resultRectNum << endl;
+		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "Rect consolidation effect: %d rect -> %d\n", initialRectNum, resultRectNum);
 	}
 }
 
@@ -134,7 +139,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 	{
 		if (configManager.verboseTxt_RectConsolidation)
 		{
-			cout << "TwoColorLocator::updateRectToRealSize(): horizontal -> REJECT" << endl;
+			Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "TwoColorLocator::updateRectToRealSize(): horizontal -> REJECT\n");
 		}
 		return false;
 	}
@@ -144,7 +149,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 
 	if (configManager.verboseTxt_RectConsolidation)
 	{
-		cout << "Rect consolidation: x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height;
+		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "Rect consolidation: x%d y%d w%d h%d", newRect.x, newRect.y, newRect.width, newRect.height);
 	}
 	// Update rect sizes (if the borders were really found)
 	if (topLength != -1 && bottomLength != -1)
@@ -155,7 +160,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 		newRect.height = topLength + bottomLength;
 		if (configManager.verboseTxt_RectConsolidation)
 		{
-			cout << " -> x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height << endl;
+			Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, " -> x%d y%d w%d h%d\n", newRect.x, newRect.y, newRect.width, newRect.height);
 		}
 		return true;
 	}
@@ -163,7 +168,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 	{
 		if (configManager.verboseTxt_RectConsolidation)
 		{
-			cout << " -> REJECT" << endl;
+			Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, " -> REJECT\n");
 		}
 		return false;
 	}

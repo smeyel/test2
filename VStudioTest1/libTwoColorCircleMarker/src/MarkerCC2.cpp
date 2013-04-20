@@ -10,6 +10,7 @@
 
 #include "TimeMeasurementCodeDefines.h"
 #include "ConfigManagerBase.h"
+#include "Logger.h"
 
 #define COLORCODE_INITIAL 254	// Used to indicate no valid value, even no "unrecognized color"
 #define MAXINVALIDCOLORNUM 10	// Line scanning stops after so many pixels with invalid color (used by ellipse fitting)
@@ -17,6 +18,9 @@
 using namespace cv;
 using namespace std;
 using namespace TwoColorCircleMarker;
+using namespace Logging;
+
+#define LOG_TAG "SMEyeL::MarkerCC2"
 
 // Config manager
 MarkerCC2::ConfigManager MarkerCC2::configManager;
@@ -251,7 +255,7 @@ bool MarkerCC2::findBordersAlongLine(Mat &srcCC, int dir)
 					// This cannot be OK.
 					if (configManager.verboseTxt_LineRejectionReason)
 					{
-						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir="<<dir<<endl;
+						Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "MarkerCC2.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir=%d\n", dir);
 					}
 					return false;	// Immediate reject
 				}
@@ -269,7 +273,7 @@ bool MarkerCC2::findBordersAlongLine(Mat &srcCC, int dir)
 					// Green cannot come here. If it does, marker is rejected.
 					if (configManager.verboseTxt_LineRejectionReason)
 					{
-						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir="<<dir<<endl;
+						Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "MarkerCC2.findBordersAlongLine() LineRejection reson: found GRN after BLU, dir=%d\n", dir);
 					}
 					return false;	// Immediate reject
 				}
@@ -287,7 +291,7 @@ bool MarkerCC2::findBordersAlongLine(Mat &srcCC, int dir)
 					// Blue cannot come here. Marker is rejected
 					if (configManager.verboseTxt_LineRejectionReason)
 					{
-						cout << "MarkerCC2.findBordersAlongLine() LineRejection reson: found BLU after RED, dir="<<dir<<endl;
+						Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "MarkerCC2.findBordersAlongLine() LineRejection reson: found BLU after RED, dir=%d\n", dir);
 					}
 					return false;	// Immediate reject
 					break;
@@ -366,7 +370,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	// --- Meanwhile find the green location (start direction)
 	if (configManager.verboseTxt_MarkerCodeValidation )
 	{
-		cout << "rawBits:";
+		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "rawBits:");
 	}
 
 	bool isGreen;
@@ -400,16 +404,16 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 			{
 				if (greenRunLength>1)
 				{
-					cout << "G";	// longer green sequence
+					Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "G");	// longer green sequence
 				}
 				else
 				{
-					cout << "g";	// short green sequence
+					Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "g");	// short green sequence
 				}
 			}
 			else
 			{
-				cout << rawbits[bitIdx];
+				Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "%d", rawbits[bitIdx]);
 			}
 		}
 
@@ -431,7 +435,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 
 	if (configManager.verboseTxt_MarkerCodeValidation )
 	{
-		cout << ", GRN@(" << firstGreenIdx << "-" << lastGreenIdx << ")->" << greenIdx << endl;
+		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, ", GRN@(%d-%d)->%d\n", firstGreenIdx, lastGreenIdx, greenIdx);
 	}
 
 	// --- Reorder bits to start from the green location
@@ -448,7 +452,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	// Calculate code
 	if (configManager.verboseTxt_MarkerCodeValidation )
 	{
-		cout << "GrnIdx:" << greenIdx << ", code: ";
+		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "GrnIdx:%d, code: ", greenIdx);
 	}
 	for(int i=0; i<8; i++)
 	{
@@ -456,7 +460,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 		finalBits[i] = rawbits[realBitIdx[i]];
 		if (configManager.verboseTxt_MarkerCodeValidation )
 		{
-			cout << finalBits[i];
+			Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "%d", finalBits[i]);
 		}
 		code |= finalBits[i];
 		if (i<7)
@@ -491,7 +495,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	// Verbose codes
 	if (configManager.verboseTxt_MarkerCodeValidation )
 	{
-		cout << ", code=" << code << endl;
+		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, ", code=%u\n", code);
 	}
 
 	MarkerID = code;

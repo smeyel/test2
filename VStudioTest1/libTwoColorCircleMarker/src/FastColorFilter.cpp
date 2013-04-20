@@ -6,7 +6,12 @@
 
 #include "FastColorFilter.h"
 
+#include "Logger.h"
+
 using namespace std;
+using namespace Logging;
+
+#define LOG_TAG "SMEyeL::FastColorFilter"
 
 // REG colors for "unknown color"
 #define NONE_R	100
@@ -140,7 +145,7 @@ void FastColorFilter::RegisterDetection(int row, int colStart, int colEnd)
 		if (!foundFreeDetectionRect)
 		{
 			// Send warning in this case!
-			std::cout << "WARNING: FastColorFilter: no enough detection rectangle space to store detections!" << std::endl;
+			Logger::log(Logger::LOGLEVEL_WARNING, LOG_TAG, "WARNING: FastColorFilter: no enough detection rectangle space to store detections!\n");
 		}
 	}
 }
@@ -168,7 +173,7 @@ void FastColorFilter::FinishRow(int rowIdx)
 			if (nextFreeCandidateRectIdx >= MAXCANDIDATERECTNUM)
 			{
 				nextFreeCandidateRectIdx = MAXCANDIDATERECTNUM-1;
-				std::cout << "WARNING: FastColorFilter: no enough candidate marker rectangle space!" << std::endl;
+				Logger::log(Logger::LOGLEVEL_WARNING, LOG_TAG, "WARNING: FastColorFilter: no enough candidate marker rectangle space!\n");
 			}
 
 			// Delete detection rect
