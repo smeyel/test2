@@ -357,6 +357,9 @@ CvPoint MarkerCC2::getEndPoint(int x, int y, int distance, int dir)
 //	this method calculates the final marker ID and validates it.
 void MarkerCC2::validateAndConsolidateMarkerCode()
 {
+	// for collecting log data
+	std::stringstream logMsg;
+
 	// Get binary bits and finds green color
 	int rawbits[32];
 	// helper variables to find best green index
@@ -370,7 +373,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	// --- Meanwhile find the green location (start direction)
 	if (configManager.verboseTxt_MarkerCodeValidation )
 	{
-		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "rawBits:");
+		logMsg << "rawBits:";
 	}
 
 	bool isGreen;
@@ -404,16 +407,16 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 			{
 				if (greenRunLength>1)
 				{
-					Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "G");	// longer green sequence
+					logMsg << "G";	// longer green sequence
 				}
 				else
 				{
-					Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "g");	// short green sequence
+					logMsg << "g";	// short green sequence
 				}
 			}
 			else
 			{
-				Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "%d", rawbits[bitIdx]);
+				logMsg << rawbits[bitIdx];
 			}
 		}
 
@@ -435,7 +438,9 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 
 	if (configManager.verboseTxt_MarkerCodeValidation )
 	{
-		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, ", GRN@(%d-%d)->%d\n", firstGreenIdx, lastGreenIdx, greenIdx);
+		logMsg << ", GRN@(" << firstGreenIdx << "-" << lastGreenIdx << ")->" << greenIdx << endl;
+		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, logMsg.str().c_str());
+		logMsg.str(""); // clear
 	}
 
 	// --- Reorder bits to start from the green location
@@ -452,7 +457,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	// Calculate code
 	if (configManager.verboseTxt_MarkerCodeValidation )
 	{
-		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "GrnIdx:%d, code: ", greenIdx);
+		logMsg << "GrnIdx:" << greenIdx << ", code: ";
 	}
 	for(int i=0; i<8; i++)
 	{
@@ -460,7 +465,7 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 		finalBits[i] = rawbits[realBitIdx[i]];
 		if (configManager.verboseTxt_MarkerCodeValidation )
 		{
-			Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "%d", finalBits[i]);
+			logMsg << finalBits[i];
 		}
 		code |= finalBits[i];
 		if (i<7)
@@ -495,7 +500,9 @@ void MarkerCC2::validateAndConsolidateMarkerCode()
 	// Verbose codes
 	if (configManager.verboseTxt_MarkerCodeValidation )
 	{
-		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, ", code=%u\n", code);
+		logMsg << ", code=" << code << endl;
+		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, logMsg.str().c_str());
+		logMsg.str(""); // clear
 	}
 
 	MarkerID = code;

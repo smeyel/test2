@@ -123,6 +123,11 @@ void TwoColorLocator::consolidateFastColorFilterRects(Rect* candidateRects, int 
 // Returns true if rect seems to be valid
 bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verboseImage)
 {
+
+	// for collecting log data
+	std::stringstream logMsg;
+
+
 	// From the center, scan in every direction and find the first RED pixel
 	Point center = Point(newRect.x+newRect.width/2, newRect.y+newRect.height/2);
 
@@ -149,7 +154,7 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 
 	if (configManager.verboseTxt_RectConsolidation)
 	{
-		Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, "Rect consolidation: x%d y%d w%d h%d", newRect.x, newRect.y, newRect.width, newRect.height);
+		logMsg << "Rect consolidation: x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height;
 	}
 	// Update rect sizes (if the borders were really found)
 	if (topLength != -1 && bottomLength != -1)
@@ -160,7 +165,9 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 		newRect.height = topLength + bottomLength;
 		if (configManager.verboseTxt_RectConsolidation)
 		{
-			Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, " -> x%d y%d w%d h%d\n", newRect.x, newRect.y, newRect.width, newRect.height);
+			logMsg << " -> x" << newRect.x << " y" << newRect.y << " w" << newRect.width << " h" << newRect.height << endl;
+			Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, logMsg.str().c_str());
+			logMsg.str(""); // clear
 		}
 		return true;
 	}
@@ -168,7 +175,9 @@ bool TwoColorLocator::updateRectToRealSize(Mat &srcCC, Rect &newRect, Mat *verbo
 	{
 		if (configManager.verboseTxt_RectConsolidation)
 		{
-			Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, " -> REJECT\n");
+			logMsg << " -> REJECT" << endl;
+			Logger::log(Logger::LOGLEVEL_VERBOSE, LOG_TAG, logMsg.str().c_str());
+			logMsg.str(""); // clear
 		}
 		return false;
 	}
